@@ -40,17 +40,3 @@ func (h *Handler) Serve(ctx context.Context, inPayload []byte) ([]byte, error) {
 func (h *Handler) String() string {
 	return fmt.Sprintf("/%s", strings.ToLower(h.method.Name))
 }
-
-type RouteExtender struct {
-	name string
-}
-
-var _ handler.Handler = (*RouteExtender)(nil)
-
-func (h *RouteExtender) Serve(ctx context.Context, inPayload []byte) ([]byte, error) {
-	return nil, nil
-}
-
-func (h *RouteExtender) String() string {
-	return fmt.Sprintf("/%s", h.name)
-}

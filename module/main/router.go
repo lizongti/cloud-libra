@@ -24,13 +24,13 @@ func (r *Router) Handle(route string, handler handler.Handler) {
 	r.m.Store(route, handler)
 }
 
-func (r *Router) Serve(ctx context.Context, payload []byte) {
+func (r *Router) Serve(ctx context.Context, payload []byte) ([]byte, error) {
 	route := strings.Split(strings.TrimLeft(ctx.GetLeftAddr(), "/"), "/")[0]
 	v, ok := r.m.Load(route)
 	if !ok {
 		panic("route not found")
 	}
-	v.(handler.Handler).Serve(ctx, payload)
+	return v.(handler.Handler).Serve(ctx, payload)
 }
 
 func (r *Router) WithCodec(codec codec.Codec) {
@@ -57,5 +57,5 @@ func (r *Router) installHandlers() {
 }
 
 func (r *Router) Extend(route string, rFront *Router) {
-	r.Handle(route, new(RouteExtender))
+	r.Handle(route, rFront)
 }

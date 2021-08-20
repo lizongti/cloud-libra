@@ -12,6 +12,6 @@ type Router interface {
 	component.Component
 
 	Handle(string, handler.Handler)
-	Serve(context.Context, string, []byte)
+	Serve(context.Context, string, []byte) ([]byte, error)
 	WithCodec(codec.Codec)
 }
