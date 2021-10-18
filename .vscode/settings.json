@@ -36,6 +36,9 @@
     "editor.tabCompletion": "on",
     "editor.insertSpaces": false,
     "go.testTimeout": "3600s",
+    "go.testFlags": [
+        "-v"
+    ],
     "go.docsTool": "gogetdoc",
     "go.formatTool": "gofumpt",
     "go.formatFlags": [],
