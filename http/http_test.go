@@ -259,3 +259,7 @@ func TestClientRetry(t *testing.T) {
 		t.Fatal("expected a body with content")
 	}
 }
+
+func TestProxy(t *testing.T) {
+	// TODO: after finish proxy package
+}
