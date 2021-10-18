@@ -88,13 +88,10 @@ func (c *Client) do(method string, url string) (*http.Response, []byte, error) {
 }
 
 func (c *Client) requestWithRetry(f func() (*http.Response, error)) (resp *http.Response, body []byte, err error) {
-	for times := 0; times < c.retry; times++ {
+	for times := 1; times <= c.retry; times++ {
 		resp, body, err = c.request(f)
-		if err != nil {
-			return nil, nil, err
-		}
-		if resp.StatusCode != 200 {
-			continue
+		if err == nil && resp.StatusCode == 200 {
+			break
 		}
 	}
 	return resp, body, err
