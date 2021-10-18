@@ -3,6 +3,7 @@ package http
 import (
 	"net/http"
 
+	"github.com/elazarl/goproxy"
 	"github.com/gorilla/mux"
 )
 
@@ -40,6 +41,9 @@ func (s *Server) serve(addr string) (err error) {
 			}
 		}()
 	}
+	if s.asProxy {
+		return http.ListenAndServe(addr, goproxy.NewProxyHttpServer())
+	}
 	return http.ListenAndServe(addr, s.router)
 }
 
@@ -59,6 +63,7 @@ type route struct {
 type serverOpt struct {
 	serverOptions
 	routes     []*route
+	asProxy    bool
 	background bool
 	safety     bool
 }
@@ -86,24 +91,35 @@ func (s *Server) WithRoute(path string, f func(http.ResponseWriter, *http.Reques
 	return s
 }
 
-func WithBackground(background bool) serverOption {
+func WithAsProxy() serverOption {
 	return func(s *Server) {
-		s.WithBackground(background)
+		s.WithAsProxy()
 	}
 }
 
-func (s *Server) WithBackground(background bool) *Server {
-	s.background = background
+func (s *Server) WithAsProxy() *Server {
+	s.asProxy = true
 	return s
 }
 
-func WithServerSafety(safety bool) serverOption {
+func WithBackground() serverOption {
 	return func(s *Server) {
-		s.WithServerSafety(safety)
+		s.WithBackground()
 	}
 }
 
-func (s *Server) WithServerSafety(safety bool) *Server {
-	s.safety = safety
+func (s *Server) WithBackground() *Server {
+	s.background = true
+	return s
+}
+
+func WithServerSafety() serverOption {
+	return func(s *Server) {
+		s.WithServerSafety()
+	}
+}
+
+func (s *Server) WithServerSafety() *Server {
+	s.safety = true
 	return s
 }

@@ -200,7 +200,7 @@ func TestClientSafety(t *testing.T) {
 	text := "safety exception"
 	_, _, err := http.NewClient().WithResponseBodyReader(func(r io.Reader) error {
 		panic(errors.New(text))
-	}).WithClientSafety(true).Get("https://top.baidu.com/board?platform=pc&sa=pcindex_entry")
+	}).WithClientSafety().Get("https://top.baidu.com/board?platform=pc&sa=pcindex_entry")
 	if strings.Index(err.Error(), text) < 0 {
 		t.Fatal("expected an error with safety exception")
 	}
@@ -208,7 +208,7 @@ func TestClientSafety(t *testing.T) {
 
 func TestClientBody(t *testing.T) {
 	http.Serve("localhost:1989",
-		http.WithBackground(true),
+		http.WithBackground(),
 		http.WithRoute("/", func(w http.ResponseWriter, r *http.Request) {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
@@ -230,12 +230,13 @@ func TestClientBody(t *testing.T) {
 	if string(body) != text {
 		t.Fatalf("unexpected body type getting from server: %s", string(body))
 	}
+	t.Log(string(body))
 }
 
 func TestClientRetry(t *testing.T) {
 	var count int = 1
 	http.Serve("localhost:1989",
-		http.WithBackground(true),
+		http.WithBackground(),
 		http.WithRoute("/", func(w http.ResponseWriter, r *http.Request) {
 			if count < 3 {
 				count++
@@ -258,8 +259,20 @@ func TestClientRetry(t *testing.T) {
 	if len(body) == 0 {
 		t.Fatal("expected a body with content")
 	}
+	t.Log(string(body))
 }
 
 func TestProxy(t *testing.T) {
-	// TODO: after finish proxy package
+	http.NewServer().WithAsProxy().WithBackground().Serve("localhost:1989")
+	resp, body, err := http.Get("www.baidu.com", http.WithProxy("http://localhost:1989"))
+	if err != nil {
+		t.Fatalf("unexpected error getting from client: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		t.Fatalf("expected a status code of 200, got %v", resp.StatusCode)
+	}
+	if len(body) == 0 {
+		t.Fatal("expected a body with content")
+	}
+	t.Log(string(body))
 }

@@ -279,13 +279,13 @@ func (c *Client) WithResponseBodyReader(responseBodyReader func(io.Reader) error
 	return c
 }
 
-func WithClientSafety(safety bool) clientOption {
+func WithClientSafety() clientOption {
 	return func(c *Client) {
-		c.WithClientSafety(safety)
+		c.WithClientSafety()
 	}
 }
 
-func (c *Client) WithClientSafety(safety bool) *Client {
-	c.safety = safety
+func (c *Client) WithClientSafety() *Client {
+	c.safety = true
 	return c
 }
