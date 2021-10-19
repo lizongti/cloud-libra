@@ -57,8 +57,8 @@ func (c *Client) Do(method string, url string) (resp *http.Response, body []byte
 	c.init()
 	if c.safety {
 		defer func() {
-			if v := recover(); v != nil {
-				err = v.(error)
+			if e := recover(); e != nil {
+				err = fmt.Errorf("%v", e)
 			}
 		}()
 	}

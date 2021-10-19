@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/elazarl/goproxy"
@@ -10,6 +11,7 @@ import (
 type Server struct {
 	*serverOpt
 	router *mux.Router
+	server *http.Server
 }
 
 func NewServer(options ...serverOption) *Server {
@@ -29,22 +31,37 @@ func (s *Server) Serve(addr string) error {
 	s.init()
 	if s.background {
 		go s.serve(addr)
+		return nil
 	}
 	return s.serve(addr)
 }
 
+func (s *Server) Close() error {
+	return s.server.Shutdown(nil)
+}
+
 func (s *Server) serve(addr string) (err error) {
+	if s.errorFunc != nil {
+		defer func() {
+			s.errorFunc(err)
+			err = nil
+		}()
+	}
+
 	if s.safety {
 		defer func() {
-			if v := recover(); v != nil {
-				err = v.(error)
+			if e := recover(); e != nil {
+				err = fmt.Errorf("%v", e)
 			}
 		}()
 	}
+
 	if s.asProxy {
-		return http.ListenAndServe(addr, goproxy.NewProxyHttpServer())
+		s.server = &http.Server{Addr: addr, Handler: goproxy.NewProxyHttpServer()}
+	} else {
+		s.server = &http.Server{Addr: addr, Handler: s.router}
 	}
-	return http.ListenAndServe(addr, s.router)
+	return s.server.ListenAndServe()
 }
 
 func (s *Server) init() {
@@ -66,6 +83,7 @@ type serverOpt struct {
 	asProxy    bool
 	background bool
 	safety     bool
+	errorFunc  func(error)
 }
 
 func newServerOpt(options []serverOption) *serverOpt {
@@ -121,5 +139,16 @@ func WithServerSafety() serverOption {
 
 func (s *Server) WithServerSafety() *Server {
 	s.safety = true
+	return s
+}
+
+func WithErrorFunc(errorFunc func(error)) serverOption {
+	return func(s *Server) {
+		s.WithErrorFunc(errorFunc)
+	}
+}
+
+func (s *Server) WithErrorFunc(errorFunc func(error)) *Server {
+	s.errorFunc = errorFunc
 	return s
 }
