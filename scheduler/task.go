@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"runtime"
+	"time"
 
 	"github.com/gofrs/uuid"
 )
@@ -15,7 +16,6 @@ type Task struct {
 	state         int
 	progress      int
 	totalProgress int
-	params        map[interface{}]interface{}
 }
 
 type Report struct {
@@ -29,7 +29,6 @@ type Report struct {
 func NewTask(options ...taskOption) *Task {
 	t := &Task{
 		taskOpt: *newTaskOpt(options),
-		params:  make(map[interface{}]interface{}),
 	}
 	t.doOpt(t)
 	return t
@@ -59,6 +58,10 @@ func (t *Task) State() int {
 	return t.state
 }
 
+func (t *Task) SetParam(key interface{}, value interface{}) {
+	t.params[key] = value
+}
+
 func (t *Task) Param(key interface{}) interface{} {
 	value, _ := t.params[key]
 	return value
@@ -76,10 +79,6 @@ func (t *Task) ParamString(key interface{}) string {
 	return t.Param(key).(string)
 }
 
-func (t *Task) SetParam(key interface{}, value interface{}) {
-	t.params[key] = value
-}
-
 func (t *Task) Publish(s *Scheduler) {
 	t.scheduler = s
 	t.init()
@@ -92,6 +91,9 @@ func (t *Task) init() {
 	t.id = uuid.String()
 	t.state = TaskStateCreated
 	t.totalProgress = len(t.stages)
+	if t.name == "" {
+		t.name = "anonymous"
+	}
 }
 
 func (t *Task) execute() {
@@ -104,6 +106,27 @@ func (t *Task) execute() {
 			log.Printf("scheduler: panic executing task %s: %v\n%s", t.name, err, buf)
 		}
 	}()
+
+	if t.timeout == 0 {
+		t.doStages()
+		return
+	}
+
+	doneChan := make(chan struct{})
+
+	go func() {
+		t.doStages()
+		doneChan <- struct{}{}
+	}()
+
+	select {
+	case <-doneChan:
+	case <-time.After(t.timeout):
+		panic(fmt.Errorf("execute timeout"))
+	}
+}
+
+func (t *Task) doStages() {
 	t.switchState(TaskStateRunning)
 
 	for _, stage := range t.stages {
@@ -147,13 +170,16 @@ type taskOptions []taskOption
 
 type taskOpt struct {
 	taskOptions
-	name   string
-	stages []func(*Task) error
+	name    string
+	stages  []func(*Task) error
+	params  map[interface{}]interface{}
+	timeout time.Duration
 }
 
 func newTaskOpt(options []taskOption) *taskOpt {
 	return &taskOpt{
 		taskOptions: options,
+		params:      make(map[interface{}]interface{}),
 	}
 }
 
@@ -193,5 +219,27 @@ func WithParam(key interface{}, value interface{}) taskOption {
 
 func (t *Task) WithParam(key interface{}, value interface{}) *Task {
 	t.params[key] = value
+	return t
+}
+
+func WithParams(params map[interface{}]interface{}) taskOption {
+	return func(t *Task) {
+		t.WithParams(params)
+	}
+}
+
+func (t *Task) WithParams(params map[interface{}]interface{}) *Task {
+	t.params = params
+	return t
+}
+
+func WithTimeout(timeout time.Duration) taskOption {
+	return func(t *Task) {
+		t.WithTimeout(timeout)
+	}
+}
+
+func (t *Task) WithTimeout(timeout time.Duration) *Task {
+	t.timeout = timeout
 	return t
 }

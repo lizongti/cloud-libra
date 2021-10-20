@@ -39,7 +39,6 @@ func TestTaskState(t *testing.T) {
 			if state == scheduler.TaskStateDone {
 				return
 			}
-
 		}
 	}
 }
@@ -79,7 +78,6 @@ func TestTaskStage(t *testing.T) {
 			if r.State == scheduler.TaskStateDone {
 				return
 			}
-
 		}
 	}
 }
@@ -125,8 +123,35 @@ func TestTaskParams(t *testing.T) {
 			if r.State == scheduler.TaskStateDone {
 				return
 			}
-
 		}
 	}
+}
 
+func TestTaskTimeout(t *testing.T) {
+	const (
+		reportChanBacklog = 1000
+		timeout           = 3
+		taskTimeout       = 1
+		sleep             = 2
+	)
+	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
+	s := scheduler.NewScheduler().WithReportChan(reportChan)
+	if err := s.WithBackground().Serve(); err != nil {
+		t.Fatalf("unexpected error getting from scheduler: %v", err)
+	}
+	scheduler.NewTask().WithStages(func(*scheduler.Task) error {
+		time.Sleep(time.Duration(sleep) * time.Second)
+		return nil
+	}).WithName("test_task_timeout").WithTimeout(time.Duration(taskTimeout) * time.Second).Publish(s)
+	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
+	for {
+		select {
+		case <-timeoutChan:
+			t.Fatal("timeout when getting report from task")
+		case r := <-reportChan:
+			if r.State == scheduler.TaskStateFailed {
+				return
+			}
+		}
+	}
 }
