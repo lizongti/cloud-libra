@@ -16,6 +16,7 @@ type Task struct {
 	state          int
 	progress       int
 	totalProgress  int
+	taskBeginTime  int64
 	stateBeginTime int64
 	stageBeginTime int64
 }
@@ -26,6 +27,7 @@ type Report struct {
 	Progress      int
 	TotalProgress int
 	State         int
+	TaskCost      int64
 	LastStateCost int64
 	LastStageCost int64
 }
@@ -98,7 +100,9 @@ func (t *Task) init() {
 	if t.name == "" {
 		t.name = "anonymous"
 	}
-	t.stateBeginTime = time.Now().UnixNano()
+	now := time.Now().UnixNano()
+	t.taskBeginTime = now
+	t.stateBeginTime = now
 }
 
 func (t *Task) execute() {
