@@ -11,11 +11,13 @@ import (
 
 type Task struct {
 	taskOpt
-	scheduler     *Scheduler
-	id            string
-	state         int
-	progress      int
-	totalProgress int
+	scheduler      *Scheduler
+	id             string
+	state          int
+	progress       int
+	totalProgress  int
+	stateBeginTime int64
+	stageBeginTime int64
 }
 
 type Report struct {
@@ -24,6 +26,8 @@ type Report struct {
 	Progress      int
 	TotalProgress int
 	State         int
+	LastStateCost int64
+	LastStageCost int64
 }
 
 func NewTask(options ...taskOption) *Task {
@@ -94,6 +98,7 @@ func (t *Task) init() {
 	if t.name == "" {
 		t.name = "anonymous"
 	}
+	t.stateBeginTime = time.Now().UnixNano()
 }
 
 func (t *Task) execute() {
@@ -122,7 +127,7 @@ func (t *Task) execute() {
 	select {
 	case <-doneChan:
 	case <-time.After(t.timeout):
-		panic(fmt.Errorf("execute timeout"))
+		panic(fmt.Errorf("do stages timeout"))
 	}
 }
 
@@ -141,6 +146,7 @@ func (t *Task) doStages() {
 
 func (t *Task) switchState(state int) {
 	t.state = state
+	now := time.Now().UnixNano()
 	if t.scheduler.needReport() {
 		t.scheduler.report(&Report{
 			ID:            t.id,
@@ -148,12 +154,22 @@ func (t *Task) switchState(state int) {
 			State:         t.state,
 			Progress:      t.progress,
 			TotalProgress: t.totalProgress,
+			LastStageCost: 0,
+			LastStateCost: now - t.stateBeginTime,
 		})
 	}
+	if t.state == TaskStateRunning {
+		t.stageBeginTime = now
+	} else {
+		t.stageBeginTime = 0
+	}
+
+	t.stateBeginTime = now
 }
 
 func (t *Task) switchStage() {
 	t.progress++
+	now := time.Now().UnixNano()
 	if t.scheduler.needReport() {
 		t.scheduler.report(&Report{
 			ID:            t.id,
@@ -161,8 +177,11 @@ func (t *Task) switchStage() {
 			State:         t.state,
 			Progress:      t.progress,
 			TotalProgress: t.totalProgress,
+			LastStageCost: now - t.stageBeginTime,
+			LastStateCost: now - t.stateBeginTime,
 		})
 	}
+	t.stageBeginTime = now
 }
 
 type taskOption func(*Task)
