@@ -9,10 +9,18 @@ import (
 
 type Task struct {
 	taskOpt
-	id        string
-	doFunc    func()
-	progress  int
 	scheduler *Scheduler
+	id        string
+	state     int
+	progress  int
+}
+
+type Report struct {
+	ID            string
+	Name          string
+	Progress      int
+	TotalProgress int
+	State         int
 }
 
 func NewTask(options ...taskOption) *Task {
@@ -27,42 +35,63 @@ func (t *Task) String() string {
 	return t.name
 }
 
-func (t *Task) Progress() int {
-	return t.progress
-}
-
-func (t *Task) MoveProgress(amount int) {
-	t.progress += amount
-	t.scheduler.report(t, RUNNING)
-}
-
 func (t *Task) Publish(s *Scheduler) {
 	t.scheduler = s
 	t.init()
 	t.scheduler.schedule(t)
-	t.scheduler.report(t, PENDING)
+
+}
+
+func (t *Task) init() {
+	uuid, _ := uuid.NewV4()
+	t.id = uuid.String()
 }
 
 func (t *Task) execute() {
 	defer func() {
-		t.scheduler.report(t, FAILED)
 		if err := recover(); err != nil {
+			t.switchState(FAILED)
 			const size = 64 << 10
 			buf := make([]byte, size)
 			buf = buf[:runtime.Stack(buf, false)]
 			log.Printf("scheduler: panic executing task %s: %v\n%s", t.name, err, buf)
 		}
 	}()
-	t.scheduler.report(t, RUNNING)
-	t.doFunc()
-	t.scheduler.report(t, DONE)
+	t.switchState(RUNNING)
+
+	for _, stage := range t.stages {
+		if err := stage(); err != nil {
+			panic(err)
+		}
+		t.switchStage()
+	}
+
+	t.switchState(DONE)
 }
 
-func (t *Task) init() {
-	uuid, _ := uuid.NewV4()
-	t.id = uuid.String()
-	if t.progressMax == 0 {
-		t.progressMax = 1
+func (t *Task) switchState(state int) {
+	t.state = state
+	if t.scheduler.needReport() {
+		t.scheduler.report(&Report{
+			ID:            t.id,
+			Name:          t.name,
+			State:         t.state,
+			Progress:      t.progress,
+			TotalProgress: len(t.stages),
+		})
+	}
+}
+
+func (t *Task) switchStage() {
+	t.progress++
+	if t.scheduler.needReport() {
+		t.scheduler.report(&Report{
+			ID:            t.id,
+			Name:          t.name,
+			State:         t.state,
+			Progress:      t.progress,
+			TotalProgress: len(t.stages),
+		})
 	}
 }
 
@@ -71,8 +100,8 @@ type taskOptions []taskOption
 
 type taskOpt struct {
 	taskOptions
-	name        string
-	progressMax int
+	name   string
+	stages []func() error
 }
 
 func newTaskOpt(options []taskOption) *taskOpt {
@@ -98,13 +127,12 @@ func (t *Task) WithName(name string) *Task {
 	return t
 }
 
-func WithProgressMax(progressMax int) taskOption {
+func WithStage(stage func() error) taskOption {
 	return func(t *Task) {
-		t.WithProgressMax(progressMax)
+		t.WithStage(stage)
 	}
 }
 
-func (t *Task) WithProgressMax(progressMax int) *Task {
-	t.progressMax = progressMax
-	return t
+func (t *Task) WithStage(stage func() error) {
+	t.stages = append(t.stages, stage)
 }

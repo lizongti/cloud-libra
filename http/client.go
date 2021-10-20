@@ -65,6 +65,26 @@ func (c *Client) Do(method string, url string) (resp *http.Response, body []byte
 	return c.do(method, url)
 }
 
+func (c *Client) init() error {
+	if c.proxy != "" {
+		fixedURL, err := url.Parse(c.proxy)
+		if err != nil {
+			return err
+		}
+		c.client.Transport = &http.Transport{Proxy: http.ProxyURL(fixedURL)}
+	}
+	if c.timeout > 0 {
+		c.client.Timeout = c.timeout
+	}
+	if c.retry < 1 {
+		c.retry = 1
+	}
+	if c.contentType == "" {
+		c.contentType = "text/plain"
+	}
+	return nil
+}
+
 func (c *Client) do(method string, url string) (*http.Response, []byte, error) {
 	return c.requestWithRetry(func() (*http.Response, error) {
 		submatch := regexp.MustCompile("(https?://)?(.+)").FindStringSubmatch(url)
@@ -120,26 +140,6 @@ func (c *Client) request(f func() (*http.Response, error)) (resp *http.Response,
 	}
 
 	return resp, body, nil
-}
-
-func (c *Client) init() error {
-	if c.proxy != "" {
-		fixedURL, err := url.Parse(c.proxy)
-		if err != nil {
-			return err
-		}
-		c.client.Transport = &http.Transport{Proxy: http.ProxyURL(fixedURL)}
-	}
-	if c.timeout > 0 {
-		c.client.Timeout = c.timeout
-	}
-	if c.retry < 1 {
-		c.retry = 1
-	}
-	if c.contentType == "" {
-		c.contentType = "text/plain"
-	}
-	return nil
 }
 
 type clientOption func(*Client)

@@ -40,6 +40,12 @@ func (s *Server) Close() error {
 	return s.server.Shutdown(nil)
 }
 
+func (s *Server) init() {
+	for _, routes := range s.routes {
+		s.router.HandleFunc(routes.path, routes.handleFunc)
+	}
+}
+
 func (s *Server) serve(addr string) (err error) {
 	if s.errorFunc != nil {
 		defer func() {
@@ -62,12 +68,6 @@ func (s *Server) serve(addr string) (err error) {
 		s.server = &http.Server{Addr: addr, Handler: s.router}
 	}
 	return s.server.ListenAndServe()
-}
-
-func (s *Server) init() {
-	for _, routes := range s.routes {
-		s.router.HandleFunc(routes.path, routes.handleFunc)
-	}
 }
 
 type serverOption func(*Server)
