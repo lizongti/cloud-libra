@@ -35,7 +35,7 @@
     "editor.parameterHints.enabled": true,
     "editor.tabCompletion": "on",
     "editor.insertSpaces": false,
-    "go.testTimeout": "3600s",
+    "go.testTimeout": "60s",
     "go.testFlags": [
         "-v"
     ],
@@ -94,5 +94,8 @@
     },
     "files.exclude": {
         "**/.git": true,
+    },
+    "files.watcherExclude": {
+        "**/target": true
     },
 }

@@ -5,15 +5,15 @@ import (
 )
 
 const (
-	CREATED = iota
-	PENDING
-	RUNNING
-	DONE
-	FAILED
+	TaskStateCreated = iota
+	TaskStatePending
+	TaskStateRunning
+	TaskStateDone
+	TaskStateFailed
 )
 
 type Scheduler struct {
-	schedulerOpt
+	*schedulerOpt
 	pipelines []*pipeline
 	taskChan  chan *Task
 	panicChan chan interface{}
@@ -26,11 +26,12 @@ type pipeline struct {
 	exitChan chan struct{}
 }
 
-func NewScheduler() *Scheduler {
+func NewScheduler(options ...schedulerOption) *Scheduler {
 	s := &Scheduler{
-		panicChan: make(chan interface{}, 1),
-		dieChan:   make(chan struct{}),
-		exitChan:  make(chan struct{}),
+		schedulerOpt: newSchedulerOpt(options),
+		panicChan:    make(chan interface{}, 1),
+		dieChan:      make(chan struct{}),
+		exitChan:     make(chan struct{}),
 	}
 	s.doOpt(s)
 	return s
@@ -56,6 +57,9 @@ func (s *Scheduler) Close() error {
 
 func (s *Scheduler) init() {
 	s.taskChan = make(chan *Task, s.backlog)
+	if s.parallel == 0 {
+		s.parallel = 1
+	}
 
 	for i := 0; i < s.parallel; i++ {
 		s.pipelines = append(s.pipelines, &pipeline{
@@ -161,11 +165,11 @@ func (opt *schedulerOpt) doOpt(s *Scheduler) {
 
 func WithBacklog(taskBacklog int) schedulerOption {
 	return func(s *Scheduler) {
-		s.WithTaskBacklog(taskBacklog)
+		s.WithBacklog(taskBacklog)
 	}
 }
 
-func (s *Scheduler) WithTaskBacklog(taskBacklog int) *Scheduler {
+func (s *Scheduler) WithBacklog(taskBacklog int) *Scheduler {
 	s.backlog = taskBacklog
 	return s
 }

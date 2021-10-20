@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"fmt"
 	"log"
 	"runtime"
 
@@ -9,10 +10,12 @@ import (
 
 type Task struct {
 	taskOpt
-	scheduler *Scheduler
-	id        string
-	state     int
-	progress  int
+	scheduler     *Scheduler
+	id            string
+	state         int
+	progress      int
+	totalProgress int
+	params        map[interface{}]interface{}
 }
 
 type Report struct {
@@ -24,49 +27,93 @@ type Report struct {
 }
 
 func NewTask(options ...taskOption) *Task {
-	s := &Task{
+	t := &Task{
 		taskOpt: *newTaskOpt(options),
+		params:  make(map[interface{}]interface{}),
 	}
-	s.doOpt(s)
-	return s
+	t.doOpt(t)
+	return t
 }
 
 func (t *Task) String() string {
+	return fmt.Sprintf("%s[%s](%d/%d)", t.name, t.id, t.progress, t.totalProgress)
+}
+
+func (t *Task) ID() string {
+	return t.id
+}
+
+func (t *Task) Name() string {
 	return t.name
+}
+
+func (t *Task) Progress() int {
+	return t.progress
+}
+
+func (t *Task) TotalProgress() int {
+	return t.totalProgress
+}
+
+func (t *Task) State() int {
+	return t.state
+}
+
+func (t *Task) Param(key interface{}) interface{} {
+	value, _ := t.params[key]
+	return value
+}
+
+func (t *Task) ParamBool(key interface{}) bool {
+	return t.Param(key).(bool)
+}
+
+func (t *Task) ParamInt(key interface{}) int {
+	return t.Param(key).(int)
+}
+
+func (t *Task) ParamString(key interface{}) string {
+	return t.Param(key).(string)
+}
+
+func (t *Task) SetParam(key interface{}, value interface{}) {
+	t.params[key] = value
 }
 
 func (t *Task) Publish(s *Scheduler) {
 	t.scheduler = s
 	t.init()
+	t.switchState(TaskStatePending)
 	t.scheduler.schedule(t)
-
 }
 
 func (t *Task) init() {
 	uuid, _ := uuid.NewV4()
 	t.id = uuid.String()
+	t.state = TaskStateCreated
+	t.totalProgress = len(t.stages)
 }
 
 func (t *Task) execute() {
 	defer func() {
 		if err := recover(); err != nil {
-			t.switchState(FAILED)
+			t.switchState(TaskStateFailed)
 			const size = 64 << 10
 			buf := make([]byte, size)
 			buf = buf[:runtime.Stack(buf, false)]
 			log.Printf("scheduler: panic executing task %s: %v\n%s", t.name, err, buf)
 		}
 	}()
-	t.switchState(RUNNING)
+	t.switchState(TaskStateRunning)
 
 	for _, stage := range t.stages {
-		if err := stage(); err != nil {
+		if err := stage(t); err != nil {
 			panic(err)
 		}
 		t.switchStage()
 	}
 
-	t.switchState(DONE)
+	t.switchState(TaskStateDone)
 }
 
 func (t *Task) switchState(state int) {
@@ -77,7 +124,7 @@ func (t *Task) switchState(state int) {
 			Name:          t.name,
 			State:         t.state,
 			Progress:      t.progress,
-			TotalProgress: len(t.stages),
+			TotalProgress: t.totalProgress,
 		})
 	}
 }
@@ -90,7 +137,7 @@ func (t *Task) switchStage() {
 			Name:          t.name,
 			State:         t.state,
 			Progress:      t.progress,
-			TotalProgress: len(t.stages),
+			TotalProgress: t.totalProgress,
 		})
 	}
 }
@@ -101,7 +148,7 @@ type taskOptions []taskOption
 type taskOpt struct {
 	taskOptions
 	name   string
-	stages []func() error
+	stages []func(*Task) error
 }
 
 func newTaskOpt(options []taskOption) *taskOpt {
@@ -127,12 +174,24 @@ func (t *Task) WithName(name string) *Task {
 	return t
 }
 
-func WithStage(stage func() error) taskOption {
+func WithStages(stages ...func(*Task) error) taskOption {
 	return func(t *Task) {
-		t.WithStage(stage)
+		t.WithStages(stages...)
 	}
 }
 
-func (t *Task) WithStage(stage func() error) {
-	t.stages = append(t.stages, stage)
+func (t *Task) WithStages(stages ...func(*Task) error) *Task {
+	t.stages = append(t.stages, stages...)
+	return t
+}
+
+func WithParam(key interface{}, value interface{}) taskOption {
+	return func(t *Task) {
+		t.WithParam(key, value)
+	}
+}
+
+func (t *Task) WithParam(key interface{}, value interface{}) *Task {
+	t.params[key] = value
+	return t
 }
