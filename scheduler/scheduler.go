@@ -52,13 +52,6 @@ func (s *Scheduler) init() {
 	if s.parallel == 0 {
 		s.parallel = 1
 	}
-
-	for i := 0; i < s.parallel; i++ {
-		s.pipelines = append(s.pipelines, &pipeline{
-			dieChan:  make(chan struct{}),
-			exitChan: make(chan struct{}),
-		})
-	}
 }
 
 func (s *Scheduler) serve() (err error) {
@@ -79,17 +72,31 @@ func (s *Scheduler) serve() (err error) {
 
 	defer close(s.exitChan)
 
-	for _, p := range s.pipelines {
+	s.increaseParallel(s.parallel)
+
+	for {
+		select {
+		case n := <-s.parallelChan:
+			s.increaseParallel(n)
+		case p := <-s.panicChan:
+			panic(p)
+		case <-s.dieChan:
+			return
+		}
+	}
+}
+
+func (s *Scheduler) increaseParallel(n int) {
+	for n > 0 {
+		p := &pipeline{
+			dieChan:  make(chan struct{}),
+			exitChan: make(chan struct{}),
+		}
 		go func(p *pipeline) {
 			s.digest(p)
 		}(p)
-	}
-
-	select {
-	case p := <-s.panicChan:
-		panic(p)
-	case <-s.dieChan:
-		return
+		s.pipelines = append(s.pipelines, p)
+		n--
 	}
 }
 
@@ -132,15 +139,21 @@ func (s *Scheduler) report(r *Report) {
 type schedulerOption func(*Scheduler)
 type schedulerOptions []schedulerOption
 
+type autoParallel struct {
+	trigger   <-chan struct{}
+	increase  int
+	limitFunc func(*Scheduler) bool
+}
+
 type schedulerOpt struct {
 	schedulerOptions
-	backlog    int
-	tpsLimit   int
-	parallel   int
-	background bool
-	safety     bool
-	errorFunc  func(error)
-	reportChan chan<- *Report
+	backlog      int
+	parallel     int
+	parallelChan <-chan int
+	background   bool
+	safety       bool
+	errorFunc    func(error)
+	reportChan   chan<- *Report
 }
 
 func newSchedulerOpt(options []schedulerOption) *schedulerOpt {
@@ -163,17 +176,6 @@ func WithBacklog(taskBacklog int) schedulerOption {
 
 func (s *Scheduler) WithBacklog(taskBacklog int) *Scheduler {
 	s.backlog = taskBacklog
-	return s
-}
-
-func WithTPSLimit(tpsLimit int) schedulerOption {
-	return func(s *Scheduler) {
-		s.WithTPSLimit(tpsLimit)
-	}
-}
-
-func (s *Scheduler) WithTPSLimit(tpsLimit int) *Scheduler {
-	s.tpsLimit = tpsLimit
 	return s
 }
 
@@ -229,5 +231,16 @@ func WithReportChan(reportChan chan<- *Report) schedulerOption {
 
 func (s *Scheduler) WithReportChan(reportChan chan<- *Report) *Scheduler {
 	s.reportChan = reportChan
+	return s
+}
+
+func WithParallelChan(parallelChan <-chan int) schedulerOption {
+	return func(s *Scheduler) {
+		s.WithParallelChan(parallelChan)
+	}
+}
+
+func (s *Scheduler) WithParallelChan(parallelChan <-chan int) *Scheduler {
+	s.parallelChan = parallelChan
 	return s
 }
