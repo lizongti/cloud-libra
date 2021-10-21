@@ -102,3 +102,71 @@ func TestParallelChan(t *testing.T) {
 		}
 	}
 }
+
+func TestTPS(t *testing.T) {
+	const (
+		reportChanBacklog = 1000
+		backlog           = 1000
+		parallel          = 1
+		parallelIncrease  = 1
+		taskCount         = 100
+		timeout           = 10
+		parallelTickMS    = 100
+		tps               = 20
+	)
+	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
+	var parallelChan = make(chan int)
+	s := scheduler.NewScheduler(
+		scheduler.WithBacklog(backlog),
+		scheduler.WithParallel(parallel),
+		scheduler.WithReportChan(reportChan),
+		scheduler.WithParallelChan(parallelChan),
+	)
+	if err := s.WithBackground().Serve(); err != nil {
+		t.Fatalf("unexpected error getting from scheduler: %v", err)
+	}
+	for index := 0; index < taskCount; index++ {
+		scheduler.NewTask(
+			scheduler.WithName(fmt.Sprintf("test_parallel_pipeline[%d]", index)),
+			scheduler.WithStages(func(task *scheduler.Task) error {
+				time.Sleep(time.Second * 1)
+				return nil
+			}),
+		).Publish(s)
+	}
+	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
+	var tickerChan = time.NewTicker(time.Duration(parallelTickMS) * time.Millisecond).C
+	var tpsTickerChan = time.NewTicker(time.Second).C
+	var stateMap = make(map[scheduler.TaskStateType]int)
+	var finishCount int
+	var tpsFinishCount int
+	var maxTPS int
+	for {
+		select {
+		case <-timeoutChan:
+			t.Fatal("timeout when getting report from task")
+		case r := <-reportChan:
+			if r.Progress == 0 {
+				stateMap[r.State]++
+			}
+			if r.State == scheduler.TaskStateDone || r.State == scheduler.TaskStateFailed {
+				finishCount++
+				tpsFinishCount++
+				if finishCount == taskCount {
+					return
+				}
+			}
+		case <-tickerChan:
+			if stateMap[scheduler.TaskStatePending]-stateMap[scheduler.TaskStateRunning] > 0 {
+				if maxTPS < tps {
+					parallelChan <- parallelIncrease
+				}
+			}
+		case <-tpsTickerChan:
+			if tpsFinishCount > maxTPS {
+				maxTPS = tpsFinishCount
+			}
+			tpsFinishCount = 0
+		}
+	}
+}
