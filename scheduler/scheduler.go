@@ -4,14 +4,6 @@ import (
 	"fmt"
 )
 
-const (
-	TaskStateCreated = iota
-	TaskStatePending
-	TaskStateRunning
-	TaskStateDone
-	TaskStateFailed
-)
-
 type Scheduler struct {
 	*schedulerOpt
 	pipelines []*pipeline

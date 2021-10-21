@@ -18,7 +18,7 @@ func TestTaskState(t *testing.T) {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	scheduler.NewTask().WithName("test_task_state").Publish(s)
-	var states = []int{
+	var states = []scheduler.TaskStateType{
 		scheduler.TaskStateCreated,
 		scheduler.TaskStatePending,
 		scheduler.TaskStateRunning,
@@ -150,6 +150,58 @@ func TestTaskTimeout(t *testing.T) {
 			t.Fatal("timeout when getting report from task")
 		case r := <-reportChan:
 			if r.State == scheduler.TaskStateFailed {
+				return
+			}
+		}
+	}
+}
+
+func TestTaskReportTime(t *testing.T) {
+	const (
+		reportChanBacklog = 1000
+		stageCount        = 100
+		timeout           = 20
+		sleep             = 1
+	)
+	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
+	s := scheduler.NewScheduler().WithReportChan(reportChan)
+	if err := s.WithBackground().Serve(); err != nil {
+		t.Fatalf("unexpected error getting from scheduler: %v", err)
+	}
+	var stages = make([]func(*scheduler.Task) error, 0, stageCount)
+	for index := 0; index < 10; index++ {
+		stages = append(stages, func(task *scheduler.Task) error {
+			time.Sleep(time.Duration(sleep) * time.Second)
+			return nil
+		})
+	}
+
+	scheduler.NewTask().WithStages(stages...).WithName("test_task_stage").Publish(s)
+	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
+	for {
+		select {
+		case <-timeoutChan:
+			t.Fatal("timeout when getting report from task")
+		case r := <-reportChan:
+			if r.State == scheduler.TaskStateRunning && r.Progress > 0 {
+				if r.TaskDuration.Nanoseconds() == 0 {
+					t.Fatal("expecting a task duration, got 0")
+				}
+				if r.StateDuration.Nanoseconds() == 0 {
+					t.Fatal("expecting a state duration, got 0")
+				}
+				if r.StageDuration.Nanoseconds() == 0 {
+					t.Fatal("expecting a stage duration, got 0")
+				}
+			}
+			t.Logf("state: %v, progress: %v, stage task duration: %v(ms), state duration: %v(ms), stage duration: %v(ms)",
+				r.State,
+				r.Progress,
+				r.TaskDuration.Milliseconds(),
+				r.StateDuration.Milliseconds(),
+				r.StageDuration.Milliseconds(),
+			)
+			if r.State == scheduler.TaskStateDone {
 				return
 			}
 		}

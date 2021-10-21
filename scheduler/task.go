@@ -9,16 +9,41 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+type TaskStateType int
+
+const (
+	TaskStateCreated TaskStateType = iota
+	TaskStatePending
+	TaskStateRunning
+	TaskStateDone
+	TaskStateFailed
+)
+
+var taskStateName = map[TaskStateType]string{
+	TaskStateCreated: "created",
+	TaskStatePending: "pending",
+	TaskStateRunning: "running",
+	TaskStateDone:    "done",
+	TaskStateFailed:  "failed",
+}
+
+func (t TaskStateType) String() string {
+	if s, ok := taskStateName[t]; ok {
+		return s
+	}
+	return fmt.Sprintf("taskStateName=%d?", int(t))
+}
+
 type Task struct {
 	taskOpt
-	scheduler      *Scheduler
-	id             string
-	state          int
-	progress       int
-	totalProgress  int
-	taskBeginTime  int64
-	stateBeginTime int64
-	stageBeginTime int64
+	scheduler     *Scheduler
+	id            string
+	state         TaskStateType
+	progress      int
+	totalProgress int
+	taskStarted   time.Time
+	stateStarted  time.Time
+	stageStarted  time.Time
 }
 
 type Report struct {
@@ -26,10 +51,10 @@ type Report struct {
 	Name          string
 	Progress      int
 	TotalProgress int
-	State         int
-	TaskCost      int64
-	LastStateCost int64
-	LastStageCost int64
+	State         TaskStateType
+	TaskDuration  time.Duration
+	StateDuration time.Duration
+	StageDuration time.Duration
 }
 
 func NewTask(options ...taskOption) *Task {
@@ -60,7 +85,7 @@ func (t *Task) TotalProgress() int {
 	return t.totalProgress
 }
 
-func (t *Task) State() int {
+func (t *Task) State() TaskStateType {
 	return t.state
 }
 
@@ -100,9 +125,9 @@ func (t *Task) init() {
 	if t.name == "" {
 		t.name = "anonymous"
 	}
-	now := time.Now().UnixNano()
-	t.taskBeginTime = now
-	t.stateBeginTime = now
+	now := time.Now()
+	t.taskStarted = now
+	t.stateStarted = now
 }
 
 func (t *Task) execute() {
@@ -148,9 +173,9 @@ func (t *Task) doStages() {
 	t.switchState(TaskStateDone)
 }
 
-func (t *Task) switchState(state int) {
+func (t *Task) switchState(state TaskStateType) {
 	t.state = state
-	now := time.Now().UnixNano()
+	now := time.Now()
 	if t.scheduler.needReport() {
 		t.scheduler.report(&Report{
 			ID:            t.id,
@@ -158,22 +183,23 @@ func (t *Task) switchState(state int) {
 			State:         t.state,
 			Progress:      t.progress,
 			TotalProgress: t.totalProgress,
-			LastStageCost: 0,
-			LastStateCost: now - t.stateBeginTime,
+			TaskDuration:  now.Sub(t.taskStarted),
+			StageDuration: 0,
+			StateDuration: now.Sub(t.stateStarted),
 		})
 	}
 	if t.state == TaskStateRunning {
-		t.stageBeginTime = now
+		t.stageStarted = now
 	} else {
-		t.stageBeginTime = 0
+		t.stageStarted = time.Time{}
 	}
 
-	t.stateBeginTime = now
+	t.stateStarted = now
 }
 
 func (t *Task) switchStage() {
 	t.progress++
-	now := time.Now().UnixNano()
+	now := time.Now()
 	if t.scheduler.needReport() {
 		t.scheduler.report(&Report{
 			ID:            t.id,
@@ -181,11 +207,12 @@ func (t *Task) switchStage() {
 			State:         t.state,
 			Progress:      t.progress,
 			TotalProgress: t.totalProgress,
-			LastStageCost: now - t.stageBeginTime,
-			LastStateCost: now - t.stateBeginTime,
+			TaskDuration:  now.Sub(t.taskStarted),
+			StageDuration: now.Sub(t.stageStarted),
+			StateDuration: now.Sub(t.stateStarted),
 		})
 	}
-	t.stageBeginTime = now
+	t.stageStarted = time.Now()
 }
 
 type taskOption func(*Task)
