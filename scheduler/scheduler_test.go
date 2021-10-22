@@ -35,7 +35,7 @@ func TestParallel(t *testing.T) {
 	for {
 		select {
 		case <-timeoutChan:
-			t.Fatal("timeout when getting report from task")
+			t.Fatal("timed out when getting report from task")
 		case r := <-reportChan:
 			if r.State == scheduler.TaskStateDone || r.State == scheduler.TaskStateFailed {
 				finishCount++
@@ -76,6 +76,7 @@ func TestParallelChan(t *testing.T) {
 				return nil
 			}),
 		).Publish(s)
+		t.Log(index)
 	}
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
 	var tickerChan = time.NewTicker(time.Duration(parallelTickMS) * time.Millisecond).C
@@ -144,7 +145,7 @@ func TestTPS(t *testing.T) {
 	for {
 		select {
 		case <-timeoutChan:
-			t.Fatal("timeout when getting report from task")
+			t.Fatal("timed out when getting report from task")
 		case r := <-reportChan:
 			if r.Progress == 0 {
 				stateMap[r.State]++

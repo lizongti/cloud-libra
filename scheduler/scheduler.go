@@ -149,9 +149,9 @@ type schedulerOption struct{}
 
 var SchedulerOption schedulerOption
 
-func (schedulerOption) WithBacklog(taskBacklog int) schedulerOpt {
+func (schedulerOption) WithBacklog(backlog int) schedulerOpt {
 	return func(s *Scheduler) {
-		s.WithBacklog(taskBacklog)
+		s.backlog = backlog
 	}
 }
 
