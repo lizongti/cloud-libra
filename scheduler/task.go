@@ -35,7 +35,11 @@ func (t TaskStateType) String() string {
 }
 
 type Task struct {
-	taskOpt
+	opts          []taskOpt
+	name          string
+	stages        []func(*Task) error
+	params        map[interface{}]interface{}
+	timeout       time.Duration
 	scheduler     *Scheduler
 	id            string
 	state         TaskStateType
@@ -57,12 +61,8 @@ type Report struct {
 	StageDuration time.Duration
 }
 
-func NewTask(options ...taskOption) *Task {
-	t := &Task{
-		taskOpt: *newTaskOpt(options),
-	}
-	t.doOpt(t)
-	return t
+func NewTask(opts ...taskOpt) *Task {
+	return &Task{opts: opts}
 }
 
 func (t *Task) String() string {
@@ -118,6 +118,12 @@ func (t *Task) Publish(s *Scheduler) {
 }
 
 func (t *Task) init() {
+	t.params = make(map[interface{}]interface{})
+
+	for _, opt := range t.opts {
+		opt(t)
+	}
+
 	uuid, _ := uuid.NewV4()
 	t.id = uuid.String()
 	t.state = TaskStateCreated
@@ -215,81 +221,62 @@ func (t *Task) switchStage() {
 	t.stageStarted = time.Now()
 }
 
-type taskOption func(*Task)
-type taskOptions []taskOption
+type taskOpt func(*Task)
+type taskOption struct{}
 
-type taskOpt struct {
-	taskOptions
-	name    string
-	stages  []func(*Task) error
-	params  map[interface{}]interface{}
-	timeout time.Duration
-}
+var TaskOption taskOption
 
-func newTaskOpt(options []taskOption) *taskOpt {
-	return &taskOpt{
-		taskOptions: options,
-		params:      make(map[interface{}]interface{}),
-	}
-}
-
-func (opt *taskOpt) doOpt(s *Task) {
-	for _, option := range opt.taskOptions {
-		option(s)
-	}
-}
-
-func WithName(name string) taskOption {
+func (taskOption) WithName(name string) taskOpt {
 	return func(t *Task) {
-		t.WithName(name)
+		t.name = name
 	}
 }
 
 func (t *Task) WithName(name string) *Task {
-	t.name = name
+	t.opts = append(t.opts, TaskOption.WithName(name))
 	return t
 }
 
-func WithStages(stages ...func(*Task) error) taskOption {
+func (taskOption) WithStages(stages ...func(*Task) error) taskOpt {
 	return func(t *Task) {
-		t.WithStages(stages...)
+		t.stages = append(t.stages, stages...)
 	}
 }
 
 func (t *Task) WithStages(stages ...func(*Task) error) *Task {
-	t.stages = append(t.stages, stages...)
+	t.opts = append(t.opts, TaskOption.WithStages(stages...))
 	return t
 }
 
-func WithParam(key interface{}, value interface{}) taskOption {
+func (taskOption) WithParam(key interface{}, value interface{}) taskOpt {
 	return func(t *Task) {
-		t.WithParam(key, value)
+		t.params[key] = value
 	}
 }
 
 func (t *Task) WithParam(key interface{}, value interface{}) *Task {
-	t.params[key] = value
+	t.opts = append(t.opts, TaskOption.WithParam(key, value))
 	return t
 }
 
-func WithParams(params map[interface{}]interface{}) taskOption {
+func (taskOption) WithParams(params map[interface{}]interface{}) taskOpt {
 	return func(t *Task) {
-		t.WithParams(params)
+		t.params = params
 	}
 }
 
 func (t *Task) WithParams(params map[interface{}]interface{}) *Task {
-	t.params = params
+	t.opts = append(t.opts, TaskOption.WithParams(params))
 	return t
 }
 
-func WithTimeout(timeout time.Duration) taskOption {
+func (taskOption) WithTimeout(timeout time.Duration) taskOpt {
 	return func(t *Task) {
-		t.WithTimeout(timeout)
+		t.timeout = timeout
 	}
 }
 
 func (t *Task) WithTimeout(timeout time.Duration) *Task {
-	t.timeout = timeout
+	t.opts = append(t.opts, TaskOption.WithTimeout(timeout))
 	return t
 }

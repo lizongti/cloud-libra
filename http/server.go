@@ -9,21 +9,25 @@ import (
 )
 
 type Server struct {
-	*serverOpt
-	router *mux.Router
-	server *http.Server
+	opts       []serverOpt
+	routes     []*route
+	proxy      bool
+	background bool
+	safety     bool
+	errorFunc  func(error)
+	router     *mux.Router
+	server     *http.Server
+}
+type route struct {
+	path       string
+	handleFunc func(http.ResponseWriter, *http.Request)
 }
 
-func NewServer(options ...serverOption) *Server {
-	s := &Server{
-		serverOpt: newServerOpt(options),
-		router:    mux.NewRouter(),
-	}
-	s.doOpt(s)
-	return s
+func NewServer(opts ...serverOpt) *Server {
+	return &Server{opts: opts}
 }
 
-func Serve(addr string, options ...serverOption) error {
+func Serve(addr string, options ...serverOpt) error {
 	return NewServer(options...).Serve(addr)
 }
 
@@ -41,6 +45,12 @@ func (s *Server) Close() error {
 }
 
 func (s *Server) init() {
+	s.router = mux.NewRouter()
+
+	for _, opt := range s.opts {
+		opt(s)
+	}
+
 	for _, routes := range s.routes {
 		s.router.HandleFunc(routes.path, routes.handleFunc)
 	}
@@ -62,7 +72,7 @@ func (s *Server) serve(addr string) (err error) {
 		}()
 	}
 
-	if s.asProxy {
+	if s.proxy {
 		s.server = &http.Server{Addr: addr, Handler: goproxy.NewProxyHttpServer()}
 	} else {
 		s.server = &http.Server{Addr: addr, Handler: s.router}
@@ -70,85 +80,62 @@ func (s *Server) serve(addr string) (err error) {
 	return s.server.ListenAndServe()
 }
 
-type serverOption func(*Server)
-type serverOptions []serverOption
-type route struct {
-	path       string
-	handleFunc func(http.ResponseWriter, *http.Request)
-}
+type serverOpt func(*Server)
+type serverOption struct{}
 
-type serverOpt struct {
-	serverOptions
-	routes     []*route
-	asProxy    bool
-	background bool
-	safety     bool
-	errorFunc  func(error)
-}
+var ServerOption serverOption
 
-func newServerOpt(options []serverOption) *serverOpt {
-	return &serverOpt{
-		serverOptions: options,
-	}
-}
-
-func (opt *serverOpt) doOpt(s *Server) {
-	for _, option := range opt.serverOptions {
-		option(s)
-	}
-}
-
-func WithRoute(path string, f func(http.ResponseWriter, *http.Request)) serverOption {
+func (serverOption) WithRoute(path string, f func(http.ResponseWriter, *http.Request)) serverOpt {
 	return func(s *Server) {
-		s.WithRoute(path, f)
+		s.routes = append(s.routes, &route{path, f})
 	}
 }
 
 func (s *Server) WithRoute(path string, f func(http.ResponseWriter, *http.Request)) *Server {
-	s.routes = append(s.routes, &route{path, f})
+	s.opts = append(s.opts, ServerOption.WithRoute(path, f))
 	return s
 }
 
-func WithAsProxy() serverOption {
+func (serverOption) WithProxy() serverOpt {
 	return func(s *Server) {
-		s.WithAsProxy()
+		s.proxy = true
 	}
 }
 
-func (s *Server) WithAsProxy() *Server {
-	s.asProxy = true
+func (s *Server) WithProxy() *Server {
+	s.opts = append(s.opts, ServerOption.WithProxy())
 	return s
 }
 
-func WithBackground() serverOption {
+func (serverOption) WithBackground() serverOpt {
 	return func(s *Server) {
-		s.WithBackground()
+		s.background = true
 	}
 }
 
 func (s *Server) WithBackground() *Server {
-	s.background = true
+	s.opts = append(s.opts, ServerOption.WithBackground())
 	return s
 }
 
-func WithServerSafety() serverOption {
+func (serverOption) WithServerSafety() serverOpt {
 	return func(s *Server) {
-		s.WithServerSafety()
+		s.safety = true
 	}
 }
 
 func (s *Server) WithServerSafety() *Server {
-	s.safety = true
+	s.opts = append(s.opts, ServerOption.WithServerSafety())
 	return s
 }
 
-func WithErrorFunc(errorFunc func(error)) serverOption {
+func (serverOption) WithErrorFunc(errorFunc func(error)) serverOpt {
 	return func(s *Server) {
-		s.WithErrorFunc(errorFunc)
+		s.errorFunc = errorFunc
 	}
 }
 
 func (s *Server) WithErrorFunc(errorFunc func(error)) *Server {
-	s.errorFunc = errorFunc
+	s.opts = append(s.opts, ServerOption.WithErrorFunc(errorFunc))
 	return s
 }

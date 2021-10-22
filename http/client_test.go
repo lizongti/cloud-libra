@@ -105,8 +105,8 @@ func TestClientDoHead(t *testing.T) {
 
 func TestClientParam(t *testing.T) {
 	resp, body, err := http.Get("https://top.baidu.com/board",
-		http.WithParam("platform", "pc"),
-		http.WithParam("sa", "pcindex_entry"),
+		http.ClientOption.WithParam("platform", "pc"),
+		http.ClientOption.WithParam("sa", "pcindex_entry"),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error getting from client: %v", err)
@@ -200,7 +200,7 @@ func TestClientSafety(t *testing.T) {
 	text := "safety exception"
 	_, _, err := http.NewClient().WithResponseBodyReader(func(r io.Reader) error {
 		panic(errors.New(text))
-	}).WithClientSafety().Get("https://top.baidu.com/board?platform=pc&sa=pcindex_entry")
+	}).WithSafety().Get("https://top.baidu.com/board?platform=pc&sa=pcindex_entry")
 	if strings.Index(err.Error(), text) < 0 {
 		t.Fatal("expected an error with safety exception")
 	}
@@ -208,8 +208,8 @@ func TestClientSafety(t *testing.T) {
 
 func TestClientBody(t *testing.T) {
 	http.Serve("localhost:1989",
-		http.WithBackground(),
-		http.WithRoute("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServerOption.WithBackground(),
+		http.ServerOption.WithRoute("/", func(w http.ResponseWriter, r *http.Request) {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				t.Fatal(err)
@@ -236,8 +236,8 @@ func TestClientBody(t *testing.T) {
 func TestClientRetry(t *testing.T) {
 	var count int = 1
 	http.Serve("localhost:1989",
-		http.WithBackground(),
-		http.WithRoute("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServerOption.WithBackground(),
+		http.ServerOption.WithRoute("/", func(w http.ResponseWriter, r *http.Request) {
 			if count < 3 {
 				count++
 				time.Sleep(time.Second * 2)
@@ -263,8 +263,8 @@ func TestClientRetry(t *testing.T) {
 }
 
 func TestProxy(t *testing.T) {
-	http.NewServer().WithAsProxy().WithBackground().Serve("localhost:1989")
-	resp, body, err := http.Get("www.baidu.com", http.WithProxy("http://localhost:1989"))
+	http.NewServer().WithProxy().WithBackground().Serve("localhost:1990")
+	resp, body, err := http.Get("www.baidu.com", http.ClientOption.WithProxy("http://localhost:1990"))
 	if err != nil {
 		t.Fatalf("unexpected error getting from client: %v", err)
 	}

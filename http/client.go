@@ -12,45 +12,62 @@ import (
 	"time"
 )
 
+const (
+	GET  = "GET"
+	POST = "POST"
+	HEAD = "HEAD"
+)
+
+type (
+	Request        = http.Request
+	Response       = http.Response
+	ResponseWriter = http.ResponseWriter
+)
+
 type Client struct {
-	*clientOpt
-	client http.Client
+	opts               []clientOpt
+	protocol           string
+	contentType        string
+	timeout            time.Duration
+	retry              int
+	proxy              string
+	form               url.Values
+	body               io.Reader
+	responseBodyReader func(io.Reader) error
+	safety             bool
+	client             http.Client
 }
 
-func NewClient(options ...clientOption) *Client {
-	c := &Client{
-		clientOpt: newClientOpt(options),
-	}
-	c.doOpt(c)
-	return c
+func NewClient(opts ...clientOpt) *Client {
+	return &Client{opts: opts}
 }
 
-func Get(url string, options ...clientOption) (*http.Response, []byte, error) {
-	return NewClient(options...).Get(url)
+func Get(url string, opts ...clientOpt) (*http.Response, []byte, error) {
+	return NewClient(opts...).Get(url)
 }
 
 func (c *Client) Get(url string) (*http.Response, []byte, error) {
 	return c.Do(GET, url)
 }
 
-func Post(url string, options ...clientOption) (*http.Response, []byte, error) {
-	return NewClient(options...).Post(url)
+func Post(url string, opts ...clientOpt) (*http.Response, []byte, error) {
+	return NewClient(opts...).Post(url)
 }
 
 func (c *Client) Post(url string) (*http.Response, []byte, error) {
 	return c.Do(POST, url)
 }
 
-func Head(url string, options ...clientOption) (*http.Response, []byte, error) {
-	return NewClient(options...).Head(url)
+func Head(url string, opts ...clientOpt) (*http.Response, []byte, error) {
+	return NewClient(opts...).Head(url)
 }
 
 func (c *Client) Head(url string) (*http.Response, []byte, error) {
 	return c.Do(HEAD, url)
 }
 
-func Do(method string, url string, options ...clientOption) (*http.Response, []byte, error) {
-	return NewClient(options...).Do(method, url)
+func Do(method string, url string, opts ...clientOpt) (*http.Response, []byte, error) {
+	return NewClient(opts...).Do(method, url)
 }
 
 func (c *Client) Do(method string, url string) (resp *http.Response, body []byte, err error) {
@@ -66,6 +83,12 @@ func (c *Client) Do(method string, url string) (resp *http.Response, body []byte
 }
 
 func (c *Client) init() error {
+	c.form = make(url.Values)
+
+	for _, opt := range c.opts {
+		opt(c)
+	}
+
 	if c.proxy != "" {
 		fixedURL, err := url.Parse(c.proxy)
 		if err != nil {
@@ -142,150 +165,126 @@ func (c *Client) request(f func() (*http.Response, error)) (resp *http.Response,
 	return resp, body, nil
 }
 
-type clientOption func(*Client)
-type clientOptions []clientOption
+type clientOpt func(*Client)
+type clientOption struct{}
 
-type clientOpt struct {
-	clientOptions
-	protocol           string
-	contentType        string
-	timeout            time.Duration
-	retry              int
-	proxy              string
-	form               url.Values
-	body               io.Reader
-	responseBodyReader func(io.Reader) error
-	safety             bool
-}
+var ClientOption clientOption
 
-func newClientOpt(options []clientOption) *clientOpt {
-	return &clientOpt{
-		clientOptions: options,
-		form:          make(url.Values),
-	}
-}
-
-func (opt *clientOpt) doOpt(c *Client) {
-	for _, option := range opt.clientOptions {
-		option(c)
-	}
-}
-
-func WithProtocol(protocol string) clientOption {
+func (clientOption) WithProtocol(protocol string) clientOpt {
 	return func(c *Client) {
-		c.WithProtocol(protocol)
+		c.protocol = protocol
 	}
 }
 
 func (c *Client) WithProtocol(protocol string) *Client {
-	c.protocol = protocol
+	c.opts = append(c.opts, ClientOption.WithProtocol(protocol))
 	return c
 }
 
-func WithTimeout(timeout time.Duration) clientOption {
+func (clientOption) WithTimeout(timeout time.Duration) clientOpt {
 	return func(c *Client) {
-		c.WithTimeout(timeout)
+		c.timeout = timeout
 	}
 }
 
 func (c *Client) WithTimeout(timeout time.Duration) *Client {
-	c.timeout = timeout
+	c.opts = append(c.opts, ClientOption.WithTimeout(timeout))
 	return c
 }
 
-func WithRetry(retry int) clientOption {
+func (clientOption) WithRetry(retry int) clientOpt {
 	return func(c *Client) {
-		c.WithRetry(retry)
+		c.retry = retry
 	}
 }
 
 func (c *Client) WithRetry(retry int) *Client {
-	c.retry = retry
+	c.opts = append(c.opts, ClientOption.WithRetry(retry))
 	return c
 }
 
-func WithProxy(proxy string) clientOption {
+func (clientOption) WithProxy(proxy string) clientOpt {
 	return func(c *Client) {
-		c.WithProxy(proxy)
+		c.proxy = proxy
 	}
 }
 
 func (c *Client) WithProxy(proxy string) *Client {
-	c.proxy = proxy
+	c.opts = append(c.opts, ClientOption.WithProxy(proxy))
 	return c
 }
 
-func WithContentType(contentType string) clientOption {
+func (clientOption) WithContentType(contentType string) clientOpt {
 	return func(c *Client) {
-		c.WithContentType(contentType)
+		c.contentType = contentType
 	}
 }
 
 func (c *Client) WithContentType(contentType string) *Client {
-	c.contentType = contentType
+	c.opts = append(c.opts, ClientOption.WithContentType(contentType))
 	return c
 }
 
-func WithForm(form url.Values) clientOption {
+func (clientOption) WithForm(form url.Values) clientOpt {
 	return func(c *Client) {
-		c.WithForm(form)
+		c.form = form
 	}
 }
 
 func (c *Client) WithForm(form url.Values) *Client {
-	c.form = form
+	c.opts = append(c.opts, ClientOption.WithForm(form))
 	return c
 }
 
-func WithParam(key string, value string) clientOption {
+func (clientOption) WithParam(key string, value string) clientOpt {
 	return func(c *Client) {
-		c.WithParam(key, value)
+		c.form.Set(key, value)
 	}
 }
 
 func (c *Client) WithParam(key string, value string) *Client {
-	c.form.Set(key, value)
+	c.opts = append(c.opts, ClientOption.WithParam(key, value))
 	return c
 }
 
-func WithBody(body interface{}) clientOption {
+func (clientOption) WithBody(body interface{}) clientOpt {
 	return func(c *Client) {
-		c.WithBody(body)
+		switch body := body.(type) {
+		case string:
+			c.body = strings.NewReader(body)
+		case []byte:
+			c.body = bytes.NewReader(body)
+		case io.Reader:
+			c.body = body
+		default:
+			c.body = strings.NewReader(fmt.Sprintf("%v", body))
+		}
 	}
 }
 
 func (c *Client) WithBody(body interface{}) *Client {
-	switch body := body.(type) {
-	case string:
-		c.body = strings.NewReader(body)
-	case []byte:
-		c.body = bytes.NewReader(body)
-	case io.Reader:
-		c.body = body
-	default:
-		c.body = strings.NewReader(fmt.Sprintf("%v", body))
-	}
+	c.opts = append(c.opts, ClientOption.WithBody(body))
 	return c
 }
 
-func WithResponseBodyReader(responseBodyReader func(io.Reader) error) clientOption {
+func (clientOption) WithResponseBodyReader(responseBodyReader func(io.Reader) error) clientOpt {
 	return func(c *Client) {
-		c.WithResponseBodyReader(responseBodyReader)
+		c.responseBodyReader = responseBodyReader
 	}
 }
 
 func (c *Client) WithResponseBodyReader(responseBodyReader func(io.Reader) error) *Client {
-	c.responseBodyReader = responseBodyReader
+	c.opts = append(c.opts, ClientOption.WithResponseBodyReader(responseBodyReader))
 	return c
 }
 
-func WithClientSafety() clientOption {
+func (clientOption) WithSafety() clientOpt {
 	return func(c *Client) {
-		c.WithClientSafety()
+		c.safety = true
 	}
 }
 
-func (c *Client) WithClientSafety() *Client {
-	c.safety = true
+func (c *Client) WithSafety() *Client {
+	c.opts = append(c.opts, ClientOption.WithSafety())
 	return c
 }

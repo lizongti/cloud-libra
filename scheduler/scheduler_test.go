@@ -23,8 +23,8 @@ func TestParallel(t *testing.T) {
 	}
 	for index := 0; index < taskCount; index++ {
 		scheduler.NewTask(
-			scheduler.WithName(fmt.Sprintf("test_parallel_pipeline[%d]", index)),
-			scheduler.WithStages(func(task *scheduler.Task) error {
+			scheduler.TaskOption.WithName(fmt.Sprintf("test_parallel[%d]", index)),
+			scheduler.TaskOption.WithStages(func(task *scheduler.Task) error {
 				time.Sleep(time.Second * 1)
 				return nil
 			}),
@@ -60,18 +60,18 @@ func TestParallelChan(t *testing.T) {
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
 	var parallelChan = make(chan int)
 	s := scheduler.NewScheduler(
-		scheduler.WithBacklog(backlog),
-		scheduler.WithParallel(parallel),
-		scheduler.WithReportChan(reportChan),
-		scheduler.WithParallelChan(parallelChan),
+		scheduler.SchedulerOption.WithBacklog(backlog),
+		scheduler.SchedulerOption.WithParallel(parallel),
+		scheduler.SchedulerOption.WithReportChan(reportChan),
+		scheduler.SchedulerOption.WithParallelChan(parallelChan),
 	)
 	if err := s.WithBackground().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	for index := 0; index < taskCount; index++ {
 		scheduler.NewTask(
-			scheduler.WithName(fmt.Sprintf("test_parallel_pipeline[%d]", index)),
-			scheduler.WithStages(func(task *scheduler.Task) error {
+			scheduler.TaskOption.WithName(fmt.Sprintf("test_parallel_chan[%d]", index)),
+			scheduler.TaskOption.WithStages(func(task *scheduler.Task) error {
 				time.Sleep(time.Second * 1)
 				return nil
 			}),
@@ -117,18 +117,18 @@ func TestTPS(t *testing.T) {
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
 	var parallelChan = make(chan int)
 	s := scheduler.NewScheduler(
-		scheduler.WithBacklog(backlog),
-		scheduler.WithParallel(parallel),
-		scheduler.WithReportChan(reportChan),
-		scheduler.WithParallelChan(parallelChan),
+		scheduler.SchedulerOption.WithBacklog(backlog),
+		scheduler.SchedulerOption.WithParallel(parallel),
+		scheduler.SchedulerOption.WithReportChan(reportChan),
+		scheduler.SchedulerOption.WithParallelChan(parallelChan),
 	)
 	if err := s.WithBackground().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	for index := 0; index < taskCount; index++ {
 		scheduler.NewTask(
-			scheduler.WithName(fmt.Sprintf("test_parallel_pipeline[%d]", index)),
-			scheduler.WithStages(func(task *scheduler.Task) error {
+			scheduler.TaskOption.WithName(fmt.Sprintf("test_parallel_tps[%d]", index)),
+			scheduler.TaskOption.WithStages(func(task *scheduler.Task) error {
 				time.Sleep(time.Second * 1)
 				return nil
 			}),

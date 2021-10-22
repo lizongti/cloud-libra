@@ -176,7 +176,7 @@ func TestTaskReportTime(t *testing.T) {
 		})
 	}
 
-	scheduler.NewTask().WithStages(stages...).WithName("test_task_stage").Publish(s)
+	scheduler.NewTask().WithStages(stages...).WithName("test_task_report_time").Publish(s)
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
 	for {
 		select {
