@@ -1,8 +1,8 @@
-package handler
+package cluster
 
-import "github.com/lizongti/libra/context"
+import "context"
 
 type Handler interface {
 	Serve(context.Context, []byte) ([]byte, error)
-	String() string
 }
+
