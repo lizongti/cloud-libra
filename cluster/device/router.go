@@ -42,12 +42,3 @@ func (r *Router) localProcess(ctx context.Context, route Route, data []byte) err
 	}
 	return device.Process(ctx, route.forward(), data)
 }
-
-type RemoteRouter struct {
-}
-
-func (r *Route) Process(ctx context.Context, route Route, data []byte) error {
-	// TODO
-	// 集群组件
-	return nil
-}
