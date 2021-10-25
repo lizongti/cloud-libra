@@ -29,6 +29,10 @@ func NewScheduler(opts ...schedulerOpt) *Scheduler {
 	return &Scheduler{opts: opts}
 }
 
+func Default() *Scheduler {
+	return NewScheduler()
+}
+
 func (s *Scheduler) Serve() error {
 	s.init()
 	if s.background {

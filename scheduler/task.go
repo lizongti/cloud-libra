@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"runtime"
@@ -39,6 +40,7 @@ type Task struct {
 	name          string
 	stages        []func(*Task) error
 	params        map[interface{}]interface{}
+	context       context.Context
 	timeout       time.Duration
 	scheduler     *Scheduler
 	id            string
@@ -67,6 +69,10 @@ func NewTask(opts ...taskOpt) *Task {
 
 func (t *Task) String() string {
 	return fmt.Sprintf("%s[%s](%d/%d)", t.name, t.id, t.progress, t.totalProgress)
+}
+
+func (t *Task) Context() context.Context {
+	return t.context
 }
 
 func (t *Task) ID() string {
@@ -267,6 +273,17 @@ func (taskOption) WithParams(params map[interface{}]interface{}) taskOpt {
 
 func (t *Task) WithParams(params map[interface{}]interface{}) *Task {
 	t.opts = append(t.opts, TaskOption.WithParams(params))
+	return t
+}
+
+func (taskOption) WithContext(context context.Context) taskOpt {
+	return func(t *Task) {
+		t.context = context
+	}
+}
+
+func (t *Task) WithTask(context context.Context) *Task {
+	t.opts = append(t.opts, TaskOption.WithContext(context))
 	return t
 }
 
