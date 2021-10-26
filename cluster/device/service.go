@@ -6,12 +6,12 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/aceaura/libra/codec"
+	"github.com/aceaura/libra/encoding"
 	"github.com/aceaura/libra/scheduler"
 )
 
 type Service struct {
-	codec         codec.Codec
+	encoding      encoding.Encoding
 	schedulerFunc func(context.Context) *scheduler.Scheduler
 	handlers      map[string]*Handler
 	gateway       Device

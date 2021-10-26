@@ -60,7 +60,7 @@ func (h *Handler) Do(ctx context.Context, reqData []byte) (respData []byte, err 
 		req = reqData
 	} else {
 		req = reflect.New(mt.In(2).Elem()).Interface()
-		if err = s.codec.Unmarshal(reqData, req); err != nil {
+		if err = s.encoding.Unmarshal(reqData, req); err != nil {
 			return nil, err
 		}
 	}
@@ -72,7 +72,7 @@ func (h *Handler) Do(ctx context.Context, reqData []byte) (respData []byte, err 
 		return nil, err
 	}
 	resp := out[0].Interface().(error)
-	if respData, err = s.codec.Marshal(resp); err != nil {
+	if respData, err = s.encoding.Marshal(resp); err != nil {
 		return nil, err
 	}
 	return

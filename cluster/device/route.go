@@ -60,11 +60,11 @@ func (r Route) String() string {
 	return builder.String()
 }
 
-func (r *Route) Build() *Route {
+func (r *Route) Build() Route {
 	for _, opt := range r.opts {
 		opt(r)
 	}
-	return r
+	return *r
 }
 
 func (r Route) deviceType() DeviceType {

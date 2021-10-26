@@ -5,17 +5,17 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/lizongti/libra/module/core/codec"
 	"github.com/lizongti/libra/module/core/component"
 	"github.com/lizongti/libra/module/core/context"
+	"github.com/lizongti/libra/module/core/encoding"
 	"github.com/lizongti/libra/module/core/handler"
 	"github.com/lizongti/libra/module/core/router"
 )
 
 type Router struct {
 	component.ComponentBase
-	m     sync.Map
-	codec codec.Codec
+	m        sync.Map
+	encoding encoding.Encoding
 }
 
 var _ router.Router = (*Router)(nil)
@@ -33,8 +33,8 @@ func (r *Router) Serve(ctx context.Context, payload []byte) ([]byte, error) {
 	return v.(handler.Handler).Serve(ctx, payload)
 }
 
-func (r *Router) WithCodec(codec codec.Codec) {
-	r.codec = codec
+func (r *Router) WithEncoding(encoding encoding.Encoding) {
+	r.encoding = encoding
 }
 
 func (r *Router) OnInit() {
@@ -49,7 +49,7 @@ func (r *Router) installHandlers() {
 			handler := &Handler{
 				method:   method,
 				receiver: reflect.ValueOf(r),
-				codec:    r.codec,
+				encoding: r.encoding,
 			}
 			r.Handle(handler.String(), handler)
 		}
