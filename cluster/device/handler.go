@@ -13,7 +13,6 @@ var (
 )
 
 type Handler struct {
-	Device
 	method  reflect.Method
 	gateway Device
 }
@@ -48,7 +47,7 @@ func (h *Handler) localProcess(ctx context.Context, route Route, reqData []byte)
 	}
 	scheduler.NewTask(
 		scheduler.TaskOption.WithContext(ctx),
-		scheduler.TaskOption.WithStages(stage),
+		scheduler.TaskOption.WithStage(stage),
 	).Publish(s.schedulerFunc(ctx))
 	return nil
 }

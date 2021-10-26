@@ -1,6 +1,11 @@
 package device
 
-import "errors"
+import (
+	"errors"
+	"strings"
+
+	"github.com/aceaura/libra/magic"
+)
 
 var (
 	ErrRouteDeadEnd       = errors.New("route goes to a dead end")
@@ -8,19 +13,71 @@ var (
 )
 
 type Route struct {
+	opts     []routeOpt
 	src      []string
 	dst      []string
 	dstIndex int
 }
 
+func NewRoute(opts ...routeOpt) *Route {
+	return &Route{opts: opts}
+}
+
+func (r Route) String() string {
+	var builder strings.Builder
+	builder.WriteString(magic.SeparatorBracketleft)
+	for index, name := range r.dst {
+		builder.WriteString(name)
+		if index != len(r.src)-1 {
+			builder.WriteString(magic.SeparatorColon)
+		}
+	}
+	builder.WriteString(magic.SeparatorBracketright)
+	builder.WriteString(magic.SeparatorSpace)
+	builder.WriteString(magic.SeparatorMinus)
+	builder.WriteString(magic.SeparatorGreater)
+	builder.WriteString(magic.SeparatorSpace)
+	builder.WriteString(magic.SeparatorBracketleft)
+	for index, name := range r.dst {
+		if index == r.dstIndex {
+			builder.WriteString(magic.SeparatorSpace)
+			builder.WriteString(magic.SeparatorGreater)
+			builder.WriteString(magic.SeparatorGreater)
+			builder.WriteString(magic.SeparatorGreater)
+			builder.WriteString(name)
+			builder.WriteString(magic.SeparatorLess)
+			builder.WriteString(magic.SeparatorLess)
+			builder.WriteString(magic.SeparatorLess)
+			builder.WriteString(magic.SeparatorSpace)
+		} else {
+			builder.WriteString(name)
+		}
+		if index != len(r.dst)-1 {
+			builder.WriteString(magic.SeparatorColon)
+		}
+	}
+	builder.WriteString(magic.SeparatorBracketright)
+	return builder.String()
+}
+
+func (r *Route) Build() *Route {
+	for _, opt := range r.opts {
+		opt(r)
+	}
+	return r
+}
+
 func (r Route) deviceType() DeviceType {
-	if r.dstIndex == len(r.dst)-1 {
-		return DeviceTypeHandler
-	}
-	if r.dstIndex == len(r.dst)-2 {
+	switch r.dstIndex {
+	case 0:
+		return DeviceTypeBus
+	case len(r.dst) - 2:
 		return DeviceTypeService
+	case len(r.dst) - 1:
+		return DeviceTypeHandler
+	default:
+		return DeviceTypeRouter
 	}
-	return DeviceTypeRouter
 }
 
 func (r Route) deviceName() string {
@@ -40,4 +97,66 @@ func (r Route) reverse() Route {
 		dst:      r.src,
 		dstIndex: 0,
 	}
+}
+
+func (r *Route) standardize(s string, sep magic.SeparatorType) string {
+	if sep == magic.SeparatorNone {
+		b := []byte(s)
+		if b[0] >= 'a' && b[0] <= 'z' {
+			b[0] -= 32
+		}
+		return string(b)
+	}
+
+	b := []byte{}
+	words := strings.Split(s, sep)
+	for _, word := range words {
+		word = r.standardize(word, magic.SeparatorNone)
+		b = append(b, []byte(word)...)
+	}
+	return string(b)
+}
+
+type routeOpt func(*Route)
+type routeOption struct{}
+
+var RouteOption routeOption
+
+func (routeOption) WithSrc(path string, deviceSep magic.SeparatorType, wordSep magic.SeparatorType) routeOpt {
+	return func(r *Route) {
+		names := strings.Split(path, deviceSep)
+		for _, name := range names {
+			r.src = append(r.src, r.standardize(name, wordSep))
+		}
+	}
+}
+
+func (r *Route) WithSrc(path string, deviceSep magic.SeparatorType, wordSep magic.SeparatorType) *Route {
+	r.opts = append(r.opts, RouteOption.WithSrc(path, deviceSep, wordSep))
+	return r
+}
+
+func (routeOption) WithDst(path string, deviceSep magic.SeparatorType, wordSep magic.SeparatorType) routeOpt {
+	return func(r *Route) {
+		names := strings.Split(path, deviceSep)
+		for _, name := range names {
+			r.dst = append(r.dst, r.standardize(name, wordSep))
+		}
+	}
+}
+
+func (r *Route) WithDst(path string, deviceSep magic.SeparatorType, wordSep magic.SeparatorType) *Route {
+	r.opts = append(r.opts, RouteOption.WithDst(path, deviceSep, wordSep))
+	return r
+}
+
+func (routeOption) WithDstIndex(index int) routeOpt {
+	return func(r *Route) {
+		r.dstIndex = index
+	}
+}
+
+func (r *Route) WithDstIndex(index int) *Route {
+	r.opts = append(r.opts, RouteOption.WithDstIndex(index))
+	return r
 }

@@ -243,14 +243,14 @@ func (t *Task) WithName(name string) *Task {
 	return t
 }
 
-func (taskOption) WithStages(stages ...func(*Task) error) taskOpt {
+func (taskOption) WithStage(stages ...func(*Task) error) taskOpt {
 	return func(t *Task) {
 		t.stages = append(t.stages, stages...)
 	}
 }
 
-func (t *Task) WithStages(stages ...func(*Task) error) *Task {
-	t.opts = append(t.opts, TaskOption.WithStages(stages...))
+func (t *Task) WithStage(stages ...func(*Task) error) *Task {
+	t.opts = append(t.opts, TaskOption.WithStage(stages...))
 	return t
 }
 

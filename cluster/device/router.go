@@ -6,7 +6,6 @@ import (
 )
 
 type Router struct {
-	Device
 	devices map[string]Device
 	gateway Device
 }

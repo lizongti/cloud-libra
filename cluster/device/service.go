@@ -11,7 +11,6 @@ import (
 )
 
 type Service struct {
-	Device
 	codec         codec.Codec
 	schedulerFunc func(context.Context) *scheduler.Scheduler
 	handlers      map[string]*Handler

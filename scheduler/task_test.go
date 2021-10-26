@@ -61,7 +61,7 @@ func TestTaskStage(t *testing.T) {
 		})
 	}
 
-	scheduler.NewTask().WithStages(stages...).WithName("test_task_stage").Publish(s)
+	scheduler.NewTask().WithStage(stages...).WithName("test_task_stage").Publish(s)
 	var progress = -1
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
 	for {
@@ -111,7 +111,7 @@ func TestTaskParams(t *testing.T) {
 		})
 	}
 
-	scheduler.NewTask().WithStages(stages...).WithParam(
+	scheduler.NewTask().WithStage(stages...).WithParam(
 		"progress", 0).WithName("test_task_params").Publish(s)
 
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
@@ -139,7 +139,7 @@ func TestTaskTimeout(t *testing.T) {
 	if err := s.WithBackground().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
-	scheduler.NewTask().WithStages(func(*scheduler.Task) error {
+	scheduler.NewTask().WithStage(func(*scheduler.Task) error {
 		time.Sleep(time.Duration(sleep) * time.Second)
 		return nil
 	}).WithName("test_task_timeout").WithTimeout(time.Duration(taskTimeout) * time.Second).Publish(s)
@@ -176,7 +176,7 @@ func TestTaskReportTime(t *testing.T) {
 		})
 	}
 
-	scheduler.NewTask().WithStages(stages...).WithName("test_task_report_time").Publish(s)
+	scheduler.NewTask().WithStage(stages...).WithName("test_task_report_time").Publish(s)
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
 	for {
 		select {
