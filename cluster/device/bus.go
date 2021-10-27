@@ -4,6 +4,8 @@ import (
 	"context"
 	"math/rand"
 	"sync"
+
+	"github.com/aceaura/libra/magic"
 )
 
 type Bus struct {
@@ -23,7 +25,7 @@ func NewBus(opts ...busOpt) *Bus {
 }
 
 func (b *Bus) String() string {
-	return "Bus"
+	return reflectTypeName(b)
 }
 
 func (b *Bus) LinkGateway(device Device) {
@@ -31,19 +33,18 @@ func (b *Bus) LinkGateway(device Device) {
 }
 
 func (b *Bus) Process(ctx context.Context, route Route, data []byte) error {
-	deviceType := route.deviceType()
-	if deviceType == DeviceTypeBus {
-		return b.localProcess(ctx, route.forward(), data)
+	if route.Taking() {
+		return b.localProcess(ctx, route.Forward(), data)
 	}
 
-	return ErrRouteDeadEnd
+	return route.Error(ErrRouteDeadEnd)
 }
 
 func (b *Bus) localProcess(ctx context.Context, route Route, data []byte) error {
-	name := route.deviceName()
+	name := route.Name()
 	device := b.mutexFindDevice(name)
 	if device == nil {
-		return ErrRouteMissingDevice
+		return route.Error(ErrRouteMissingDevice)
 	}
 	return device.Process(ctx, route, data)
 }
@@ -52,7 +53,10 @@ func (b *Bus) mutexLinkDevice(device Device) {
 	b.rwMutex.Lock()
 	defer b.rwMutex.Unlock()
 
-	name := device.String()
+	name := standardize(device.String(), magic.SeparatorNone)
+	if name == "" {
+		name = reflectTypeName(device)
+	}
 	for _, d := range b.devices[name] {
 		if d == device {
 			return

@@ -14,7 +14,7 @@ func (*ProtobufEncoding) String() string {
 	return "protobuf"
 }
 
-func (s *ProtobufEncoding) Marshal(v interface{}) ([]byte, error) {
+func (*ProtobufEncoding) Marshal(v interface{}) ([]byte, error) {
 	pb, ok := v.(proto.Message)
 	if !ok {
 		return nil, ErrWrongValueType
@@ -22,7 +22,7 @@ func (s *ProtobufEncoding) Marshal(v interface{}) ([]byte, error) {
 	return proto.Marshal(pb)
 }
 
-func (s *ProtobufEncoding) Unmarshal(data []byte, v interface{}) error {
+func (*ProtobufEncoding) Unmarshal(data []byte, v interface{}) error {
 	pb, ok := v.(proto.Message)
 	if !ok {
 		return ErrWrongValueType

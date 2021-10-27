@@ -143,7 +143,7 @@ func (t *Task) execute() {
 			const size = 64 << 10
 			buf := make([]byte, size)
 			buf = buf[:runtime.Stack(buf, false)]
-			log.Printf("scheduler: panic executing task %s: %v\n%s", t.name, err, buf)
+			log.Printf("scheduler: panic executing task [%s]: %v\n%s", t.name, err, buf)
 		}
 	}()
 

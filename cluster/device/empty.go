@@ -14,8 +14,8 @@ func (*emptyDevice) String() string {
 
 func (*emptyDevice) LinkGateway(Device) {}
 
-func (*emptyDevice) Process(context.Context, Route, []byte) error {
-	return ErrRouteDeadEnd
+func (*emptyDevice) Process(_ context.Context, route Route, _ []byte) error {
+	return route.Error(ErrRouteDeadEnd)
 }
 
 func Empty() Device {

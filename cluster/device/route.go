@@ -2,6 +2,7 @@ package device
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/aceaura/libra/magic"
@@ -29,7 +30,7 @@ func NewRoute(opts ...routeOpt) *Route {
 func (r Route) String() string {
 	var builder strings.Builder
 	builder.WriteString(magic.SeparatorBracketleft)
-	for index, name := range r.dst {
+	for index, name := range r.src {
 		builder.WriteString(name)
 		if index != len(r.src)-1 {
 			builder.WriteString(magic.SeparatorColon)
@@ -43,15 +44,9 @@ func (r Route) String() string {
 	builder.WriteString(magic.SeparatorBracketleft)
 	for index, name := range r.dst {
 		if index == r.dstIndex {
-			builder.WriteString(magic.SeparatorSpace)
-			builder.WriteString(magic.SeparatorGreater)
-			builder.WriteString(magic.SeparatorGreater)
-			builder.WriteString(magic.SeparatorGreater)
+			builder.WriteString(magic.SeparatorLess)
 			builder.WriteString(name)
-			builder.WriteString(magic.SeparatorLess)
-			builder.WriteString(magic.SeparatorLess)
-			builder.WriteString(magic.SeparatorLess)
-			builder.WriteString(magic.SeparatorSpace)
+			builder.WriteString(magic.SeparatorGreater)
 		} else {
 			builder.WriteString(name)
 		}
@@ -63,31 +58,26 @@ func (r Route) String() string {
 	return builder.String()
 }
 
-func (r Route) deviceType() DeviceType {
-	switch r.dstIndex {
-	case 0:
-		return DeviceTypeBus
-	case len(r.dst) - 2:
-		return DeviceTypeService
-	case len(r.dst) - 1:
-		return DeviceTypeHandler
-	default:
-		return DeviceTypeRouter
-	}
+func (r Route) Dispatching() bool {
+	return r.dstIndex > 0
 }
 
-func (r Route) deviceName() string {
-	return r.dst[r.dstIndex]
+func (r Route) Taking() bool {
+	return r.dstIndex == 0
 }
 
-func (r Route) forward() Route {
-	if r.dstIndex < len(r.src)-1 {
+func (r Route) Forward() Route {
+	if r.dstIndex < len(r.dst)-1 {
 		r.dstIndex++
 	}
 	return r
 }
 
-func (r Route) reverse() Route {
+func (r Route) Name() string {
+	return r.dst[r.dstIndex]
+}
+
+func (r Route) Reverse() Route {
 	return Route{
 		src:      r.dst,
 		dst:      r.src,
@@ -95,7 +85,14 @@ func (r Route) reverse() Route {
 	}
 }
 
+func (r Route) Error(err error) error {
+	return fmt.Errorf("route %v error: %w", r, err)
+}
+
 func standardize(s string, sep magic.SeparatorType) string {
+	if s == "" {
+		return s
+	}
 	if sep == magic.SeparatorNone {
 		b := []byte(s)
 		if b[0] >= 'a' && b[0] <= 'z' {

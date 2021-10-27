@@ -43,21 +43,17 @@ func (s *Service) LinkGateway(device Device) {
 }
 
 func (s *Service) Process(ctx context.Context, route Route, data []byte) error {
-	deviceType := route.deviceType()
-	if deviceType == DeviceTypeBus {
+	if route.Taking() {
 		return s.gateway.Process(ctx, route, data)
-	} else if deviceType == DeviceTypeService {
-		return s.localProcess(ctx, route.forward(), data)
 	}
-
-	return ErrRouteDeadEnd
+	return s.localProcess(ctx, route.Forward(), data)
 }
 
 func (s *Service) localProcess(ctx context.Context, route Route, data []byte) error {
-	name := route.deviceName()
+	name := route.Name()
 	handler, ok := s.handlers[name]
 	if !ok {
-		return ErrRouteMissingDevice
+		return route.Error(ErrRouteMissingDevice)
 	}
 	return handler.Process(ctx, route, data)
 }

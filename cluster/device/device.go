@@ -4,14 +4,11 @@ import (
 	"context"
 )
 
-type DeviceType int
+type RouteType int
 
 const (
-	DeviceTypeEmpty DeviceType = iota
-	DeviceTypeBus
-	DeviceTypeRouter
-	DeviceTypeService
-	DeviceTypeHandler
+	RouteTypeBus RouteType = iota
+	RouteTypeDispatch
 )
 
 type Device interface {

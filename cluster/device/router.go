@@ -2,6 +2,8 @@ package device
 
 import (
 	"context"
+
+	"github.com/aceaura/libra/magic"
 )
 
 type Router struct {
@@ -19,25 +21,25 @@ func (r *Router) LinkGateway(device Device) {
 }
 
 func (r *Router) Process(ctx context.Context, route Route, data []byte) error {
-	deviceType := route.deviceType()
-	if deviceType == DeviceTypeBus {
+	if route.Taking() {
 		return r.gateway.Process(ctx, route, data)
-	} else if deviceType == DeviceTypeRouter {
-		return r.localProcess(ctx, route.forward(), data)
 	}
-	return ErrRouteDeadEnd
+	return r.localProcess(ctx, route.Forward(), data)
 }
 
 func (r *Router) Link(device Device) {
-	// TODO
-	r.devices[device.String()] = device
+	name := standardize(device.String(), magic.SeparatorNone)
+	if name == "" {
+		name = reflectTypeName(device)
+	}
+	r.devices[name] = device
 }
 
 func (r *Router) localProcess(ctx context.Context, route Route, data []byte) error {
-	name := route.deviceName()
+	name := route.Name()
 	device, ok := r.devices[name]
 	if !ok {
-		return ErrRouteMissingDevice
+		return route.Error(ErrRouteMissingDevice)
 	}
 	return device.Process(ctx, route, data)
 }

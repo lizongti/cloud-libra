@@ -18,6 +18,6 @@ func (*JSONEncoding) Marshal(v interface{}) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func (s *JSONEncoding) Unmarshal(data []byte, v interface{}) error {
+func (*JSONEncoding) Unmarshal(data []byte, v interface{}) error {
 	return json.Unmarshal(data, v)
 }

@@ -32,14 +32,10 @@ func (h *Handler) LinkGateway(device Device) {
 }
 
 func (h *Handler) Process(ctx context.Context, route Route, data []byte) error {
-	deviceType := route.deviceType()
-	if deviceType == DeviceTypeBus {
+	if route.Taking() {
 		return h.gateway.Process(ctx, route, data)
-	} else if deviceType == DeviceTypeHandler {
-		return h.localProcess(ctx, route, data)
 	}
-
-	return ErrRouteDeadEnd
+	return h.localProcess(ctx, route, data)
 }
 
 func (h *Handler) localProcess(ctx context.Context, route Route, reqData []byte) error {
@@ -54,7 +50,7 @@ func (h *Handler) localProcess(ctx context.Context, route Route, reqData []byte)
 		if err != nil {
 			return err
 		}
-		return s.Process(ctx, route.reverse(), respData)
+		return s.Process(ctx, route.Reverse(), respData)
 	}
 	scheduler.NewTask(
 		scheduler.TaskOption.WithContext(ctx),
@@ -63,7 +59,7 @@ func (h *Handler) localProcess(ctx context.Context, route Route, reqData []byte)
 	return nil
 }
 
-func (h *Handler) do(_ context.Context, reqData []byte) (respData []byte, err error) {
+func (h *Handler) do(ctx context.Context, reqData []byte) (respData []byte, err error) {
 	s := h.gateway.(*Service)
 	mt := h.method.Type
 	var req interface{}
@@ -75,18 +71,18 @@ func (h *Handler) do(_ context.Context, reqData []byte) (respData []byte, err er
 			return nil, err
 		}
 	}
-	context := new(context.Context)
-	in := []reflect.Value{reflect.ValueOf(s.component), reflect.ValueOf(context), reflect.ValueOf(req)}
+
+	in := []reflect.Value{reflect.ValueOf(s.component), reflect.ValueOf(ctx), reflect.ValueOf(req)}
 
 	out := h.method.Func.Call(in)
-	if err = out[1].Interface().(error); err != nil {
-		return nil, err
+	if e := out[1].Interface(); e != nil {
+		return nil, e.(error)
 	}
-	resp := out[0].Interface().(error)
+	resp := out[0].Interface()
 	if respData, err = s.encoding.Marshal(resp); err != nil {
 		return nil, err
 	}
-	return
+	return respData, err
 }
 
 type handlerOpt func(*Handler)
