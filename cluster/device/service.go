@@ -6,6 +6,7 @@ import (
 
 	"github.com/aceaura/libra/cluster/component"
 	"github.com/aceaura/libra/encoding"
+	"github.com/aceaura/libra/magic"
 	"github.com/aceaura/libra/scheduler"
 )
 
@@ -96,22 +97,22 @@ func isMethodHandler(method reflect.Method) bool {
 	}
 
 	// Check context.Context
-	if t := mt.In(1); !t.Implements(typeOfContext) {
+	if t := mt.In(1); !t.Implements(magic.TypeOfContext) {
 		return false
 	}
 
 	// Check error
-	if t := mt.Out(1); !t.Implements(typeOfError) {
+	if t := mt.Out(1); !t.Implements(magic.TypeOfError) {
 		return false
 	}
 
 	// Check request:  pointer or bytes
-	if t := mt.In(2); t.Kind() != reflect.Ptr && t != typeOfBytes {
+	if t := mt.In(2); t.Kind() != reflect.Ptr && t != magic.TypeOfBytes {
 		return false
 	}
 
 	// Check response: pointer or bytes
-	if t := mt.Out(0); t.Kind() != reflect.Ptr && t != typeOfBytes {
+	if t := mt.Out(0); t.Kind() != reflect.Ptr && t != magic.TypeOfBytes {
 		return false
 	}
 

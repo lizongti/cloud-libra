@@ -4,14 +4,8 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/aceaura/libra/magic"
 	"github.com/aceaura/libra/scheduler"
-)
-
-var (
-	typeOfContext = reflect.TypeOf((*context.Context)(nil)).Elem()
-	typeOfError   = reflect.TypeOf((*error)(nil)).Elem()
-	typeOfBytes   = reflect.TypeOf(([]byte)(nil))
-	typeNil       = reflect.Type(nil)
 )
 
 type Handler struct {
@@ -49,7 +43,7 @@ func (h *Handler) Process(ctx context.Context, route Route, data []byte) error {
 }
 
 func (h *Handler) localProcess(ctx context.Context, route Route, reqData []byte) error {
-	if h.method.Type == typeNil {
+	if h.method.Type == magic.TypeNil {
 		return nil
 	}
 
@@ -73,7 +67,7 @@ func (h *Handler) do(_ context.Context, reqData []byte) (respData []byte, err er
 	s := h.gateway.(*Service)
 	mt := h.method.Type
 	var req interface{}
-	if mt.In(2) == typeOfBytes {
+	if mt.In(2) == magic.TypeOfBytes {
 		req = reqData
 	} else {
 		req = reflect.New(mt.In(2).Elem()).Interface()
