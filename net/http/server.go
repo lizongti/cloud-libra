@@ -18,6 +18,7 @@ type Server struct {
 	router     *mux.Router
 	server     *http.Server
 }
+
 type route struct {
 	path       string
 	handleFunc func(http.ResponseWriter, *http.Request)
@@ -87,55 +88,55 @@ var ServerOption serverOption
 
 func (serverOption) WithRoute(path string, f func(http.ResponseWriter, *http.Request)) serverOpt {
 	return func(s *Server) {
-		s.routes = append(s.routes, &route{path, f})
+		s.WithRoute(path, f)
 	}
 }
 
 func (s *Server) WithRoute(path string, f func(http.ResponseWriter, *http.Request)) *Server {
-	s.opts = append(s.opts, ServerOption.WithRoute(path, f))
+	s.routes = append(s.routes, &route{path, f})
 	return s
 }
 
 func (serverOption) WithProxy() serverOpt {
 	return func(s *Server) {
-		s.proxy = true
+		s.WithProxy()
 	}
 }
 
 func (s *Server) WithProxy() *Server {
-	s.opts = append(s.opts, ServerOption.WithProxy())
+	s.proxy = true
 	return s
 }
 
 func (serverOption) WithBackground() serverOpt {
 	return func(s *Server) {
-		s.background = true
+		s.WithBackground()
 	}
 }
 
 func (s *Server) WithBackground() *Server {
-	s.opts = append(s.opts, ServerOption.WithBackground())
+	s.background = true
 	return s
 }
 
 func (serverOption) WithServerSafety() serverOpt {
 	return func(s *Server) {
-		s.safety = true
+		s.WithServerSafety()
 	}
 }
 
 func (s *Server) WithServerSafety() *Server {
-	s.opts = append(s.opts, ServerOption.WithServerSafety())
+	s.safety = true
 	return s
 }
 
 func (serverOption) WithErrorFunc(errorFunc func(error)) serverOpt {
 	return func(s *Server) {
-		s.errorFunc = errorFunc
+		s.WithErrorFunc(errorFunc)
 	}
 }
 
 func (s *Server) WithErrorFunc(errorFunc func(error)) *Server {
-	s.opts = append(s.opts, ServerOption.WithErrorFunc(errorFunc))
+	s.errorFunc = errorFunc
 	return s
 }

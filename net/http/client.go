@@ -172,119 +172,119 @@ var ClientOption clientOption
 
 func (clientOption) WithProtocol(protocol string) clientOpt {
 	return func(c *Client) {
-		c.protocol = protocol
+		c.WithProtocol(protocol)
 	}
 }
 
 func (c *Client) WithProtocol(protocol string) *Client {
-	c.opts = append(c.opts, ClientOption.WithProtocol(protocol))
+	c.protocol = protocol
 	return c
 }
 
 func (clientOption) WithTimeout(timeout time.Duration) clientOpt {
 	return func(c *Client) {
-		c.timeout = timeout
+		c.WithTimeout(timeout)
 	}
 }
 
 func (c *Client) WithTimeout(timeout time.Duration) *Client {
-	c.opts = append(c.opts, ClientOption.WithTimeout(timeout))
+	c.timeout = timeout
 	return c
 }
 
 func (clientOption) WithRetry(retry int) clientOpt {
 	return func(c *Client) {
-		c.retry = retry
+		c.WithRetry(retry)
 	}
 }
 
 func (c *Client) WithRetry(retry int) *Client {
-	c.opts = append(c.opts, ClientOption.WithRetry(retry))
+	c.retry = retry
 	return c
 }
 
 func (clientOption) WithProxy(proxy string) clientOpt {
 	return func(c *Client) {
-		c.proxy = proxy
+		c.WithProxy(proxy)
 	}
 }
 
 func (c *Client) WithProxy(proxy string) *Client {
-	c.opts = append(c.opts, ClientOption.WithProxy(proxy))
+	c.proxy = proxy
 	return c
 }
 
 func (clientOption) WithContentType(contentType string) clientOpt {
 	return func(c *Client) {
-		c.contentType = contentType
+		c.WithContentType(contentType)
 	}
 }
 
 func (c *Client) WithContentType(contentType string) *Client {
-	c.opts = append(c.opts, ClientOption.WithContentType(contentType))
+	c.contentType = contentType
 	return c
 }
 
 func (clientOption) WithForm(form url.Values) clientOpt {
 	return func(c *Client) {
-		c.form = form
+		c.WithForm(form)
 	}
 }
 
 func (c *Client) WithForm(form url.Values) *Client {
-	c.opts = append(c.opts, ClientOption.WithForm(form))
+	c.form = form
 	return c
 }
 
 func (clientOption) WithParam(key string, value string) clientOpt {
 	return func(c *Client) {
-		c.form.Set(key, value)
+		c.WithParam(key, value)
 	}
 }
 
 func (c *Client) WithParam(key string, value string) *Client {
-	c.opts = append(c.opts, ClientOption.WithParam(key, value))
+	c.form.Set(key, value)
 	return c
 }
 
 func (clientOption) WithBody(body interface{}) clientOpt {
 	return func(c *Client) {
-		switch body := body.(type) {
-		case string:
-			c.body = strings.NewReader(body)
-		case []byte:
-			c.body = bytes.NewReader(body)
-		case io.Reader:
-			c.body = body
-		default:
-			c.body = strings.NewReader(fmt.Sprintf("%v", body))
-		}
+		c.WithBody(body)
 	}
 }
 
 func (c *Client) WithBody(body interface{}) *Client {
-	c.opts = append(c.opts, ClientOption.WithBody(body))
+	switch body := body.(type) {
+	case string:
+		c.body = strings.NewReader(body)
+	case []byte:
+		c.body = bytes.NewReader(body)
+	case io.Reader:
+		c.body = body
+	default:
+		c.body = strings.NewReader(fmt.Sprintf("%v", body))
+	}
 	return c
 }
 
 func (clientOption) WithResponseBodyReader(responseBodyReader func(io.Reader) error) clientOpt {
 	return func(c *Client) {
-		c.responseBodyReader = responseBodyReader
+		c.WithResponseBodyReader(responseBodyReader)
 	}
 }
 
 func (c *Client) WithResponseBodyReader(responseBodyReader func(io.Reader) error) *Client {
-	c.opts = append(c.opts, ClientOption.WithResponseBodyReader(responseBodyReader))
+	c.responseBodyReader = responseBodyReader
 	return c
 }
 
 func (clientOption) WithSafety() clientOpt {
 	return func(c *Client) {
-		c.safety = true
+		c.WithSafety()
 	}
 }
 
 func (c *Client) WithSafety() *Client {
-	c.opts = append(c.opts, ClientOption.WithSafety())
+	c.safety = true
 	return c
 }

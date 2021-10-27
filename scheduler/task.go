@@ -234,66 +234,66 @@ var TaskOption taskOption
 
 func (taskOption) WithName(name string) taskOpt {
 	return func(t *Task) {
-		t.name = name
+		t.WithName(name)
 	}
 }
 
 func (t *Task) WithName(name string) *Task {
-	t.opts = append(t.opts, TaskOption.WithName(name))
+	t.name = name
 	return t
 }
 
 func (taskOption) WithStage(stages ...func(*Task) error) taskOpt {
 	return func(t *Task) {
-		t.stages = append(t.stages, stages...)
+		t.WithStage(stages...)
 	}
 }
 
 func (t *Task) WithStage(stages ...func(*Task) error) *Task {
-	t.opts = append(t.opts, TaskOption.WithStage(stages...))
+	t.stages = append(t.stages, stages...)
 	return t
 }
 
 func (taskOption) WithParam(key interface{}, value interface{}) taskOpt {
 	return func(t *Task) {
-		t.params[key] = value
+		t.WithParam(key, value)
 	}
 }
 
 func (t *Task) WithParam(key interface{}, value interface{}) *Task {
-	t.opts = append(t.opts, TaskOption.WithParam(key, value))
+	t.params[key] = value
 	return t
 }
 
 func (taskOption) WithParams(params map[interface{}]interface{}) taskOpt {
 	return func(t *Task) {
-		t.params = params
+		t.WithParams(params)
 	}
 }
 
 func (t *Task) WithParams(params map[interface{}]interface{}) *Task {
-	t.opts = append(t.opts, TaskOption.WithParams(params))
+	t.params = params
 	return t
 }
 
 func (taskOption) WithContext(context context.Context) taskOpt {
 	return func(t *Task) {
-		t.context = context
+		t.WithTask(context)
 	}
 }
 
 func (t *Task) WithTask(context context.Context) *Task {
-	t.opts = append(t.opts, TaskOption.WithContext(context))
+	t.context = context
 	return t
 }
 
 func (taskOption) WithTimeout(timeout time.Duration) taskOpt {
 	return func(t *Task) {
-		t.timeout = timeout
+		t.WithTimeout(timeout)
 	}
 }
 
 func (t *Task) WithTimeout(timeout time.Duration) *Task {
-	t.opts = append(t.opts, TaskOption.WithTimeout(timeout))
+	t.timeout = timeout
 	return t
 }

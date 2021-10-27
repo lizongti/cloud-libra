@@ -155,77 +155,77 @@ var SchedulerOption schedulerOption
 
 func (schedulerOption) WithBacklog(backlog int) schedulerOpt {
 	return func(s *Scheduler) {
-		s.backlog = backlog
+		s.WithBacklog(backlog)
 	}
 }
 
 func (s *Scheduler) WithBacklog(backlog int) *Scheduler {
-	s.opts = append(s.opts, SchedulerOption.WithBacklog(backlog))
+	s.backlog = backlog
 	return s
 }
 
 func (schedulerOption) WithParallel(parallel int) schedulerOpt {
 	return func(s *Scheduler) {
-		s.parallel = parallel
+		s.WithParallel(parallel)
 	}
 }
 
 func (s *Scheduler) WithParallel(parallel int) *Scheduler {
-	s.opts = append(s.opts, SchedulerOption.WithParallel(parallel))
+	s.parallel = parallel
 	return s
 }
 
 func (schedulerOption) WithBackground() schedulerOpt {
 	return func(s *Scheduler) {
-		s.background = true
+		s.WithBackground()
 	}
 }
 
 func (s *Scheduler) WithBackground() *Scheduler {
-	s.opts = append(s.opts, SchedulerOption.WithBackground())
+	s.background = true
 	return s
 }
 
-func (schedulerOption) WithSchdedulerSafety() schedulerOpt {
+func (schedulerOption) WithSafety() schedulerOpt {
 	return func(s *Scheduler) {
-		s.safety = true
+		s.WithSafety()
 	}
 }
 
-func (s *Scheduler) WithSchdedulerSafety() *Scheduler {
-	s.opts = append(s.opts, SchedulerOption.WithSchdedulerSafety())
+func (s *Scheduler) WithSafety() *Scheduler {
+	s.safety = true
 	return s
 }
 
 func (schedulerOption) WithErrorFunc(errorFunc func(error)) schedulerOpt {
 	return func(s *Scheduler) {
-		s.errorFunc = errorFunc
+		s.WithErrorFunc(errorFunc)
 	}
 }
 
 func (s *Scheduler) WithErrorFunc(errorFunc func(error)) *Scheduler {
-	s.opts = append(s.opts, SchedulerOption.WithErrorFunc(errorFunc))
+	s.errorFunc = errorFunc
 	return s
 }
 
 func (schedulerOption) WithReportChan(reportChan chan<- *Report) schedulerOpt {
 	return func(s *Scheduler) {
-		s.reportChan = reportChan
+		s.WithReportChan(reportChan)
 	}
 }
 
 func (s *Scheduler) WithReportChan(reportChan chan<- *Report) *Scheduler {
-	s.opts = append(s.opts, SchedulerOption.WithReportChan(reportChan))
+	s.reportChan = reportChan
 	return s
 }
 
 func (schedulerOption) WithParallelChan(parallelChan <-chan int) schedulerOpt {
 	return func(s *Scheduler) {
-		s.parallelChan = parallelChan
+		s.WithParallelChan(parallelChan)
 	}
 }
 
 func (s *Scheduler) WithParallelChan(parallelChan <-chan int) *Scheduler {
-	s.opts = append(s.opts, SchedulerOption.WithParallelChan(parallelChan))
+	s.parallelChan = parallelChan
 	return s
 }
