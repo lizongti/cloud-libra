@@ -2,16 +2,20 @@ package device
 
 import (
 	"context"
-	"reflect"
 )
 
 type Router struct {
+	name    string
 	devices map[string]Device
 	gateway Device
 }
 
+func (r *Router) Setup() {
+
+}
+
 func (r *Router) String() string {
-	return reflect.Indirect(reflect.ValueOf(r)).Type().Name()
+	return r.name
 }
 
 func (r *Router) Gateway(device Device) {

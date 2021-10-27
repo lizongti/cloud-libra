@@ -17,10 +17,6 @@ func NewBus(opts ...busOpt) *Bus {
 	return &Bus{opts: opts}
 }
 
-func (b *Bus) Serve() {
-
-}
-
 func (b *Bus) String() string {
 	return "Bus"
 }
@@ -32,14 +28,18 @@ func (b *Bus) Gateway(device Device) {
 func (b *Bus) Process(ctx context.Context, route Route, data []byte) error {
 	deviceType := route.deviceType()
 	if deviceType == DeviceTypeBus {
-		return b.localProcess(ctx, route, data)
+		return b.localProcess(ctx, route.forward(), data)
 	}
 
 	return ErrRouteDeadEnd
 }
 
-func (b *Bus) Discover() {
-	// TODO
+func (b *Bus) Serve() {
+	b.devices = make(map[string][]Device)
+
+	for _, opt := range b.opts {
+		opt(b)
+	}
 }
 
 func (b *Bus) localProcess(ctx context.Context, route Route, data []byte) error {

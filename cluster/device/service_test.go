@@ -30,6 +30,7 @@ func TestDevice(t *testing.T) {
 	bus := device.NewBus(
 		device.BusOption.WithDevice(service),
 	)
+	bus.Serve()
 	ctx := context.Background()
 	route := device.NewRoute().WithSrc(
 		"bus/run_test/tmp", magic.SeparatorSlash, magic.SeparatorUnderscore,
@@ -45,6 +46,6 @@ func TestDevice(t *testing.T) {
 	}
 
 	if err = bus.Process(ctx, route, reqData); err != nil {
-		t.Fatalf("unexpected error getting from encoding: %v", err)
+		t.Fatalf("unexpected error getting from device: %v", err)
 	}
 }

@@ -3,14 +3,14 @@ package device
 import (
 	"context"
 	"reflect"
-	"unicode"
-	"unicode/utf8"
 
+	"github.com/aceaura/libra/cluster/component"
 	"github.com/aceaura/libra/encoding"
 	"github.com/aceaura/libra/scheduler"
 )
 
 type Service struct {
+	component.Component
 	encoding      encoding.Encoding
 	schedulerFunc func(context.Context) *scheduler.Scheduler
 	handlers      map[string]*Handler
@@ -18,7 +18,7 @@ type Service struct {
 }
 
 func (s *Service) String() string {
-	return reflect.Indirect(reflect.ValueOf(s)).Type().Name()
+	return reflect.Indirect(reflect.ValueOf(s.Component)).Type().Name()
 }
 
 func (s *Service) Gateway(device Device) {
@@ -53,10 +53,6 @@ func (s *Service) scheduler(ctx context.Context) *scheduler.Scheduler {
 }
 
 func (s *Service) ExtractHandlers() {
-	if !s.isExported() {
-		return
-	}
-
 	t := reflect.TypeOf(s)
 
 	for index := 0; index < t.NumMethod(); index++ {
@@ -71,12 +67,6 @@ func (s *Service) ExtractHandlers() {
 		h.Gateway(s)
 		s.handlers[h.String()] = h
 	}
-}
-
-func (s *Service) isExported() bool {
-	typeName := reflect.Indirect(reflect.ValueOf(s)).Type().Name()
-	w, _ := utf8.DecodeRuneInString(typeName)
-	return unicode.IsUpper(w)
 }
 
 func (*Service) isMethodHandler(method reflect.Method) bool {
