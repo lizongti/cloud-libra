@@ -25,12 +25,9 @@ type (
 )
 
 type Client struct {
-	opts               []clientOpt
 	protocol           string
 	contentType        string
-	timeout            time.Duration
 	retry              int
-	proxy              string
 	form               url.Values
 	body               io.Reader
 	responseBodyReader func(io.Reader) error
@@ -39,7 +36,15 @@ type Client struct {
 }
 
 func NewClient(opts ...clientOpt) *Client {
-	return &Client{opts: opts}
+	c := &Client{
+		form:        make(url.Values),
+		contentType: "text/plain",
+		retry:       1,
+	}
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
 }
 
 func Get(url string, opts ...clientOpt) (*http.Response, []byte, error) {
@@ -71,7 +76,6 @@ func Do(method string, url string, opts ...clientOpt) (*http.Response, []byte, e
 }
 
 func (c *Client) Do(method string, url string) (resp *http.Response, body []byte, err error) {
-	c.init()
 	if c.safety {
 		defer func() {
 			if e := recover(); e != nil {
@@ -80,32 +84,6 @@ func (c *Client) Do(method string, url string) (resp *http.Response, body []byte
 		}()
 	}
 	return c.do(method, url)
-}
-
-func (c *Client) init() error {
-	c.form = make(url.Values)
-
-	for _, opt := range c.opts {
-		opt(c)
-	}
-
-	if c.proxy != "" {
-		fixedURL, err := url.Parse(c.proxy)
-		if err != nil {
-			return err
-		}
-		c.client.Transport = &http.Transport{Proxy: http.ProxyURL(fixedURL)}
-	}
-	if c.timeout > 0 {
-		c.client.Timeout = c.timeout
-	}
-	if c.retry < 1 {
-		c.retry = 1
-	}
-	if c.contentType == "" {
-		c.contentType = "text/plain"
-	}
-	return nil
 }
 
 func (c *Client) do(method string, url string) (*http.Response, []byte, error) {
@@ -188,7 +166,7 @@ func (clientOption) WithTimeout(timeout time.Duration) clientOpt {
 }
 
 func (c *Client) WithTimeout(timeout time.Duration) *Client {
-	c.timeout = timeout
+	c.client.Timeout = timeout
 	return c
 }
 
@@ -210,7 +188,11 @@ func (clientOption) WithProxy(proxy string) clientOpt {
 }
 
 func (c *Client) WithProxy(proxy string) *Client {
-	c.proxy = proxy
+	fixedURL, err := url.Parse(proxy)
+	if err != nil {
+		panic(err)
+	}
+	c.client.Transport = &http.Transport{Proxy: http.ProxyURL(fixedURL)}
 	return c
 }
 

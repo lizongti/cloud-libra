@@ -57,7 +57,7 @@ func (s *Service) ExtractHandlers() {
 
 	for index := 0; index < t.NumMethod(); index++ {
 		method := t.Method(index)
-		if !s.isMethodHandler(method) {
+		if !isMethodHandler(method) {
 			continue
 		}
 
@@ -69,7 +69,7 @@ func (s *Service) ExtractHandlers() {
 	}
 }
 
-func (*Service) isMethodHandler(method reflect.Method) bool {
+func isMethodHandler(method reflect.Method) bool {
 	mt := method.Type
 	// Check method is exported
 	if mt.PkgPath() != "" {

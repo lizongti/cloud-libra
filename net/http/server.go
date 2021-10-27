@@ -9,8 +9,6 @@ import (
 )
 
 type Server struct {
-	opts       []serverOpt
-	routes     []*route
 	proxy      bool
 	background bool
 	safety     bool
@@ -25,7 +23,15 @@ type route struct {
 }
 
 func NewServer(opts ...serverOpt) *Server {
-	return &Server{opts: opts}
+	s := &Server{
+		router: mux.NewRouter(),
+	}
+
+	for _, opt := range opts {
+		opt(s)
+	}
+
+	return s
 }
 
 func Serve(addr string, options ...serverOpt) error {
@@ -33,7 +39,6 @@ func Serve(addr string, options ...serverOpt) error {
 }
 
 func (s *Server) Serve(addr string) error {
-	s.init()
 	if s.background {
 		go s.serve(addr)
 		return nil
@@ -43,18 +48,6 @@ func (s *Server) Serve(addr string) error {
 
 func (s *Server) Close() error {
 	return s.server.Shutdown(nil)
-}
-
-func (s *Server) init() {
-	s.router = mux.NewRouter()
-
-	for _, opt := range s.opts {
-		opt(s)
-	}
-
-	for _, routes := range s.routes {
-		s.router.HandleFunc(routes.path, routes.handleFunc)
-	}
 }
 
 func (s *Server) serve(addr string) (err error) {
@@ -93,7 +86,7 @@ func (serverOption) WithRoute(path string, f func(http.ResponseWriter, *http.Req
 }
 
 func (s *Server) WithRoute(path string, f func(http.ResponseWriter, *http.Request)) *Server {
-	s.routes = append(s.routes, &route{path, f})
+	s.router.HandleFunc(path, f)
 	return s
 }
 

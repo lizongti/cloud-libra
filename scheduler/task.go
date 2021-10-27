@@ -36,14 +36,13 @@ func (t TaskStateType) String() string {
 }
 
 type Task struct {
-	opts          []taskOpt
+	id            string
 	name          string
 	stages        []func(*Task) error
 	params        map[interface{}]interface{}
 	context       context.Context
 	timeout       time.Duration
 	scheduler     *Scheduler
-	id            string
 	state         TaskStateType
 	progress      int
 	totalProgress int
@@ -64,7 +63,22 @@ type Report struct {
 }
 
 func NewTask(opts ...taskOpt) *Task {
-	return &Task{opts: opts}
+	uuid, _ := uuid.NewV4()
+	now := time.Now()
+	t := &Task{
+		id:           uuid.String(),
+		name:         "anonymous",
+		state:        TaskStateCreated,
+		params:       make(map[interface{}]interface{}),
+		taskStarted:  now,
+		stateStarted: now,
+	}
+
+	for _, opt := range opts {
+		opt(t)
+	}
+
+	return t
 }
 
 func (t *Task) String() string {
@@ -118,28 +132,8 @@ func (t *Task) ParamString(key interface{}) string {
 
 func (t *Task) Publish(s *Scheduler) {
 	t.scheduler = s
-	t.init()
 	t.switchState(TaskStatePending)
 	t.scheduler.schedule(t)
-}
-
-func (t *Task) init() {
-	t.params = make(map[interface{}]interface{})
-
-	for _, opt := range t.opts {
-		opt(t)
-	}
-
-	uuid, _ := uuid.NewV4()
-	t.id = uuid.String()
-	t.state = TaskStateCreated
-	t.totalProgress = len(t.stages)
-	if t.name == "" {
-		t.name = "anonymous"
-	}
-	now := time.Now()
-	t.taskStarted = now
-	t.stateStarted = now
 }
 
 func (t *Task) execute() {
@@ -251,6 +245,7 @@ func (taskOption) WithStage(stages ...func(*Task) error) taskOpt {
 
 func (t *Task) WithStage(stages ...func(*Task) error) *Task {
 	t.stages = append(t.stages, stages...)
+	t.totalProgress = len(t.stages)
 	return t
 }
 

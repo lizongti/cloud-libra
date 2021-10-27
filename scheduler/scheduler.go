@@ -5,7 +5,6 @@ import (
 )
 
 type Scheduler struct {
-	opts         []schedulerOpt
 	backlog      int
 	parallel     int
 	parallelChan <-chan int
@@ -26,7 +25,16 @@ type pipeline struct {
 }
 
 func NewScheduler(opts ...schedulerOpt) *Scheduler {
-	return &Scheduler{opts: opts}
+	s := &Scheduler{
+		panicChan: make(chan interface{}, 1),
+		dieChan:   make(chan struct{}),
+		exitChan:  make(chan struct{}),
+		parallel:  1,
+	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
 }
 
 func Default() *Scheduler {
@@ -34,7 +42,8 @@ func Default() *Scheduler {
 }
 
 func (s *Scheduler) Serve() error {
-	s.init()
+	s.taskChan = make(chan *Task, s.backlog)
+
 	if s.background {
 		go s.serve()
 		return nil
@@ -49,21 +58,6 @@ func (s *Scheduler) Close() error {
 	close(s.dieChan)
 	<-s.exitChan
 	return nil
-}
-
-func (s *Scheduler) init() {
-	s.panicChan = make(chan interface{}, 1)
-	s.dieChan = make(chan struct{})
-	s.exitChan = make(chan struct{})
-
-	for _, opt := range s.opts {
-		opt(s)
-	}
-
-	s.taskChan = make(chan *Task, s.backlog)
-	if s.parallel == 0 {
-		s.parallel = 1
-	}
 }
 
 func (s *Scheduler) serve() (err error) {

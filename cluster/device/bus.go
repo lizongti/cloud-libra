@@ -82,13 +82,14 @@ var BusOption busOption
 
 func (busOption) WithDevice(devices ...Device) busOpt {
 	return func(b *Bus) {
-		for _, device := range devices {
-			b.mutexLinkDevice(device)
-		}
+		b.WithDevice(devices...)
 	}
 }
 
 func (b *Bus) WithDevice(devices ...Device) *Bus {
-	b.opts = append(b.opts, BusOption.WithDevice(devices...))
+	for _, device := range devices {
+		b.mutexLinkDevice(device)
+	}
+
 	return b
 }

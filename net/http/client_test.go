@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aceaura/libra/http"
+	"github.com/aceaura/libra/net/http"
 )
 
 func TestClientGet(t *testing.T) {
