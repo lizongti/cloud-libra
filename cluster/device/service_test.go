@@ -4,48 +4,51 @@ import (
 	"context"
 	"testing"
 
+	"github.com/aceaura/libra/cluster/component"
 	"github.com/aceaura/libra/cluster/device"
 	"github.com/aceaura/libra/encoding"
 	"github.com/aceaura/libra/magic"
 )
 
-type TestService struct {
-	device.Service
+type Try struct {
+	component.ComponentBase
 }
 
-type TestRequest struct {
-	Index int
+type Ping struct {
+	Text string
 }
-type TestResponse struct {
-	Index int
+type Pong struct {
+	Text string
 }
 
-func (*TestService) TestHandler(_ context.Context, req *TestRequest) (resp *TestResponse, err error) {
-	resp = &TestResponse{Index: req.Index}
+func (*Try) Echo(_ context.Context, req *Ping) (resp *Pong, err error) {
+	resp = &Pong{Text: req.Text}
 	return
 }
 
 func TestDevice(t *testing.T) {
-	service := new(TestService)
+	service := device.NewService(
+		device.ServiceOption.WithEncoding(encoding.JSON()),
+		device.ServiceOption.WithComponent(&Try{}),
+	)
 	bus := device.NewBus(
 		device.BusOption.WithDevice(service),
 	)
-	bus.Serve()
 	ctx := context.Background()
 	route := device.NewRoute().WithSrc(
-		"bus/run_test/tmp", magic.SeparatorSlash, magic.SeparatorUnderscore,
+		"bus/one/shot", magic.SeparatorSlash, magic.SeparatorUnderscore,
 	).WithDst(
-		"bus/test_service/test_handler", magic.SeparatorSlash, magic.SeparatorUnderscore,
-	).Build()
+		"bus/try/echo", magic.SeparatorSlash, magic.SeparatorUnderscore,
+	)
 
-	reqData, err := encoding.Marshal(encoding.JSON(), &TestRequest{
-		Index: 1,
+	reqData, err := encoding.Marshal(encoding.JSON(), &Ping{
+		Text: "libra: Hello, world!",
 	})
 	if err != nil {
 		t.Fatalf("unexpected error getting from encoding: %v", err)
 	}
 
-	if err = bus.Process(ctx, route, reqData); err != nil {
+	if err = bus.Process(ctx, *route, reqData); err != nil {
 		t.Fatalf("unexpected error getting from device: %v", err)
 	}
 }

@@ -9,7 +9,9 @@ import (
 
 var (
 	typeOfContext = reflect.TypeOf((*context.Context)(nil)).Elem()
+	typeOfError   = reflect.TypeOf((*error)(nil)).Elem()
 	typeOfBytes   = reflect.TypeOf(([]byte)(nil))
+	typeNil       = reflect.Type(nil)
 )
 
 type Handler struct {
@@ -17,11 +19,21 @@ type Handler struct {
 	gateway Device
 }
 
+func NewHandler(opts ...handlerOpt) *Handler {
+	h := &Handler{}
+
+	for _, opt := range opts {
+		opt(h)
+	}
+
+	return h
+}
+
 func (h *Handler) String() string {
 	return h.method.Name
 }
 
-func (h *Handler) Gateway(device Device) {
+func (h *Handler) LinkGateway(device Device) {
 	h.gateway = device
 }
 
@@ -37,9 +49,14 @@ func (h *Handler) Process(ctx context.Context, route Route, data []byte) error {
 }
 
 func (h *Handler) localProcess(ctx context.Context, route Route, reqData []byte) error {
+	if h.method.Type == typeNil {
+		return nil
+	}
+
 	s := h.gateway.(*Service)
+
 	stage := func(t *scheduler.Task) error {
-		respData, err := h.Do(ctx, reqData)
+		respData, err := h.do(ctx, reqData)
 		if err != nil {
 			return err
 		}
@@ -52,7 +69,7 @@ func (h *Handler) localProcess(ctx context.Context, route Route, reqData []byte)
 	return nil
 }
 
-func (h *Handler) Do(ctx context.Context, reqData []byte) (respData []byte, err error) {
+func (h *Handler) do(_ context.Context, reqData []byte) (respData []byte, err error) {
 	s := h.gateway.(*Service)
 	mt := h.method.Type
 	var req interface{}
@@ -65,7 +82,7 @@ func (h *Handler) Do(ctx context.Context, reqData []byte) (respData []byte, err 
 		}
 	}
 	context := new(context.Context)
-	in := []reflect.Value{reflect.ValueOf(s), reflect.ValueOf(context), reflect.ValueOf(req)}
+	in := []reflect.Value{reflect.ValueOf(s.component), reflect.ValueOf(context), reflect.ValueOf(req)}
 
 	out := h.method.Func.Call(in)
 	if err = out[1].Interface().(error); err != nil {
@@ -76,4 +93,20 @@ func (h *Handler) Do(ctx context.Context, reqData []byte) (respData []byte, err 
 		return nil, err
 	}
 	return
+}
+
+type handlerOpt func(*Handler)
+type handlerOption struct{}
+
+var HandlerOption handlerOption
+
+func (handlerOption) WithMethod(method reflect.Method) handlerOpt {
+	return func(h *Handler) {
+		h.WithMethod(method)
+	}
+}
+
+func (h *Handler) WithMethod(method reflect.Method) *Handler {
+	h.method = method
+	return h
 }

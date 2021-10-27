@@ -7,35 +7,16 @@ import (
 type DeviceType int
 
 const (
-	DeviceTypeBus DeviceType = iota
+	DeviceTypeEmpty DeviceType = iota
+	DeviceTypeBus
 	DeviceTypeRouter
 	DeviceTypeService
 	DeviceTypeHandler
 )
 
 type Device interface {
-	// component.Component
 	String() string
-	Gateway(Device)
+	LinkGateway(Device)
 	Process(context.Context, Route, []byte) error
-}
-
-type emptyDevice int
-
-var (
-	empty = new(emptyDevice)
-)
-
-func (*emptyDevice) String() string {
-	return ""
-}
-
-func (*emptyDevice) Process(context.Context, Route, []byte) error {
-	return ErrRouteDeadEnd
-}
-
-func (*emptyDevice) Gateway(Device) {}
-
-func Empty() Device {
-	return empty
+	// Devices() map[string]Device TODO
 }

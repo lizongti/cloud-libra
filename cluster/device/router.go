@@ -10,15 +10,11 @@ type Router struct {
 	gateway Device
 }
 
-func (r *Router) Setup() {
-
-}
-
 func (r *Router) String() string {
 	return r.name
 }
 
-func (r *Router) Gateway(device Device) {
+func (r *Router) LinkGateway(device Device) {
 	r.gateway = device
 }
 
@@ -27,7 +23,7 @@ func (r *Router) Process(ctx context.Context, route Route, data []byte) error {
 	if deviceType == DeviceTypeBus {
 		return r.gateway.Process(ctx, route, data)
 	} else if deviceType == DeviceTypeRouter {
-		return r.localProcess(ctx, route, data)
+		return r.localProcess(ctx, route.forward(), data)
 	}
 	return ErrRouteDeadEnd
 }
@@ -43,5 +39,5 @@ func (r *Router) localProcess(ctx context.Context, route Route, data []byte) err
 	if !ok {
 		return ErrRouteMissingDevice
 	}
-	return device.Process(ctx, route.forward(), data)
+	return device.Process(ctx, route, data)
 }

@@ -24,6 +24,12 @@ type pipeline struct {
 	exitChan chan struct{}
 }
 
+var defaultScheduler = NewScheduler()
+
+func init() {
+	defaultScheduler.WithSafety().WithBackground().Serve()
+}
+
 func NewScheduler(opts ...schedulerOpt) *Scheduler {
 	s := &Scheduler{
 		panicChan: make(chan interface{}, 1),
@@ -38,7 +44,7 @@ func NewScheduler(opts ...schedulerOpt) *Scheduler {
 }
 
 func Default() *Scheduler {
-	return NewScheduler()
+	return defaultScheduler
 }
 
 func (s *Scheduler) Serve() error {

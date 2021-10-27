@@ -7,21 +7,26 @@ import (
 )
 
 type Bus struct {
-	opts    []busOpt
 	devices map[string][]Device
 	gateway Device
 	rwMutex sync.RWMutex
 }
 
 func NewBus(opts ...busOpt) *Bus {
-	return &Bus{opts: opts}
+	b := &Bus{
+		devices: make(map[string][]Device),
+	}
+	for _, opt := range opts {
+		opt(b)
+	}
+	return b
 }
 
 func (b *Bus) String() string {
 	return "Bus"
 }
 
-func (b *Bus) Gateway(device Device) {
+func (b *Bus) LinkGateway(device Device) {
 	b.gateway = Empty()
 }
 
@@ -32,14 +37,6 @@ func (b *Bus) Process(ctx context.Context, route Route, data []byte) error {
 	}
 
 	return ErrRouteDeadEnd
-}
-
-func (b *Bus) Serve() {
-	b.devices = make(map[string][]Device)
-
-	for _, opt := range b.opts {
-		opt(b)
-	}
 }
 
 func (b *Bus) localProcess(ctx context.Context, route Route, data []byte) error {
@@ -89,7 +86,7 @@ func (busOption) WithDevice(devices ...Device) busOpt {
 func (b *Bus) WithDevice(devices ...Device) *Bus {
 	for _, device := range devices {
 		b.mutexLinkDevice(device)
+		device.LinkGateway(b)
 	}
-
 	return b
 }

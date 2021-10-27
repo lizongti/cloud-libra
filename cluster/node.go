@@ -7,12 +7,17 @@ import (
 )
 
 type Node struct {
-	opts       []nodeOpt
 	components []component.Component
 }
 
 func NewNode(opts ...nodeOpt) *Node {
-	return &Node{opts: opts}
+	n := &Node{}
+
+	for _, opt := range opts {
+		opt(n)
+	}
+
+	return n
 }
 
 func (n *Node) Boot() error {
@@ -28,12 +33,12 @@ type nodeOption struct{}
 var NodeOption nodeOption
 
 func (nodeOption) WithComponent(c component.Component) nodeOpt {
-	return func(s *Node) {
-		s.components = append(s.components, c)
+	return func(n *Node) {
+		n.WithComponent(c)
 	}
 }
 
 func (n *Node) WithComponent(c component.Component) *Node {
-	n.opts = append(n.opts, NodeOption.WithComponent(c))
+	n.components = append(n.components, c)
 	return n
 }

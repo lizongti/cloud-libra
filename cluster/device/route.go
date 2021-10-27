@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	ErrRouteDeadEnd       = errors.New("route goes to a dead end")
-	ErrRouteMissingDevice = errors.New("route goes on a missing device")
+	ErrRouteDeadEnd       = errors.New("route has gone to a dead end")
+	ErrRouteMissingDevice = errors.New("route has gone to a missing device")
 )
 
 type Route struct {

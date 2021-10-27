@@ -10,18 +10,34 @@ import (
 )
 
 type Service struct {
-	component.Component
+	component     component.Component
 	encoding      encoding.Encoding
 	schedulerFunc func(context.Context) *scheduler.Scheduler
 	handlers      map[string]*Handler
 	gateway       Device
 }
 
-func (s *Service) String() string {
-	return reflect.Indirect(reflect.ValueOf(s.Component)).Type().Name()
+func NewService(opts ...serviceOpt) *Service {
+	s := &Service{
+		encoding: encoding.Emtpy(),
+		handlers: make(map[string]*Handler),
+		schedulerFunc: func(_ context.Context) *scheduler.Scheduler {
+			return scheduler.Default()
+		},
+	}
+
+	for _, opt := range opts {
+		opt(s)
+	}
+
+	return s
 }
 
-func (s *Service) Gateway(device Device) {
+func (s *Service) String() string {
+	return reflectTypeName(s.component)
+}
+
+func (s *Service) LinkGateway(device Device) {
 	s.gateway = device
 }
 
@@ -30,7 +46,7 @@ func (s *Service) Process(ctx context.Context, route Route, data []byte) error {
 	if deviceType == DeviceTypeBus {
 		return s.gateway.Process(ctx, route, data)
 	} else if deviceType == DeviceTypeService {
-		return s.localProcess(ctx, route, data)
+		return s.localProcess(ctx, route.forward(), data)
 	}
 
 	return ErrRouteDeadEnd
@@ -45,26 +61,19 @@ func (s *Service) localProcess(ctx context.Context, route Route, data []byte) er
 	return handler.Process(ctx, route, data)
 }
 
-func (s *Service) scheduler(ctx context.Context) *scheduler.Scheduler {
-	if s.schedulerFunc != nil {
-		return s.schedulerFunc(ctx)
-	}
-	return scheduler.Default()
-}
+func (s *Service) bind(component component.Component) {
+	s.component = component
+	s.handlers = make(map[string]*Handler)
 
-func (s *Service) ExtractHandlers() {
-	t := reflect.TypeOf(s)
-
+	t := reflect.TypeOf(component)
 	for index := 0; index < t.NumMethod(); index++ {
 		method := t.Method(index)
 		if !isMethodHandler(method) {
 			continue
 		}
 
-		h := &Handler{
-			method: method,
-		}
-		h.Gateway(s)
+		h := NewHandler().WithMethod(method)
+		h.LinkGateway(s)
 		s.handlers[h.String()] = h
 	}
 }
@@ -92,7 +101,7 @@ func isMethodHandler(method reflect.Method) bool {
 	}
 
 	// Check error
-	if t := mt.Out(1); !t.Implements(typeOfBytes) {
+	if t := mt.Out(1); !t.Implements(typeOfError) {
 		return false
 	}
 
@@ -107,4 +116,41 @@ func isMethodHandler(method reflect.Method) bool {
 	}
 
 	return true
+}
+
+func reflectTypeName(i interface{}) string {
+	v := reflect.ValueOf(i)
+	if v.Kind() == reflect.Ptr && v.Elem().Kind() == reflect.Struct {
+		return reflect.TypeOf(i).Elem().Name()
+	} else if v.Kind() == reflect.Struct {
+		return reflect.TypeOf(i).Name()
+	}
+	return ""
+}
+
+type serviceOpt func(*Service)
+type serviceOption struct{}
+
+var ServiceOption serviceOption
+
+func (serviceOption) WithComponent(component component.Component) serviceOpt {
+	return func(s *Service) {
+		s.WithComponent(component)
+	}
+}
+
+func (s *Service) WithComponent(component component.Component) *Service {
+	s.bind(component)
+	return s
+}
+
+func (serviceOption) WithEncoding(encoding encoding.Encoding) serviceOpt {
+	return func(s *Service) {
+		s.WithEncoding(encoding)
+	}
+}
+
+func (s *Service) WithEncoding(encoding encoding.Encoding) *Service {
+	s.encoding = encoding
+	return s
 }
