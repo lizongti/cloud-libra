@@ -57,9 +57,13 @@ func (s *Client) Process(ctx context.Context, route device.Route, data []byte) e
 
 func TestDevice(t *testing.T) {
 	const (
-		timeout = 100
+		timeout = 10
+		version = "1.0.0"
 	)
 	logChan := make(chan string)
+	client := &Client{
+		logChan: logChan,
+	}
 	component := &Try{
 		logChan: logChan,
 	}
@@ -67,18 +71,19 @@ func TestDevice(t *testing.T) {
 		device.ServiceOption.WithEncoding(encoding.JSON()),
 		device.ServiceOption.WithComponent(component),
 	)
-	client := &Client{
-		logChan: logChan,
-	}
-	bus := device.NewBus(
-		device.BusOption.WithDevice(service),
+	router := device.NewRouter(
+		device.RouterOption.WithName(version),
+		device.RouterOption.WithDevice(service),
+	)
+	device.NewBus(
+		device.BusOption.WithDevice(router),
 		device.BusOption.WithDevice(client),
 	)
 	ctx := context.Background()
 	route := device.NewRoute().WithSrc(
 		"bus/client", magic.SeparatorSlash, magic.SeparatorUnderscore,
 	).WithDst(
-		"bus/try/echo", magic.SeparatorSlash, magic.SeparatorUnderscore,
+		"bus/1.0.0/try/echo", magic.SeparatorSlash, magic.SeparatorUnderscore,
 	)
 
 	reqData, err := encoding.Marshal(encoding.JSON(), &Ping{
@@ -88,7 +93,7 @@ func TestDevice(t *testing.T) {
 		t.Fatalf("unexpected error getting from encoding: %v", err)
 	}
 
-	if err = bus.Process(ctx, *route, reqData); err != nil {
+	if err = client.Process(ctx, *route, reqData); err != nil {
 		t.Fatalf("unexpected error getting from device: %v", err)
 	}
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
@@ -110,4 +115,8 @@ func TestDevice(t *testing.T) {
 			return
 		}
 	}
+}
+
+func TestContext(t *testing.T) {
+
 }
