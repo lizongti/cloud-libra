@@ -4,7 +4,7 @@ type EmtpyEncoding struct{}
 
 var emptyEncoding = new(EmtpyEncoding)
 
-func Emtpy() Encoding {
+func Emtpy() TypeEncoding {
 	return emptyEncoding
 }
 

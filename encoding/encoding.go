@@ -4,21 +4,35 @@ import (
 	"errors"
 )
 
-type Encoding interface {
-	String() string
-	Marshal(interface{}) ([]byte, error)
-	Unmarshal([]byte, interface{}) error
-}
-
 var (
 	ErrEmptyEncodingCalled = errors.New("emtpy encoding should not be called")
 	ErrWrongValueType      = errors.New("encoding convert on wrong type value")
 )
 
-func Marshal(c Encoding, v interface{}) ([]byte, error) {
-	return c.Marshal(v)
+type TypeEncoding interface {
+	String() string
+	Marshal(interface{}) ([]byte, error)
+	Unmarshal([]byte, interface{}) error
 }
 
-func Unmarshal(c Encoding, data []byte, v interface{}) error {
-	return c.Unmarshal(data, v)
+type BinaryEncoding interface {
+	String() string
+	MarshalBinary([]byte) ([]byte, error)
+	UnmarshalBinary([]byte) ([]byte, error)
+}
+
+func TypeMarshal(e TypeEncoding, v interface{}) ([]byte, error) {
+	return e.Marshal(v)
+}
+
+func TypeUnmarshal(e TypeEncoding, data []byte, v interface{}) error {
+	return e.Unmarshal(data, v)
+}
+
+func BinaryMarshal(e BinaryEncoding, data []byte) ([]byte, error) {
+
+}
+
+func BinaryUnmarshal(e BinaryEncoding, data []byte) ([]byte, error) {
+
 }

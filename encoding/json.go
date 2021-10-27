@@ -6,7 +6,7 @@ type JSONEncoding struct{}
 
 var jsonEncoding = new(JSONEncoding)
 
-func JSON() Encoding {
+func JSON() TypeEncoding {
 	return jsonEncoding
 }
 

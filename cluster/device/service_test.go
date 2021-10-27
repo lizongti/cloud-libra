@@ -81,12 +81,12 @@ func TestDevice(t *testing.T) {
 	)
 	ctx := context.Background()
 	route := device.NewRoute().WithSrc(
-		"bus/client", magic.SeparatorSlash, magic.SeparatorUnderscore,
+		"/client", magic.SeparatorSlash, magic.SeparatorUnderscore,
 	).WithDst(
-		"bus/1.0.0/try/echo", magic.SeparatorSlash, magic.SeparatorUnderscore,
+		"/1.0.0/try/echo", magic.SeparatorSlash, magic.SeparatorUnderscore,
 	)
 
-	reqData, err := encoding.Marshal(encoding.JSON(), &Ping{
+	reqData, err := encoding.TypeMarshal(encoding.JSON(), &Ping{
 		Text: "libra: Hello, world!",
 	})
 	if err != nil {

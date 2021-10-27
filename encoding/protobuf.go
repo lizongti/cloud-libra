@@ -6,7 +6,7 @@ type ProtobufEncoding struct{}
 
 var protobufEncoding = new(ProtobufEncoding)
 
-func Protobuf() Encoding {
+func Protobuf() TypeEncoding {
 	return protobufEncoding
 }
 
