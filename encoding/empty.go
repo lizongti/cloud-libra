@@ -1,5 +1,11 @@
 package encoding
 
+import "errors"
+
+var (
+	ErrEmptyEncodingCalled = errors.New("emtpy encoding should not be called")
+)
+
 type EmtpyEncoding struct{}
 
 var emptyEncoding = new(EmtpyEncoding)

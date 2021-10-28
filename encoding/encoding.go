@@ -1,13 +1,32 @@
 package encoding
 
-import (
-	"errors"
-)
+type Encoding struct {
+	encode []string
+	decode []string
+}
 
-var (
-	ErrEmptyEncodingCalled = errors.New("emtpy encoding should not be called")
-	ErrWrongValueType      = errors.New("encoding convert on wrong type value")
-)
+func (e Encoding) Reverse() Encoding {
+	return Encoding{
+		encode: e.decode,
+		decode: e.encode,
+	}
+}
+
+func (e Encoding) Marshal(v interface{}) ([]byte, error) {
+	return nil, nil
+}
+
+func (e Encoding) Unmarshal(data []byte, v interface{}) error {
+	return nil
+}
+
+type EncodingSet map[string]Encoding
+
+type EncodingType string
+
+var encodingSet = make(map[string]Encoding)
+
+func init() {}
 
 type TypeEncoding interface {
 	String() string
@@ -17,8 +36,8 @@ type TypeEncoding interface {
 
 type BinaryEncoding interface {
 	String() string
-	MarshalBinary([]byte) ([]byte, error)
-	UnmarshalBinary([]byte) ([]byte, error)
+	Marshal([]byte) ([]byte, error)
+	Unmarshal([]byte) ([]byte, error)
 }
 
 func TypeMarshal(e TypeEncoding, v interface{}) ([]byte, error) {
@@ -30,9 +49,17 @@ func TypeUnmarshal(e TypeEncoding, data []byte, v interface{}) error {
 }
 
 func BinaryMarshal(e BinaryEncoding, data []byte) ([]byte, error) {
-
+	return e.Marshal(data)
 }
 
 func BinaryUnmarshal(e BinaryEncoding, data []byte) ([]byte, error) {
+	return e.Unmarshal(data)
+}
 
+type Bytes struct {
+	data []byte
+}
+
+func (b Bytes) Data() []byte {
+	return b.data
 }
