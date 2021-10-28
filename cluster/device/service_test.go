@@ -86,7 +86,7 @@ func TestDevice(t *testing.T) {
 		"/1.0.0/try/echo", magic.SeparatorSlash, magic.SeparatorUnderscore,
 	)
 
-	reqData, err := encoding.TypeMarshal(encoding.JSON(), &Ping{
+	reqData, err := encoding.Marshal(encoding.JSON(), &Ping{
 		Text: "libra: Hello, world!",
 	})
 	if err != nil {

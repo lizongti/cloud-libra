@@ -12,7 +12,7 @@ import (
 
 type Service struct {
 	component     component.Component
-	encoding      encoding.TypeEncoding
+	encoding      encoding.Codec
 	schedulerFunc func(context.Context) *scheduler.Scheduler
 	handlers      map[string]*Handler
 	gateway       Device
@@ -141,13 +141,13 @@ func (s *Service) WithComponent(component component.Component) *Service {
 	return s
 }
 
-func (serviceOption) WithEncoding(encoding encoding.TypeEncoding) serviceOpt {
+func (serviceOption) WithEncoding(encoding encoding.Codec) serviceOpt {
 	return func(s *Service) {
 		s.WithEncoding(encoding)
 	}
 }
 
-func (s *Service) WithEncoding(encoding encoding.TypeEncoding) *Service {
+func (s *Service) WithEncoding(encoding encoding.Codec) *Service {
 	s.encoding = encoding
 	return s
 }
