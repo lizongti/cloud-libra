@@ -22,7 +22,7 @@ func TestEncoding(t *testing.T) {
 		Bool:    false,
 		Slice:   []byte("this is slice"),
 	}
-	e1 := encoding.NewEncoding().WithEncoder(
+	e1 := *encoding.NewEncoding().WithEncoder(
 		"json.base64.lazy", magic.SeparatorPeriod, magic.SeparatorUnderscore,
 	).WithDecoder(
 		"lazy.base64.xml", magic.SeparatorPeriod, magic.SeparatorUnderscore,
@@ -54,6 +54,8 @@ func TestEncoding(t *testing.T) {
 	if !reflect.DeepEqual(ts2, ts3) {
 		t.Fatalf("expecting ts2 %v equals ts3 %v", ts2, ts3)
 	}
+	t.Logf("e1: %v", e1)
+	t.Logf("e2: %v", e2)
 	t.Logf("data1: %s", string(data1))
 	t.Logf("data2: %s", string(data2Bytes.Data))
 	t.Logf("ts1: %+v", ts1)
