@@ -46,7 +46,7 @@ func (r *Router) mutexLinkDevice(device Device) {
 	r.rwMutex.Lock()
 	defer r.rwMutex.Unlock()
 
-	name := standardize(device.String(), magic.SeparatorNone)
+	name := magic.Standardize(device.String(), magic.SeparatorNone)
 	if name == "" {
 		name = reflectTypeName(device)
 	}

@@ -89,27 +89,6 @@ func (r Route) Error(err error) error {
 	return fmt.Errorf("route %v error: %w", r, err)
 }
 
-func standardize(s string, sep magic.SeparatorType) string {
-	if s == "" {
-		return s
-	}
-	if sep == magic.SeparatorNone {
-		b := []byte(s)
-		if b[0] >= 'a' && b[0] <= 'z' {
-			b[0] -= 32
-		}
-		return string(b)
-	}
-
-	b := []byte{}
-	words := strings.Split(s, sep)
-	for _, word := range words {
-		word = standardize(word, magic.SeparatorNone)
-		b = append(b, []byte(word)...)
-	}
-	return string(b)
-}
-
 type routeOpt func(*Route)
 type routeOption struct{}
 
@@ -124,7 +103,7 @@ func (routeOption) WithSrc(path string, deviceSep magic.SeparatorType, wordSep m
 func (r *Route) WithSrc(path string, deviceSep magic.SeparatorType, wordSep magic.SeparatorType) *Route {
 	names := strings.Split(path, deviceSep)
 	for _, name := range names {
-		r.src = append(r.src, standardize(name, wordSep))
+		r.src = append(r.src, magic.Standardize(name, wordSep))
 	}
 	return r
 }
@@ -138,7 +117,7 @@ func (routeOption) WithDst(path string, deviceSep magic.SeparatorType, wordSep m
 func (r *Route) WithDst(path string, deviceSep magic.SeparatorType, wordSep magic.SeparatorType) *Route {
 	names := strings.Split(path, deviceSep)
 	for _, name := range names {
-		r.dst = append(r.dst, standardize(name, wordSep))
+		r.dst = append(r.dst, magic.Standardize(name, wordSep))
 	}
 	return r
 }

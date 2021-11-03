@@ -53,7 +53,7 @@ func (b *Bus) mutexLinkDevice(device Device) {
 	b.rwMutex.Lock()
 	defer b.rwMutex.Unlock()
 
-	name := standardize(device.String(), magic.SeparatorNone)
+	name := magic.Standardize(device.String(), magic.SeparatorNone)
 	if name == "" {
 		name = reflectTypeName(device)
 	}

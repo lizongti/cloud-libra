@@ -1,4 +1,4 @@
-package codec
+package encoding
 
 import (
 	"errors"
@@ -13,11 +13,7 @@ var (
 type Protobuf struct{}
 
 func init() {
-	Register(new(Protobuf))
-}
-
-func (*Protobuf) String() string {
-	return "protobuf"
+	registerCodec(new(Protobuf))
 }
 
 func (*Protobuf) Marshal(v interface{}) (Bytes, error) {
@@ -29,7 +25,7 @@ func (*Protobuf) Marshal(v interface{}) (Bytes, error) {
 	if err != nil {
 		return nilBytes, err
 	}
-	return Bytes{data}, nil
+	return MakeBytes(data), nil
 }
 
 func (*Protobuf) Unmarshal(bytes Bytes, v interface{}) error {

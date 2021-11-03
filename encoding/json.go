@@ -1,7 +1,7 @@
-package codec
+package encoding
 
 import (
-	stdjson "encoding/json"
+	"encoding/json"
 	"errors"
 	"reflect"
 )
@@ -13,11 +13,7 @@ var (
 type JSON struct{}
 
 func init() {
-	Register(new(JSON))
-}
-
-func (*JSON) String() string {
-	return "json"
+	registerCodec(new(JSON))
 }
 
 func (*JSON) Marshal(v interface{}) (Bytes, error) {
@@ -25,11 +21,11 @@ func (*JSON) Marshal(v interface{}) (Bytes, error) {
 	if !(value.Kind() == reflect.Ptr && value.Elem().Kind() == reflect.Struct || value.Kind() == reflect.Struct) {
 		return nilBytes, ErrJSONWrongValueType
 	}
-	data, err := stdjson.Marshal(v)
+	data, err := json.Marshal(v)
 	if err != nil {
 		return nilBytes, err
 	}
-	return Bytes{data}, nil
+	return MakeBytes(data), nil
 }
 
 func (*JSON) Unmarshal(bytes Bytes, v interface{}) error {
@@ -37,5 +33,5 @@ func (*JSON) Unmarshal(bytes Bytes, v interface{}) error {
 	if !(value.Kind() == reflect.Ptr && value.Elem().Kind() == reflect.Struct) {
 		return ErrJSONWrongValueType
 	}
-	return stdjson.Unmarshal(bytes.Data, v)
+	return json.Unmarshal(bytes.Data, v)
 }

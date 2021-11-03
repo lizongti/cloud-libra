@@ -1,4 +1,4 @@
-package codec
+package encoding
 
 import "errors"
 
@@ -9,11 +9,7 @@ var (
 type Empty struct{}
 
 func init() {
-	Register(new(Empty))
-}
-
-func (*Empty) String() string {
-	return "empty"
+	registerCodec(new(Empty))
 }
 
 func (*Empty) Marshal(_ interface{}) (Bytes, error) {

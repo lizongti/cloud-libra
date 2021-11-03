@@ -1,4 +1,4 @@
-package codec
+package encoding
 
 import (
 	"errors"
@@ -11,11 +11,7 @@ var (
 type Lazy struct{}
 
 func init() {
-	Register(new(Lazy))
-}
-
-func (*Lazy) String() string {
-	return "lazy"
+	registerCodec(new(Lazy))
 }
 
 func (*Lazy) Marshal(v interface{}) (Bytes, error) {
