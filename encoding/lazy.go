@@ -11,7 +11,7 @@ var (
 type Lazy struct{}
 
 func init() {
-	registerCodec(new(Lazy))
+	register(new(Lazy))
 }
 
 func (*Lazy) Marshal(v interface{}) (Bytes, error) {

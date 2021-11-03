@@ -13,7 +13,7 @@ var (
 type Base64 struct{}
 
 func init() {
-	registerCodec(new(Base64))
+	register(new(Base64))
 }
 
 func (Base64) Marshal(v interface{}) (Bytes, error) {

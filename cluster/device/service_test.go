@@ -59,6 +59,12 @@ func TestDevice(t *testing.T) {
 	const (
 		timeout = 10
 		version = "1.0.0"
+		codec   = "json"
+	)
+	e := encoding.NewChain().WithEncoder(
+		"json", magic.SeparatorNone, magic.SeparatorNone,
+	).WithDecoder(
+		"json", magic.SeparatorNone, magic.SeparatorNone,
 	)
 	logChan := make(chan string)
 	client := &Client{
@@ -68,7 +74,7 @@ func TestDevice(t *testing.T) {
 		logChan: logChan,
 	}
 	service := device.NewService(
-		device.ServiceOption.WithEncoding(encoding.JSON()),
+		device.ServiceOption.WithEncoding(e),
 		device.ServiceOption.WithComponent(component),
 	)
 	router := device.NewRouter(
@@ -86,7 +92,7 @@ func TestDevice(t *testing.T) {
 		"/1.0.0/try/echo", magic.SeparatorSlash, magic.SeparatorUnderscore,
 	)
 
-	reqData, err := encoding.Encode(encoding.JSON(), &Ping{
+	reqData, err := encoding.Encode(e, &Ping{
 		Text: "libra: Hello, world!",
 	})
 	if err != nil {

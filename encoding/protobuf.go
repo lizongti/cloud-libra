@@ -13,7 +13,7 @@ var (
 type Protobuf struct{}
 
 func init() {
-	registerCodec(new(Protobuf))
+	register(new(Protobuf))
 }
 
 func (*Protobuf) Marshal(v interface{}) (Bytes, error) {

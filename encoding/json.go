@@ -13,7 +13,7 @@ var (
 type JSON struct{}
 
 func init() {
-	registerCodec(new(JSON))
+	register(new(JSON))
 }
 
 func (*JSON) Marshal(v interface{}) (Bytes, error) {

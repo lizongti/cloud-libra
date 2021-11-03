@@ -48,7 +48,7 @@ func (r *Router) mutexLinkDevice(device Device) {
 
 	name := magic.Standardize(device.String(), magic.SeparatorNone)
 	if name == "" {
-		name = reflectTypeName(device)
+		name = magic.TypeName(device)
 	}
 	for _, d := range r.devices[name] {
 		if d == device {

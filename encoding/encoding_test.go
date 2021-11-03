@@ -22,7 +22,7 @@ func TestEncoding(t *testing.T) {
 		Bool:    false,
 		Slice:   []byte("this is slice"),
 	}
-	e1 := *encoding.NewEncoding().WithEncoder(
+	e1 := *encoding.NewChain().WithEncoder(
 		"json.base64.lazy", magic.SeparatorPeriod, magic.SeparatorUnderscore,
 	).WithDecoder(
 		"lazy.base64.xml", magic.SeparatorPeriod, magic.SeparatorUnderscore,

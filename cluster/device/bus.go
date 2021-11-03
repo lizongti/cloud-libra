@@ -25,7 +25,7 @@ func NewBus(opts ...busOpt) *Bus {
 }
 
 func (b *Bus) String() string {
-	return reflectTypeName(b)
+	return magic.TypeName(b)
 }
 
 func (b *Bus) LinkGateway(device Device) {
@@ -55,7 +55,7 @@ func (b *Bus) mutexLinkDevice(device Device) {
 
 	name := magic.Standardize(device.String(), magic.SeparatorNone)
 	if name == "" {
-		name = reflectTypeName(device)
+		name = magic.TypeName(device)
 	}
 	for _, d := range b.devices[name] {
 		if d == device {

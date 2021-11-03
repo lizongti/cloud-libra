@@ -10,7 +10,7 @@ import (
 type XML struct{}
 
 func init() {
-	registerCodec(new(XML))
+	register(new(XML))
 }
 
 func (*XML) Marshal(v interface{}) (Bytes, error) {

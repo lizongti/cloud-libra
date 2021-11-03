@@ -12,7 +12,7 @@ import (
 
 type Service struct {
 	component     component.Component
-	encoding      encoding.Codec
+	encoding      encoding.Encoding
 	schedulerFunc func(context.Context) *scheduler.Scheduler
 	handlers      map[string]*Handler
 	gateway       Device
@@ -20,7 +20,7 @@ type Service struct {
 
 func NewService(opts ...serviceOpt) *Service {
 	s := &Service{
-		encoding: encoding.Emtpy(),
+		encoding: encoding.Nil(),
 		handlers: make(map[string]*Handler),
 		schedulerFunc: func(_ context.Context) *scheduler.Scheduler {
 			return scheduler.Default()
@@ -35,7 +35,7 @@ func NewService(opts ...serviceOpt) *Service {
 }
 
 func (s *Service) String() string {
-	return reflectTypeName(s.component)
+	return magic.TypeName(s.component)
 }
 
 func (s *Service) LinkGateway(device Device) {
@@ -115,15 +115,6 @@ func isMethodHandler(method reflect.Method) bool {
 	return true
 }
 
-func reflectTypeName(i interface{}) string {
-	v := reflect.ValueOf(i)
-	if v.Kind() == reflect.Ptr && v.Elem().Kind() == reflect.Struct {
-		return reflect.TypeOf(i).Elem().Name()
-	} else if v.Kind() == reflect.Struct {
-		return reflect.TypeOf(i).Name()
-	}
-	return ""
-}
 
 type serviceOpt func(*Service)
 type serviceOption struct{}
@@ -141,13 +132,13 @@ func (s *Service) WithComponent(component component.Component) *Service {
 	return s
 }
 
-func (serviceOption) WithEncoding(encoding encoding.Codec) serviceOpt {
+func (serviceOption) WithEncoding(encoding encoding.Encoding) serviceOpt {
 	return func(s *Service) {
 		s.WithEncoding(encoding)
 	}
 }
 
-func (s *Service) WithEncoding(encoding encoding.Codec) *Service {
+func (s *Service) WithEncoding(encoding encoding.Encoding) *Service {
 	s.encoding = encoding
 	return s
 }
