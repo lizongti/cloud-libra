@@ -48,7 +48,7 @@ func (s *Client) Process(ctx context.Context, route device.Route, data []byte) e
 		return s.gateway.Process(ctx, route, data)
 	}
 	resp := &Pong{}
-	if err := encoding.JSON().Unmarshal(data, resp); err != nil {
+	if err := new(encoding.JSON).Unmarshal(data, resp); err != nil {
 		return err
 	}
 	s.logChan <- fmt.Sprintf("%v", resp)
@@ -61,11 +61,6 @@ func TestDevice(t *testing.T) {
 		version = "1.0.0"
 		codec   = "json"
 	)
-	e := encoding.NewChain().WithEncoder(
-		"json", magic.SeparatorNone, magic.SeparatorNone,
-	).WithDecoder(
-		"json", magic.SeparatorNone, magic.SeparatorNone,
-	)
 	logChan := make(chan string)
 	client := &Client{
 		logChan: logChan,
@@ -74,7 +69,7 @@ func TestDevice(t *testing.T) {
 		logChan: logChan,
 	}
 	service := device.NewService(
-		device.ServiceOption.WithEncoding(e),
+		device.ServiceOption.WithEncoding(new(encoding.JSON)),
 		device.ServiceOption.WithComponent(component),
 	)
 	router := device.NewRouter(
@@ -92,7 +87,7 @@ func TestDevice(t *testing.T) {
 		"/1.0.0/try/echo", magic.SeparatorSlash, magic.SeparatorUnderscore,
 	)
 
-	reqData, err := encoding.Encode(e, &Ping{
+	reqData, err := encoding.Marshal(new(encoding.JSON), &Ping{
 		Text: "libra: Hello, world!",
 	})
 	if err != nil {

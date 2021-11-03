@@ -51,8 +51,8 @@ func (b Bytes) Copy(in Bytes) {
 }
 
 type Encoding interface {
-	Marshal(interface{}) (Bytes, error)
-	Unmarshal(Bytes, interface{}) error
+	Marshal(interface{}) ([]byte, error)
+	Unmarshal([]byte, interface{}) error
 }
 
 type CodecSet map[string]Encoding
@@ -120,58 +120,59 @@ func (e Chain) Reverse() Chain {
 }
 
 func Encode(e Encoding, v interface{}) ([]byte, error) {
-	bytes, err := Marshal(e, v)
-	return bytes.Data, err
-}
-
-func Decode(e Encoding, data []byte, v interface{}) error {
-	return Unmarshal(e, MakeBytes(data), v)
-}
-
-func Marshal(e Encoding, v interface{}) (Bytes, error) {
 	return e.Marshal(v)
 }
 
-func Unmarshal(e Encoding, data Bytes, v interface{}) error {
+func Decode(e Encoding, data []byte, v interface{}) error {
 	return e.Unmarshal(data, v)
 }
 
-func (e Chain) Marshal(v interface{}) (Bytes, error) {
-	var bytes Bytes
+func Marshal(e Encoding, v interface{}) ([]byte, error) {
+	return e.Marshal(v)
+}
+
+func Unmarshal(e Encoding, data []byte, v interface{}) error {
+	return e.Unmarshal(data, v)
+}
+
+func (e Chain) Marshal(v interface{}) ([]byte, error) {
+	var data []byte
 	for index, name := range e.encoder {
 		codec, err := getCodec(name)
 		if err != nil {
-			return nilBytes, err
+			return nil, err
 		}
 		if index == 0 {
-			bytes, err = codec.Marshal(v)
+			data, err = codec.Marshal(v)
 			if err != nil {
-				return nilBytes, err
+				return nil, err
 			}
 		} else {
-			bytes, err = codec.Marshal(bytes)
+			data, err = codec.Marshal(data)
 			if err != nil {
-				return nilBytes, err
+				return nil, err
 			}
 		}
 
 	}
-	return bytes, nil
+	return data, nil
 }
 
-func (e Chain) Unmarshal(bytes Bytes, v interface{}) error {
+func (e Chain) Unmarshal(data []byte, v interface{}) error {
+	bytes := MakeBytes(nil)
 	for index, name := range e.decoder {
 		codec, err := getCodec(name)
 		if err != nil {
 			return err
 		}
-		if index == len(e.decoder)-1 {
-			err = codec.Unmarshal(bytes, v)
+		if index < len(e.decoder)-1 {
+			err = codec.Unmarshal(data, &bytes)
 			if err != nil {
 				return err
 			}
+			data = bytes.Data
 		} else {
-			err = codec.Unmarshal(bytes, &bytes)
+			err = codec.Unmarshal(data, v)
 			if err != nil {
 				return err
 			}

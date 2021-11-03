@@ -3,7 +3,6 @@ package encoding
 import (
 	"encoding/json"
 	"errors"
-	"reflect"
 )
 
 var (
@@ -16,22 +15,10 @@ func init() {
 	register(new(JSON))
 }
 
-func (*JSON) Marshal(v interface{}) (Bytes, error) {
-	value := reflect.ValueOf(v)
-	if !(value.Kind() == reflect.Ptr && value.Elem().Kind() == reflect.Struct || value.Kind() == reflect.Struct) {
-		return nilBytes, ErrJSONWrongValueType
-	}
-	data, err := json.Marshal(v)
-	if err != nil {
-		return nilBytes, err
-	}
-	return MakeBytes(data), nil
+func (*JSON) Marshal(v interface{}) ([]byte, error) {
+	return json.Marshal(v)
 }
 
-func (*JSON) Unmarshal(bytes Bytes, v interface{}) error {
-	value := reflect.ValueOf(v)
-	if !(value.Kind() == reflect.Ptr && value.Elem().Kind() == reflect.Struct) {
-		return ErrJSONWrongValueType
-	}
-	return json.Unmarshal(bytes.Data, v)
+func (*JSON) Unmarshal(data []byte, v interface{}) error {
+	return json.Unmarshal(data, v)
 }

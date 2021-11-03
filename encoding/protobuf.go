@@ -16,22 +16,22 @@ func init() {
 	register(new(Protobuf))
 }
 
-func (*Protobuf) Marshal(v interface{}) (Bytes, error) {
+func (*Protobuf) Marshal(v interface{}) ([]byte, error) {
 	pb, ok := v.(proto.Message)
 	if !ok {
-		return nilBytes, ErrProtobufWrongValueType
+		return nil, ErrProtobufWrongValueType
 	}
 	data, err := proto.Marshal(pb)
 	if err != nil {
-		return nilBytes, err
+		return nil, err
 	}
-	return MakeBytes(data), nil
+	return data, nil
 }
 
-func (*Protobuf) Unmarshal(bytes Bytes, v interface{}) error {
+func (*Protobuf) Unmarshal(data []byte, v interface{}) error {
 	pb, ok := v.(proto.Message)
 	if !ok {
 		return ErrProtobufWrongValueType
 	}
-	return proto.Unmarshal(bytes.Data, pb)
+	return proto.Unmarshal(data, pb)
 }

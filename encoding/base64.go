@@ -16,25 +16,26 @@ func init() {
 	register(new(Base64))
 }
 
-func (Base64) Marshal(v interface{}) (Bytes, error) {
+func (Base64) Marshal(v interface{}) ([]byte, error) {
 	switch v := v.(type) {
+	case []byte:
+		s := base64.StdEncoding.EncodeToString(v)
+		return []byte(s), nil
 	case Bytes:
 		s := base64.StdEncoding.EncodeToString(v.Data)
-		bytes := MakeBytes([]byte(s))
-		return bytes, nil
+		return []byte(s), nil
 	case *Bytes:
 		s := base64.StdEncoding.EncodeToString(v.Data)
-		bytes := MakeBytes([]byte(s))
-		return bytes, nil
+		return []byte(s), nil
 	default:
-		return nilBytes, ErrBase64WrongValueType
+		return nil, ErrBase64WrongValueType
 	}
 }
 
-func (Base64) Unmarshal(data Bytes, v interface{}) error {
+func (Base64) Unmarshal(data []byte, v interface{}) error {
 	switch v := v.(type) {
 	case *Bytes:
-		s, err := base64.StdEncoding.DecodeString(string(v.Data))
+		s, err := base64.StdEncoding.DecodeString(string(data))
 		if err != nil {
 			return err
 		}
@@ -47,35 +48,34 @@ func (Base64) Unmarshal(data Bytes, v interface{}) error {
 
 type Base64URL struct{}
 
-var base64URL = new(Base64URL)
-
-func (Base64URL) String() string {
-	return "base64url"
+func init() {
+	register(new(Base64URL))
 }
 
-func (Base64URL) Marshal(v interface{}) (Bytes, error) {
+func (Base64URL) Marshal(v interface{}) ([]byte, error) {
 	switch v := v.(type) {
+	case []byte:
+		s := base64.URLEncoding.EncodeToString(v)
+		return []byte(s), nil
 	case Bytes:
 		s := base64.URLEncoding.EncodeToString(v.Data)
-		bytes := MakeBytes([]byte(s))
-		return bytes, nil
+		return []byte(s), nil
 	case *Bytes:
 		s := base64.URLEncoding.EncodeToString(v.Data)
-		bytes := MakeBytes([]byte(s))
-		return bytes, nil
+		return []byte(s), nil
 	default:
-		return nilBytes, ErrBase64URLWrongValueType
+		return nil, ErrBase64URLWrongValueType
 	}
 }
 
-func (Base64URL) Unmarshal(data Bytes, v interface{}) error {
+func (Base64URL) Unmarshal(data []byte, v interface{}) error {
 	switch v := v.(type) {
 	case *Bytes:
-		data, err := base64.URLEncoding.DecodeString(string(v.Data))
+		s, err := base64.URLEncoding.DecodeString(string(data))
 		if err != nil {
 			return err
 		}
-		v.Data = data
+		v.Data = []byte(s)
 		return nil
 	default:
 		return ErrBase64URLWrongValueType
