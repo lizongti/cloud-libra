@@ -15,7 +15,7 @@ func TestRoute(t *testing.T) {
 		device.RouteOption.WithDstIndex(1),
 	)
 	t.Logf("%v", route)
-	if fmt.Sprint(route) != "[Bus:TestRoute:Dst] -> [Bus: >>>TestRoute<<< :Dst]" {
+	if fmt.Sprint(route) != "[Bus:TestRoute:Src] -> [Bus:<TestRoute>:Dst]" {
 		t.Fatal("route string is not as expected")
 	}
 }

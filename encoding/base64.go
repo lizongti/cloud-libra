@@ -3,6 +3,8 @@ package encoding
 import (
 	"encoding/base64"
 	"errors"
+
+	"github.com/aceaura/libra/magic"
 )
 
 var (
@@ -13,7 +15,15 @@ var (
 type Base64 struct{}
 
 func init() {
-	register(new(Base64))
+	register(NewBase64())
+}
+
+func NewBase64() *Base64 {
+	return new(Base64)
+}
+
+func (b Base64) String() string {
+	return magic.TypeName(b)
 }
 
 func (Base64) Marshal(v interface{}) ([]byte, error) {
@@ -49,7 +59,15 @@ func (Base64) Unmarshal(data []byte, v interface{}) error {
 type Base64URL struct{}
 
 func init() {
-	register(new(Base64URL))
+	register(NewBase64URL())
+}
+
+func NewBase64URL() *Base64URL {
+	return new(Base64URL)
+}
+
+func (b Base64URL) String() string {
+	return magic.TypeName(b)
 }
 
 func (Base64URL) Marshal(v interface{}) ([]byte, error) {

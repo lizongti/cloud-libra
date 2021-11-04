@@ -12,11 +12,21 @@ var (
 	ErrEncodingMissingCodec = errors.New("encoding cannot find codec by name")
 )
 
+type Encoding interface {
+	String() string
+	Marshal(interface{}) ([]byte, error)
+	Unmarshal([]byte, interface{}) error
+}
+
 type Bytes struct {
 	Data []byte
 }
 
 var nilBytes = MakeBytes(nil)
+
+func NewBytes() *Bytes {
+	return new(Bytes)
+}
 
 func MakeBytes(v interface{}) Bytes {
 	switch v := v.(type) {
@@ -50,11 +60,6 @@ func (b Bytes) Copy(in Bytes) {
 	copy(b.Data, in.Data)
 }
 
-type Encoding interface {
-	Marshal(interface{}) ([]byte, error)
-	Unmarshal([]byte, interface{}) error
-}
-
 type CodecSet map[string]Encoding
 
 func newCodecSet() CodecSet {
@@ -73,11 +78,11 @@ func (cs CodecSet) register(codecs ...Encoding) {
 	}
 }
 
-func getCodec(name string) (Encoding, error) {
-	return codecSet.getCodec(name)
+func codec(name string) (Encoding, error) {
+	return codecSet.codec(name)
 }
 
-func (es CodecSet) getCodec(name string) (Encoding, error) {
+func (es CodecSet) codec(name string) (Encoding, error) {
 	if e, ok := es[name]; ok {
 		return e, nil
 	}
@@ -103,18 +108,43 @@ func Nil() *Chain {
 	return nilChain
 }
 
-func (e Chain) Reverse() Chain {
+func (c Chain) String() string {
+	var builder strings.Builder
+	builder.WriteString(magic.SeparatorBracketleft)
+	for index, name := range c.encoder {
+		builder.WriteString(name)
+		if index != len(c.encoder)-1 {
+			builder.WriteString(magic.SeparatorColon)
+		}
+	}
+	builder.WriteString(magic.SeparatorBracketright)
+	builder.WriteString(magic.SeparatorSpace)
+	builder.WriteString(magic.SeparatorMinus)
+	builder.WriteString(magic.SeparatorGreater)
+	builder.WriteString(magic.SeparatorSpace)
+	builder.WriteString(magic.SeparatorBracketleft)
+	for index, name := range c.decoder {
+		builder.WriteString(name)
+		if index != len(c.decoder)-1 {
+			builder.WriteString(magic.SeparatorColon)
+		}
+	}
+	builder.WriteString(magic.SeparatorBracketright)
+	return builder.String()
+}
+
+func (c Chain) Reverse() Chain {
 	re := Chain{
-		encoder: make([]string, len(e.decoder)),
-		decoder: make([]string, len(e.encoder)),
+		encoder: make([]string, len(c.decoder)),
+		decoder: make([]string, len(c.encoder)),
 	}
-	lenDecoder := len(e.decoder)
+	lenDecoder := len(c.decoder)
 	for index := 0; index < lenDecoder; index++ {
-		re.encoder[index] = e.decoder[lenDecoder-1-index]
+		re.encoder[index] = c.decoder[lenDecoder-1-index]
 	}
-	lenEncoder := len(e.encoder)
+	lenEncoder := len(c.encoder)
 	for index := 0; index < lenEncoder; index++ {
-		re.decoder[index] = e.encoder[lenEncoder-1-index]
+		re.decoder[index] = c.encoder[lenEncoder-1-index]
 	}
 	return re
 }
@@ -135,10 +165,10 @@ func Unmarshal(e Encoding, data []byte, v interface{}) error {
 	return e.Unmarshal(data, v)
 }
 
-func (e Chain) Marshal(v interface{}) ([]byte, error) {
+func (c Chain) Marshal(v interface{}) ([]byte, error) {
 	var data []byte
-	for index, name := range e.encoder {
-		codec, err := getCodec(name)
+	for index, name := range c.encoder {
+		codec, err := codec(name)
 		if err != nil {
 			return nil, err
 		}
@@ -158,14 +188,14 @@ func (e Chain) Marshal(v interface{}) ([]byte, error) {
 	return data, nil
 }
 
-func (e Chain) Unmarshal(data []byte, v interface{}) error {
+func (c Chain) Unmarshal(data []byte, v interface{}) error {
 	bytes := MakeBytes(nil)
-	for index, name := range e.decoder {
-		codec, err := getCodec(name)
+	for index, name := range c.decoder {
+		codec, err := codec(name)
 		if err != nil {
 			return err
 		}
-		if index < len(e.decoder)-1 {
+		if index < len(c.decoder)-1 {
 			err = codec.Unmarshal(data, &bytes)
 			if err != nil {
 				return err
@@ -187,29 +217,29 @@ type chainOption struct{}
 var ChainOption chainOption
 
 func (chainOption) WithEncoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) chainOpt {
-	return func(e *Chain) {
-		e.WithEncoder(path, codecSep, wordSep)
+	return func(c *Chain) {
+		c.WithEncoder(path, codecSep, wordSep)
 	}
 }
 
-func (e *Chain) WithEncoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) *Chain {
+func (c *Chain) WithEncoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) *Chain {
 	names := strings.Split(path, codecSep)
 	for _, name := range names {
-		e.encoder = append(e.encoder, magic.Standardize(name, wordSep))
+		c.encoder = append(c.encoder, magic.Standardize(name, wordSep))
 	}
-	return e
+	return c
 }
 
 func (chainOption) WithDecoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) chainOpt {
-	return func(e *Chain) {
-		e.WithDecoder(path, codecSep, wordSep)
+	return func(c *Chain) {
+		c.WithDecoder(path, codecSep, wordSep)
 	}
 }
 
-func (e *Chain) WithDecoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) *Chain {
+func (c *Chain) WithDecoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) *Chain {
 	names := strings.Split(path, codecSep)
 	for _, name := range names {
-		e.decoder = append(e.decoder, magic.Standardize(name, wordSep))
+		c.decoder = append(c.decoder, magic.Standardize(name, wordSep))
 	}
-	return e
+	return c
 }

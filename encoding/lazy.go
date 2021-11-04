@@ -2,6 +2,8 @@ package encoding
 
 import (
 	"errors"
+
+	"github.com/aceaura/libra/magic"
 )
 
 var (
@@ -11,10 +13,18 @@ var (
 type Lazy struct{}
 
 func init() {
-	register(new(Lazy))
+	register(NewLazy())
 }
 
-func (*Lazy) Marshal(v interface{}) ([]byte, error) {
+func NewLazy() *Lazy {
+	return new(Lazy)
+}
+
+func (lazy Lazy) String() string {
+	return magic.TypeName(lazy)
+}
+
+func (Lazy) Marshal(v interface{}) ([]byte, error) {
 	switch v := v.(type) {
 	case []byte:
 		data := make([]byte, len(v))
@@ -33,7 +43,7 @@ func (*Lazy) Marshal(v interface{}) ([]byte, error) {
 	}
 }
 
-func (s *Lazy) Unmarshal(data []byte, v interface{}) error {
+func (Lazy) Unmarshal(data []byte, v interface{}) error {
 	switch v := v.(type) {
 	case *Bytes:
 		v.Data = make([]byte, len(data))

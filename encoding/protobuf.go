@@ -3,6 +3,7 @@ package encoding
 import (
 	"errors"
 
+	"github.com/aceaura/libra/magic"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -13,10 +14,18 @@ var (
 type Protobuf struct{}
 
 func init() {
-	register(new(Protobuf))
+	register(NewProtobuf())
 }
 
-func (*Protobuf) Marshal(v interface{}) ([]byte, error) {
+func NewProtobuf() *Protobuf {
+	return new(Protobuf)
+}
+
+func (protobuf Protobuf) String() string {
+	return magic.TypeName(protobuf)
+}
+
+func (Protobuf) Marshal(v interface{}) ([]byte, error) {
 	pb, ok := v.(proto.Message)
 	if !ok {
 		return nil, ErrProtobufWrongValueType
@@ -28,7 +37,7 @@ func (*Protobuf) Marshal(v interface{}) ([]byte, error) {
 	return data, nil
 }
 
-func (*Protobuf) Unmarshal(data []byte, v interface{}) error {
+func (Protobuf) Unmarshal(data []byte, v interface{}) error {
 	pb, ok := v.(proto.Message)
 	if !ok {
 		return ErrProtobufWrongValueType
