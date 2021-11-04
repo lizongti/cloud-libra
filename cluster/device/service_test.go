@@ -12,6 +12,8 @@ import (
 	"github.com/aceaura/libra/magic"
 )
 
+var e = encoding.NewJSON()
+
 type Try struct {
 	component.ComponentBase
 	logChan chan<- string
@@ -48,7 +50,7 @@ func (s *Client) Process(ctx context.Context, route device.Route, data []byte) e
 		return s.gateway.Process(ctx, route, data)
 	}
 	resp := &Pong{}
-	if err := new(encoding.JSON).Unmarshal(data, resp); err != nil {
+	if err := e.Unmarshal(data, resp); err != nil {
 		return err
 	}
 	s.logChan <- fmt.Sprintf("%v", resp)
@@ -69,7 +71,7 @@ func TestDevice(t *testing.T) {
 		logChan: logChan,
 	}
 	service := device.NewService(
-		device.ServiceOption.WithEncoding(new(encoding.JSON)),
+		device.ServiceOption.WithEncoding(e),
 		device.ServiceOption.WithComponent(component),
 	)
 	router := device.NewRouter(
@@ -87,7 +89,7 @@ func TestDevice(t *testing.T) {
 		"/1.0.0/try/echo", magic.SeparatorSlash, magic.SeparatorUnderscore,
 	)
 
-	reqData, err := encoding.Marshal(new(encoding.JSON), &Ping{
+	reqData, err := encoding.Marshal(e, &Ping{
 		Text: "libra: Hello, world!",
 	})
 	if err != nil {

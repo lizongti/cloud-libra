@@ -35,6 +35,9 @@ func Standardize(s string, sep SeparatorType) string {
 	if s == "" {
 		return s
 	}
+	if sep == SeparatorNone {
+		return camelize(s)
+	}
 
 	b := []byte{}
 	words := strings.Split(s, sep)
