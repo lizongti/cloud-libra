@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/aceaura/libra/magic"
 	"github.com/gofrs/uuid"
 )
 
@@ -67,7 +68,7 @@ func NewTask(opts ...taskOpt) *Task {
 	now := time.Now()
 	t := &Task{
 		id:           uuid.String(),
-		name:         "anonymous",
+		name:         magic.Anonymous,
 		state:        TaskStateCreated,
 		params:       make(map[interface{}]interface{}),
 		taskStarted:  now,

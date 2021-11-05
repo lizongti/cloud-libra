@@ -4,6 +4,8 @@ import (
 	"context"
 	"math/rand"
 	"sync"
+
+	"github.com/aceaura/libra/magic"
 )
 
 type Base struct {
@@ -22,7 +24,7 @@ func NewBase() *Base {
 }
 
 func (b *Base) String() string {
-	return ""
+	return magic.Anonymous
 }
 
 func (b *Base) Access(device Device) {
@@ -41,7 +43,7 @@ func (b *Base) Extend(device Device) {
 	b.rwMutex.Lock()
 	defer b.rwMutex.Unlock()
 
-	name := Name(device)
+	name := device.String()
 
 	for _, d := range b.extensions[name] {
 		if d == device {

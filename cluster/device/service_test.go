@@ -80,7 +80,7 @@ func TestDevice(t *testing.T) {
 
 	ctx := context.Background()
 	route := device.NewRoute().WithSrc(
-		"/client", magic.SeparatorSlash, magic.SeparatorUnderscore,
+		"/anonymous", magic.SeparatorSlash, magic.SeparatorUnderscore,
 	).WithDst(
 		"/1.0.0/try/echo", magic.SeparatorSlash, magic.SeparatorUnderscore,
 	)
