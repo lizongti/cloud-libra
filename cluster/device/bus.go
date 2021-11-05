@@ -2,21 +2,19 @@ package device
 
 import (
 	"context"
-	"math/rand"
 	"sync"
 
 	"github.com/aceaura/libra/magic"
 )
 
 type Bus struct {
-	devices map[string][]Device
-	gateway Device
+	*Base
 	rwMutex sync.RWMutex
 }
 
 func NewBus(opts ...busOpt) *Bus {
 	b := &Bus{
-		devices: make(map[string][]Device),
+		Base: NewBase(),
 	}
 	for _, opt := range opts {
 		opt(b)
@@ -28,12 +26,12 @@ func (b *Bus) String() string {
 	return magic.TypeName(b)
 }
 
-func (b *Bus) LinkGateway(device Device) {
-	b.gateway = Empty()
+func (b *Bus) Access(device Device) {
+	b.gateway = Hole()
 }
 
 func (b *Bus) Process(ctx context.Context, route Route, data []byte) error {
-	if route.Taking() {
+	if route.Assembling() {
 		return b.localProcess(ctx, route.Forward(), data)
 	}
 
@@ -42,38 +40,11 @@ func (b *Bus) Process(ctx context.Context, route Route, data []byte) error {
 
 func (b *Bus) localProcess(ctx context.Context, route Route, data []byte) error {
 	name := route.Name()
-	device := b.mutexFindDevice(name)
+	device := b.Route(name)
 	if device == nil {
 		return route.Error(ErrRouteMissingDevice)
 	}
 	return device.Process(ctx, route, data)
-}
-
-func (b *Bus) mutexLinkDevice(device Device) {
-	b.rwMutex.Lock()
-	defer b.rwMutex.Unlock()
-
-	name := magic.Standardize(device.String(), magic.SeparatorNone)
-	if name == "" {
-		name = magic.TypeName(device)
-	}
-	for _, d := range b.devices[name] {
-		if d == device {
-			return
-		}
-	}
-	b.devices[name] = append(b.devices[name], device)
-}
-
-func (b *Bus) mutexFindDevice(name string) Device {
-	b.rwMutex.RLock()
-	defer b.rwMutex.RUnlock()
-
-	devices, ok := b.devices[name]
-	if !ok {
-		return nil
-	}
-	return devices[rand.Intn(len(devices))]
 }
 
 type busOpt func(*Bus)
@@ -89,8 +60,8 @@ func (busOption) WithDevice(devices ...Device) busOpt {
 
 func (b *Bus) WithDevice(devices ...Device) *Bus {
 	for _, device := range devices {
-		b.mutexLinkDevice(device)
-		device.LinkGateway(b)
+		b.Extend(device)
+		device.Access(b)
 	}
 	return b
 }

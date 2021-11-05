@@ -33,21 +33,13 @@ func (t *Try) Echo(_ context.Context, req *Ping) (resp *Pong, err error) {
 }
 
 type Client struct {
+	*device.Base
 	logChan chan<- string
-	gateway device.Device
-}
-
-func (*Client) String() string {
-	return "Client"
-}
-
-func (s *Client) LinkGateway(device device.Device) {
-	s.gateway = device
 }
 
 func (s *Client) Process(ctx context.Context, route device.Route, data []byte) error {
-	if route.Taking() {
-		return s.gateway.Process(ctx, route, data)
+	if route.Assembling() {
+		return s.Gateway().Process(ctx, route, data)
 	}
 	resp := &Pong{}
 	if err := e.Unmarshal(data, resp); err != nil {
@@ -65,6 +57,7 @@ func TestDevice(t *testing.T) {
 	)
 	logChan := make(chan string)
 	client := &Client{
+		Base:    device.NewBase(),
 		logChan: logChan,
 	}
 	component := &Try{

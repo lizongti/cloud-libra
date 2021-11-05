@@ -62,7 +62,7 @@ func (r Route) Dispatching() bool {
 	return r.dstIndex > 0
 }
 
-func (r Route) Taking() bool {
+func (r Route) Assembling() bool {
 	return r.dstIndex == 0
 }
 

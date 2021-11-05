@@ -27,12 +27,12 @@ func (h *Handler) String() string {
 	return h.method.Name
 }
 
-func (h *Handler) LinkGateway(device Device) {
+func (h *Handler) Access(device Device) {
 	h.gateway = device
 }
 
 func (h *Handler) Process(ctx context.Context, route Route, data []byte) error {
-	if route.Taking() {
+	if route.Assembling() {
 		return h.gateway.Process(ctx, route, data)
 	}
 	return h.localProcess(ctx, route, data)

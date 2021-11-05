@@ -4,16 +4,12 @@ import (
 	"context"
 )
 
-type RouteType int
-
-const (
-	RouteTypeBus RouteType = iota
-	RouteTypeDispatch
-)
-
 type Device interface {
 	String() string
-	LinkGateway(Device)
+	Tree() string
+	Access(Device)
+	Extend(Device)
+	Route(name string) Device
+	Gateway() Device
 	Process(context.Context, Route, []byte) error
-	// Devices() map[string]Device TODO
 }

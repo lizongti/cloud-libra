@@ -11,15 +11,16 @@ import (
 )
 
 type Service struct {
+	*Base
 	component     component.Component
 	encoding      encoding.Encoding
 	schedulerFunc func(context.Context) *scheduler.Scheduler
 	handlers      map[string]*Handler
-	gateway       Device
 }
 
 func NewService(opts ...serviceOpt) *Service {
 	s := &Service{
+		Base:     NewBase(),
 		encoding: encoding.Nil(),
 		handlers: make(map[string]*Handler),
 		schedulerFunc: func(_ context.Context) *scheduler.Scheduler {
@@ -38,12 +39,8 @@ func (s *Service) String() string {
 	return magic.TypeName(s.component)
 }
 
-func (s *Service) LinkGateway(device Device) {
-	s.gateway = device
-}
-
 func (s *Service) Process(ctx context.Context, route Route, data []byte) error {
-	if route.Taking() {
+	if route.Assembling() {
 		return s.gateway.Process(ctx, route, data)
 	}
 	return s.localProcess(ctx, route.Forward(), data)
@@ -70,7 +67,7 @@ func (s *Service) bind(component component.Component) {
 		}
 
 		h := NewHandler().WithMethod(method)
-		h.LinkGateway(s)
+		h.Access(s)
 		s.handlers[h.String()] = h
 	}
 }
@@ -114,7 +111,6 @@ func isMethodHandler(method reflect.Method) bool {
 
 	return true
 }
-
 
 type serviceOpt func(*Service)
 type serviceOption struct{}
