@@ -9,12 +9,14 @@ import (
 )
 
 type Handler struct {
-	method  reflect.Method
-	gateway Device
+	*Base
+	method reflect.Method
 }
 
 func NewHandler(opts ...handlerOpt) *Handler {
-	h := &Handler{}
+	h := &Handler{
+		Base: NewBase(),
+	}
 
 	for _, opt := range opts {
 		opt(h)
@@ -25,10 +27,6 @@ func NewHandler(opts ...handlerOpt) *Handler {
 
 func (h *Handler) String() string {
 	return h.method.Name
-}
-
-func (h *Handler) Access(device Device) {
-	h.gateway = device
 }
 
 func (h *Handler) Process(ctx context.Context, route Route, data []byte) error {

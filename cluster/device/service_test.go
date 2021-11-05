@@ -71,10 +71,13 @@ func TestDevice(t *testing.T) {
 		device.RouterOption.WithName(version),
 		device.RouterOption.WithDevice(service),
 	)
-	device.NewBus(
-		device.BusOption.WithDevice(router),
+	bus := device.NewBus(
 		device.BusOption.WithDevice(client),
+		device.BusOption.WithDevice(router),
 	)
+
+	t.Logf("\n%s", device.Tree(bus))
+
 	ctx := context.Background()
 	route := device.NewRoute().WithSrc(
 		"/client", magic.SeparatorSlash, magic.SeparatorUnderscore,

@@ -15,14 +15,12 @@ type Service struct {
 	component     component.Component
 	encoding      encoding.Encoding
 	schedulerFunc func(context.Context) *scheduler.Scheduler
-	handlers      map[string]*Handler
 }
 
 func NewService(opts ...serviceOpt) *Service {
 	s := &Service{
 		Base:     NewBase(),
 		encoding: encoding.Nil(),
-		handlers: make(map[string]*Handler),
 		schedulerFunc: func(_ context.Context) *scheduler.Scheduler {
 			return scheduler.Default()
 		},
@@ -48,16 +46,15 @@ func (s *Service) Process(ctx context.Context, route Route, data []byte) error {
 
 func (s *Service) localProcess(ctx context.Context, route Route, data []byte) error {
 	name := route.Name()
-	handler, ok := s.handlers[name]
-	if !ok {
+	device := s.Route(name)
+	if device == nil {
 		return route.Error(ErrRouteMissingDevice)
 	}
-	return handler.Process(ctx, route, data)
+	return device.Process(ctx, route, data)
 }
 
 func (s *Service) bind(component component.Component) {
 	s.component = component
-	s.handlers = make(map[string]*Handler)
 
 	t := reflect.TypeOf(component)
 	for index := 0; index < t.NumMethod(); index++ {
@@ -68,7 +65,7 @@ func (s *Service) bind(component component.Component) {
 
 		h := NewHandler().WithMethod(method)
 		h.Access(s)
-		s.handlers[h.String()] = h
+		s.Extend(h)
 	}
 }
 
