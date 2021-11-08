@@ -148,6 +148,13 @@ func (s *Service) WithEncoding(encoding encoding.Encoding) *Service {
 	return s
 }
 
-func (s *Service) DispatchFunc() {
+func (serviceOption) WithDispatchFunc(dispatchFunc DispatchFunc) serviceOpt {
+	return func(s *Service) {
+		s.WithDispatchFunc(dispatchFunc)
+	}
+}
 
+func (s *Service) WithDispatchFunc(dispatchFunc DispatchFunc) *Service {
+	s.dispatchFunc = dispatchFunc
+	return s
 }
