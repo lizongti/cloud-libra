@@ -274,11 +274,11 @@ func (t *Task) WithParams(params map[interface{}]interface{}) *Task {
 
 func (taskOption) WithContext(context context.Context) taskOpt {
 	return func(t *Task) {
-		t.WithTask(context)
+		t.WithContext(context)
 	}
 }
 
-func (t *Task) WithTask(context context.Context) *Task {
+func (t *Task) WithContext(context context.Context) *Task {
 	t.context = context
 	return t
 }

@@ -24,10 +24,14 @@ type pipeline struct {
 	exitChan chan struct{}
 }
 
-var defaultScheduler = NewScheduler()
+var scheduler = NewScheduler()
 
 func init() {
-	defaultScheduler.WithSafety().WithBackground().Serve()
+	scheduler.WithSafety().WithBackground().Serve()
+}
+
+func Default() *Scheduler {
+	return scheduler
 }
 
 func NewScheduler(opts ...schedulerOpt) *Scheduler {
@@ -41,10 +45,6 @@ func NewScheduler(opts ...schedulerOpt) *Scheduler {
 		opt(s)
 	}
 	return s
-}
-
-func Default() *Scheduler {
-	return defaultScheduler
 }
 
 func (s *Scheduler) Serve() error {

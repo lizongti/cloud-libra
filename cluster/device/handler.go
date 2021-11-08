@@ -53,7 +53,7 @@ func (h *Handler) localProcess(ctx context.Context, route Route, reqData []byte)
 	scheduler.NewTask(
 		scheduler.TaskOption.WithContext(ctx),
 		scheduler.TaskOption.WithStage(stage),
-	).Publish(s.schedulerFunc(ctx))
+	).Publish(s.dispatch(ctx, route))
 	return nil
 }
 

@@ -10,20 +10,28 @@ import (
 	"github.com/aceaura/libra/scheduler"
 )
 
+type DispatchFunc func(context.Context, Route) *scheduler.Scheduler
+
+var defaultDispatchFunc DispatchFunc
+
+func init() {
+	defaultDispatchFunc = func(context.Context, Route) *scheduler.Scheduler {
+		return scheduler.Default()
+	}
+}
+
 type Service struct {
 	*Base
-	component     component.Component
-	encoding      encoding.Encoding
-	schedulerFunc func(context.Context) *scheduler.Scheduler
+	component    component.Component
+	encoding     encoding.Encoding
+	dispatchFunc DispatchFunc
 }
 
 func NewService(opts ...serviceOpt) *Service {
 	s := &Service{
-		Base:     NewBase(),
-		encoding: encoding.Nil(),
-		schedulerFunc: func(_ context.Context) *scheduler.Scheduler {
-			return scheduler.Default()
-		},
+		Base:         NewBase(),
+		encoding:     encoding.Nil(),
+		dispatchFunc: defaultDispatchFunc,
 	}
 
 	for _, opt := range opts {
@@ -67,6 +75,10 @@ func (s *Service) bind(component component.Component) {
 		h.Access(s)
 		s.Extend(h)
 	}
+}
+
+func (s *Service) dispatch(ctx context.Context, route Route) *scheduler.Scheduler {
+	return s.dispatchFunc(ctx, route)
 }
 
 func isMethodHandler(method reflect.Method) bool {
@@ -134,4 +146,8 @@ func (serviceOption) WithEncoding(encoding encoding.Encoding) serviceOpt {
 func (s *Service) WithEncoding(encoding encoding.Encoding) *Service {
 	s.encoding = encoding
 	return s
+}
+
+func (s *Service) DispatchFunc() {
+
 }
