@@ -44,6 +44,7 @@ func (h *Handler) localProcess(ctx context.Context, route Route, reqData []byte)
 	s := h.gateway.(*Service)
 
 	stage := func(t *scheduler.Task) error {
+		ctx := t.Context()
 		respData, err := h.do(ctx, reqData)
 		if err != nil {
 			return err

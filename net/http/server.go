@@ -74,6 +74,20 @@ func (s *Server) serve(addr string) (err error) {
 	return s.server.ListenAndServe()
 }
 
+// type funcServerOption struct {
+// 	f func(*serverOptions)
+// }
+
+// func (fdo *funcServerOption) apply(do *serverOptions) {
+// 	fdo.f(do)
+// }
+
+// func newFuncServerOption(f func(*serverOptions)) *funcServerOption {
+// 	return &funcServerOption{
+// 		f: f,
+// 	}
+// }
+
 type funcServerOption func(*Server)
 type serverOption struct{}
 

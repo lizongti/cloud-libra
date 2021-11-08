@@ -158,6 +158,7 @@ func (t *Task) execute() {
 	}
 
 	ctx, cancel := context.WithTimeout(t.context, t.timeout)
+	t.context = ctx
 	doneChan := make(chan struct{})
 	defer close(doneChan)
 	defer cancel()
