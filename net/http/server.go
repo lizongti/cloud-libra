@@ -22,7 +22,7 @@ type route struct {
 	handleFunc func(http.ResponseWriter, *http.Request)
 }
 
-func NewServer(opts ...serverOpt) *Server {
+func NewServer(opts ...funcServerOption) *Server {
 	s := &Server{
 		router: mux.NewRouter(),
 	}
@@ -34,7 +34,7 @@ func NewServer(opts ...serverOpt) *Server {
 	return s
 }
 
-func Serve(addr string, options ...serverOpt) error {
+func Serve(addr string, options ...funcServerOption) error {
 	return NewServer(options...).Serve(addr)
 }
 
@@ -74,12 +74,12 @@ func (s *Server) serve(addr string) (err error) {
 	return s.server.ListenAndServe()
 }
 
-type serverOpt func(*Server)
+type funcServerOption func(*Server)
 type serverOption struct{}
 
 var ServerOption serverOption
 
-func (serverOption) WithRoute(path string, f func(http.ResponseWriter, *http.Request)) serverOpt {
+func (serverOption) WithRoute(path string, f func(http.ResponseWriter, *http.Request)) funcServerOption {
 	return func(s *Server) {
 		s.WithRoute(path, f)
 	}
@@ -90,7 +90,7 @@ func (s *Server) WithRoute(path string, f func(http.ResponseWriter, *http.Reques
 	return s
 }
 
-func (serverOption) WithProxy() serverOpt {
+func (serverOption) WithProxy() funcServerOption {
 	return func(s *Server) {
 		s.WithProxy()
 	}
@@ -101,7 +101,7 @@ func (s *Server) WithProxy() *Server {
 	return s
 }
 
-func (serverOption) WithBackground() serverOpt {
+func (serverOption) WithBackground() funcServerOption {
 	return func(s *Server) {
 		s.WithBackground()
 	}
@@ -112,7 +112,7 @@ func (s *Server) WithBackground() *Server {
 	return s
 }
 
-func (serverOption) WithServerSafety() serverOpt {
+func (serverOption) WithServerSafety() funcServerOption {
 	return func(s *Server) {
 		s.WithServerSafety()
 	}
@@ -123,7 +123,7 @@ func (s *Server) WithServerSafety() *Server {
 	return s
 }
 
-func (serverOption) WithErrorFunc(errorFunc func(error)) serverOpt {
+func (serverOption) WithErrorFunc(errorFunc func(error)) funcServerOption {
 	return func(s *Server) {
 		s.WithErrorFunc(errorFunc)
 	}

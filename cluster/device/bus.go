@@ -12,7 +12,7 @@ type Bus struct {
 	rwMutex sync.RWMutex
 }
 
-func NewBus(opts ...busOpt) *Bus {
+func NewBus(opts ...funcBusOption) *Bus {
 	b := &Bus{
 		Base: NewBase(),
 	}
@@ -47,12 +47,12 @@ func (b *Bus) localProcess(ctx context.Context, route Route, data []byte) error 
 	return device.Process(ctx, route, data)
 }
 
-type busOpt func(*Bus)
+type funcBusOption func(*Bus)
 type busOption struct{}
 
 var BusOption busOption
 
-func (busOption) WithDevice(devices ...Device) busOpt {
+func (busOption) WithDevice(devices ...Device) funcBusOption {
 	return func(b *Bus) {
 		b.WithDevice(devices...)
 	}

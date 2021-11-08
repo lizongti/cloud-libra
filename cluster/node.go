@@ -10,7 +10,7 @@ type Node struct {
 	components []component.Component
 }
 
-func NewNode(opts ...nodeOpt) *Node {
+func NewNode(opts ...funcNodeOption) *Node {
 	n := &Node{}
 
 	for _, opt := range opts {
@@ -27,12 +27,12 @@ func (n *Node) Boot() error {
 	return nil
 }
 
-type nodeOpt func(*Node)
+type funcNodeOption func(*Node)
 type nodeOption struct{}
 
 var NodeOption nodeOption
 
-func (nodeOption) WithComponent(c component.Component) nodeOpt {
+func (nodeOption) WithComponent(c component.Component) funcNodeOption {
 	return func(n *Node) {
 		n.WithComponent(c)
 	}

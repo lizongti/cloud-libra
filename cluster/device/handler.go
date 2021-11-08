@@ -13,7 +13,7 @@ type Handler struct {
 	method reflect.Method
 }
 
-func NewHandler(opts ...handlerOpt) *Handler {
+func NewHandler(opts ...funcHandlerOption) *Handler {
 	h := &Handler{
 		Base: NewBase(),
 	}
@@ -83,12 +83,12 @@ func (h *Handler) do(ctx context.Context, reqData []byte) (respData []byte, err 
 	return respData, err
 }
 
-type handlerOpt func(*Handler)
+type funcHandlerOption func(*Handler)
 type handlerOption struct{}
 
 var HandlerOption handlerOption
 
-func (handlerOption) WithMethod(method reflect.Method) handlerOpt {
+func (handlerOption) WithMethod(method reflect.Method) funcHandlerOption {
 	return func(h *Handler) {
 		h.WithMethod(method)
 	}

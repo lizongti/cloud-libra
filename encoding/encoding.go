@@ -94,7 +94,7 @@ type Chain struct {
 	decoder []string
 }
 
-func NewChain(opts ...chainOpt) *Chain {
+func NewChain(opts ...funcChainOption) *Chain {
 	e := &Chain{}
 	for _, opt := range opts {
 		opt(e)
@@ -211,12 +211,12 @@ func (c Chain) Unmarshal(data []byte, v interface{}) error {
 	return nil
 }
 
-type chainOpt func(*Chain)
+type funcChainOption func(*Chain)
 type chainOption struct{}
 
 var ChainOption chainOption
 
-func (chainOption) WithEncoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) chainOpt {
+func (chainOption) WithEncoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) funcChainOption {
 	return func(c *Chain) {
 		c.WithEncoder(path, codecSep, wordSep)
 	}
@@ -230,7 +230,7 @@ func (c *Chain) WithEncoder(path string, codecSep magic.SeparatorType, wordSep m
 	return c
 }
 
-func (chainOption) WithDecoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) chainOpt {
+func (chainOption) WithDecoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) funcChainOption {
 	return func(c *Chain) {
 		c.WithDecoder(path, codecSep, wordSep)
 	}

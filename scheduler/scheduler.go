@@ -34,7 +34,7 @@ func Default() *Scheduler {
 	return scheduler
 }
 
-func NewScheduler(opts ...schedulerOpt) *Scheduler {
+func NewScheduler(opts ...funcSchedulerOption) *Scheduler {
 	s := &Scheduler{
 		panicChan: make(chan interface{}, 1),
 		dieChan:   make(chan struct{}),
@@ -148,12 +148,12 @@ func (s *Scheduler) report(r *Report) {
 	s.reportChan <- r
 }
 
-type schedulerOpt func(*Scheduler)
+type funcSchedulerOption func(*Scheduler)
 type schedulerOption struct{}
 
 var SchedulerOption schedulerOption
 
-func (schedulerOption) WithBacklog(backlog int) schedulerOpt {
+func (schedulerOption) WithBacklog(backlog int) funcSchedulerOption {
 	return func(s *Scheduler) {
 		s.WithBacklog(backlog)
 	}
@@ -164,7 +164,7 @@ func (s *Scheduler) WithBacklog(backlog int) *Scheduler {
 	return s
 }
 
-func (schedulerOption) WithParallel(parallel int) schedulerOpt {
+func (schedulerOption) WithParallel(parallel int) funcSchedulerOption {
 	return func(s *Scheduler) {
 		s.WithParallel(parallel)
 	}
@@ -175,7 +175,7 @@ func (s *Scheduler) WithParallel(parallel int) *Scheduler {
 	return s
 }
 
-func (schedulerOption) WithBackground() schedulerOpt {
+func (schedulerOption) WithBackground() funcSchedulerOption {
 	return func(s *Scheduler) {
 		s.WithBackground()
 	}
@@ -186,7 +186,7 @@ func (s *Scheduler) WithBackground() *Scheduler {
 	return s
 }
 
-func (schedulerOption) WithSafety() schedulerOpt {
+func (schedulerOption) WithSafety() funcSchedulerOption {
 	return func(s *Scheduler) {
 		s.WithSafety()
 	}
@@ -197,7 +197,7 @@ func (s *Scheduler) WithSafety() *Scheduler {
 	return s
 }
 
-func (schedulerOption) WithErrorFunc(errorFunc func(error)) schedulerOpt {
+func (schedulerOption) WithErrorFunc(errorFunc func(error)) funcSchedulerOption {
 	return func(s *Scheduler) {
 		s.WithErrorFunc(errorFunc)
 	}
@@ -208,7 +208,7 @@ func (s *Scheduler) WithErrorFunc(errorFunc func(error)) *Scheduler {
 	return s
 }
 
-func (schedulerOption) WithReportChan(reportChan chan<- *Report) schedulerOpt {
+func (schedulerOption) WithReportChan(reportChan chan<- *Report) funcSchedulerOption {
 	return func(s *Scheduler) {
 		s.WithReportChan(reportChan)
 	}
@@ -219,7 +219,7 @@ func (s *Scheduler) WithReportChan(reportChan chan<- *Report) *Scheduler {
 	return s
 }
 
-func (schedulerOption) WithParallelChan(parallelChan <-chan int) schedulerOpt {
+func (schedulerOption) WithParallelChan(parallelChan <-chan int) funcSchedulerOption {
 	return func(s *Scheduler) {
 		s.WithParallelChan(parallelChan)
 	}

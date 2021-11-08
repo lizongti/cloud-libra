@@ -35,7 +35,7 @@ type Client struct {
 	client             http.Client
 }
 
-func NewClient(opts ...clientOpt) *Client {
+func NewClient(opts ...funcClientOption) *Client {
 	c := &Client{
 		form:        make(url.Values),
 		contentType: "text/plain",
@@ -47,7 +47,7 @@ func NewClient(opts ...clientOpt) *Client {
 	return c
 }
 
-func Get(url string, opts ...clientOpt) (*http.Response, []byte, error) {
+func Get(url string, opts ...funcClientOption) (*http.Response, []byte, error) {
 	return NewClient(opts...).Get(url)
 }
 
@@ -55,7 +55,7 @@ func (c *Client) Get(url string) (*http.Response, []byte, error) {
 	return c.Do(GET, url)
 }
 
-func Post(url string, opts ...clientOpt) (*http.Response, []byte, error) {
+func Post(url string, opts ...funcClientOption) (*http.Response, []byte, error) {
 	return NewClient(opts...).Post(url)
 }
 
@@ -63,7 +63,7 @@ func (c *Client) Post(url string) (*http.Response, []byte, error) {
 	return c.Do(POST, url)
 }
 
-func Head(url string, opts ...clientOpt) (*http.Response, []byte, error) {
+func Head(url string, opts ...funcClientOption) (*http.Response, []byte, error) {
 	return NewClient(opts...).Head(url)
 }
 
@@ -71,7 +71,7 @@ func (c *Client) Head(url string) (*http.Response, []byte, error) {
 	return c.Do(HEAD, url)
 }
 
-func Do(method string, url string, opts ...clientOpt) (*http.Response, []byte, error) {
+func Do(method string, url string, opts ...funcClientOption) (*http.Response, []byte, error) {
 	return NewClient(opts...).Do(method, url)
 }
 
@@ -143,12 +143,12 @@ func (c *Client) request(f func() (*http.Response, error)) (resp *http.Response,
 	return resp, body, nil
 }
 
-type clientOpt func(*Client)
+type funcClientOption func(*Client)
 type clientOption struct{}
 
 var ClientOption clientOption
 
-func (clientOption) WithProtocol(protocol string) clientOpt {
+func (clientOption) WithProtocol(protocol string) funcClientOption {
 	return func(c *Client) {
 		c.WithProtocol(protocol)
 	}
@@ -159,7 +159,7 @@ func (c *Client) WithProtocol(protocol string) *Client {
 	return c
 }
 
-func (clientOption) WithTimeout(timeout time.Duration) clientOpt {
+func (clientOption) WithTimeout(timeout time.Duration) funcClientOption {
 	return func(c *Client) {
 		c.WithTimeout(timeout)
 	}
@@ -170,7 +170,7 @@ func (c *Client) WithTimeout(timeout time.Duration) *Client {
 	return c
 }
 
-func (clientOption) WithRetry(retry int) clientOpt {
+func (clientOption) WithRetry(retry int) funcClientOption {
 	return func(c *Client) {
 		c.WithRetry(retry)
 	}
@@ -181,7 +181,7 @@ func (c *Client) WithRetry(retry int) *Client {
 	return c
 }
 
-func (clientOption) WithProxy(proxy string) clientOpt {
+func (clientOption) WithProxy(proxy string) funcClientOption {
 	return func(c *Client) {
 		c.WithProxy(proxy)
 	}
@@ -196,7 +196,7 @@ func (c *Client) WithProxy(proxy string) *Client {
 	return c
 }
 
-func (clientOption) WithContentType(contentType string) clientOpt {
+func (clientOption) WithContentType(contentType string) funcClientOption {
 	return func(c *Client) {
 		c.WithContentType(contentType)
 	}
@@ -207,7 +207,7 @@ func (c *Client) WithContentType(contentType string) *Client {
 	return c
 }
 
-func (clientOption) WithForm(form url.Values) clientOpt {
+func (clientOption) WithForm(form url.Values) funcClientOption {
 	return func(c *Client) {
 		c.WithForm(form)
 	}
@@ -218,7 +218,7 @@ func (c *Client) WithForm(form url.Values) *Client {
 	return c
 }
 
-func (clientOption) WithParam(key string, value string) clientOpt {
+func (clientOption) WithParam(key string, value string) funcClientOption {
 	return func(c *Client) {
 		c.WithParam(key, value)
 	}
@@ -229,7 +229,7 @@ func (c *Client) WithParam(key string, value string) *Client {
 	return c
 }
 
-func (clientOption) WithBody(body interface{}) clientOpt {
+func (clientOption) WithBody(body interface{}) funcClientOption {
 	return func(c *Client) {
 		c.WithBody(body)
 	}
@@ -249,7 +249,7 @@ func (c *Client) WithBody(body interface{}) *Client {
 	return c
 }
 
-func (clientOption) WithResponseBodyReader(responseBodyReader func(io.Reader) error) clientOpt {
+func (clientOption) WithResponseBodyReader(responseBodyReader func(io.Reader) error) funcClientOption {
 	return func(c *Client) {
 		c.WithResponseBodyReader(responseBodyReader)
 	}
@@ -260,7 +260,7 @@ func (c *Client) WithResponseBodyReader(responseBodyReader func(io.Reader) error
 	return c
 }
 
-func (clientOption) WithSafety() clientOpt {
+func (clientOption) WithSafety() funcClientOption {
 	return func(c *Client) {
 		c.WithSafety()
 	}

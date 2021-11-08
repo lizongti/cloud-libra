@@ -19,7 +19,7 @@ type Route struct {
 	dstIndex int
 }
 
-func NewRoute(opts ...routeOpt) *Route {
+func NewRoute(opts ...funcRouteOption) *Route {
 	r := &Route{}
 	for _, opt := range opts {
 		opt(r)
@@ -89,12 +89,12 @@ func (r Route) Error(err error) error {
 	return fmt.Errorf("route %v error: %w", r, err)
 }
 
-type routeOpt func(*Route)
+type funcRouteOption func(*Route)
 type routeOption struct{}
 
 var RouteOption routeOption
 
-func (routeOption) WithSrc(path string, deviceSep magic.SeparatorType, wordSep magic.SeparatorType) routeOpt {
+func (routeOption) WithSrc(path string, deviceSep magic.SeparatorType, wordSep magic.SeparatorType) funcRouteOption {
 	return func(r *Route) {
 		r.WithSrc(path, deviceSep, wordSep)
 	}
@@ -108,7 +108,7 @@ func (r *Route) WithSrc(path string, deviceSep magic.SeparatorType, wordSep magi
 	return r
 }
 
-func (routeOption) WithDst(path string, deviceSep magic.SeparatorType, wordSep magic.SeparatorType) routeOpt {
+func (routeOption) WithDst(path string, deviceSep magic.SeparatorType, wordSep magic.SeparatorType) funcRouteOption {
 	return func(r *Route) {
 		r.WithDst(path, deviceSep, wordSep)
 	}
@@ -122,7 +122,7 @@ func (r *Route) WithDst(path string, deviceSep magic.SeparatorType, wordSep magi
 	return r
 }
 
-func (routeOption) WithDstIndex(dstIndex int) routeOpt {
+func (routeOption) WithDstIndex(dstIndex int) funcRouteOption {
 	return func(r *Route) {
 		r.WithDstIndex(dstIndex)
 	}

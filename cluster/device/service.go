@@ -27,7 +27,7 @@ type Service struct {
 	dispatchFunc DispatchFunc
 }
 
-func NewService(opts ...serviceOpt) *Service {
+func NewService(opts ...funcServiceOption) *Service {
 	s := &Service{
 		Base:         NewBase(),
 		encoding:     encoding.Nil(),
@@ -121,12 +121,12 @@ func isMethodHandler(method reflect.Method) bool {
 	return true
 }
 
-type serviceOpt func(*Service)
+type funcServiceOption func(*Service)
 type serviceOption struct{}
 
 var ServiceOption serviceOption
 
-func (serviceOption) WithComponent(component component.Component) serviceOpt {
+func (serviceOption) WithComponent(component component.Component) funcServiceOption {
 	return func(s *Service) {
 		s.WithComponent(component)
 	}
@@ -137,7 +137,7 @@ func (s *Service) WithComponent(component component.Component) *Service {
 	return s
 }
 
-func (serviceOption) WithEncoding(encoding encoding.Encoding) serviceOpt {
+func (serviceOption) WithEncoding(encoding encoding.Encoding) funcServiceOption {
 	return func(s *Service) {
 		s.WithEncoding(encoding)
 	}
@@ -148,7 +148,7 @@ func (s *Service) WithEncoding(encoding encoding.Encoding) *Service {
 	return s
 }
 
-func (serviceOption) WithDispatchFunc(dispatchFunc DispatchFunc) serviceOpt {
+func (serviceOption) WithDispatchFunc(dispatchFunc DispatchFunc) funcServiceOption {
 	return func(s *Service) {
 		s.WithDispatchFunc(dispatchFunc)
 	}

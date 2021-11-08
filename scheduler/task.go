@@ -63,7 +63,7 @@ type Report struct {
 	StageDuration time.Duration
 }
 
-func NewTask(opts ...taskOpt) *Task {
+func NewTask(opts ...funcTaskOption) *Task {
 	uuid, _ := uuid.NewV4()
 	now := time.Now()
 	t := &Task{
@@ -77,6 +77,10 @@ func NewTask(opts ...taskOpt) *Task {
 
 	for _, opt := range opts {
 		opt(t)
+	}
+
+	if t.context == nil {
+		t.context = context.Background()
 	}
 
 	return t
@@ -153,7 +157,10 @@ func (t *Task) execute() {
 		return
 	}
 
+	ctx, cancel := context.WithTimeout(t.context, t.timeout)
 	doneChan := make(chan struct{})
+	defer close(doneChan)
+	defer cancel()
 
 	go func() {
 		t.doStages()
@@ -162,8 +169,8 @@ func (t *Task) execute() {
 
 	select {
 	case <-doneChan:
-	case <-time.After(t.timeout):
-		panic(fmt.Errorf("do stages timeout"))
+	case <-ctx.Done():
+		panic(ctx.Err())
 	}
 }
 
@@ -222,12 +229,12 @@ func (t *Task) switchStage() {
 	t.stageStarted = time.Now()
 }
 
-type taskOpt func(*Task)
+type funcTaskOption func(*Task)
 type taskOption struct{}
 
 var TaskOption taskOption
 
-func (taskOption) WithName(name string) taskOpt {
+func (taskOption) WithName(name string) funcTaskOption {
 	return func(t *Task) {
 		t.WithName(name)
 	}
@@ -238,7 +245,7 @@ func (t *Task) WithName(name string) *Task {
 	return t
 }
 
-func (taskOption) WithStage(stages ...func(*Task) error) taskOpt {
+func (taskOption) WithStage(stages ...func(*Task) error) funcTaskOption {
 	return func(t *Task) {
 		t.WithStage(stages...)
 	}
@@ -250,7 +257,7 @@ func (t *Task) WithStage(stages ...func(*Task) error) *Task {
 	return t
 }
 
-func (taskOption) WithParam(key interface{}, value interface{}) taskOpt {
+func (taskOption) WithParam(key interface{}, value interface{}) funcTaskOption {
 	return func(t *Task) {
 		t.WithParam(key, value)
 	}
@@ -261,7 +268,7 @@ func (t *Task) WithParam(key interface{}, value interface{}) *Task {
 	return t
 }
 
-func (taskOption) WithParams(params map[interface{}]interface{}) taskOpt {
+func (taskOption) WithParams(params map[interface{}]interface{}) funcTaskOption {
 	return func(t *Task) {
 		t.WithParams(params)
 	}
@@ -272,7 +279,7 @@ func (t *Task) WithParams(params map[interface{}]interface{}) *Task {
 	return t
 }
 
-func (taskOption) WithContext(context context.Context) taskOpt {
+func (taskOption) WithContext(context context.Context) funcTaskOption {
 	return func(t *Task) {
 		t.WithContext(context)
 	}
@@ -283,7 +290,7 @@ func (t *Task) WithContext(context context.Context) *Task {
 	return t
 }
 
-func (taskOption) WithTimeout(timeout time.Duration) taskOpt {
+func (taskOption) WithTimeout(timeout time.Duration) funcTaskOption {
 	return func(t *Task) {
 		t.WithTimeout(timeout)
 	}

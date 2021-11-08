@@ -11,7 +11,7 @@ type Router struct {
 	rwMutex sync.RWMutex
 }
 
-func NewRouter(opts ...routerOpt) *Router {
+func NewRouter(opts ...funcRouterOption) *Router {
 	r := &Router{
 		Base: NewBase(),
 	}
@@ -43,12 +43,12 @@ func (r *Router) localProcess(ctx context.Context, route Route, data []byte) err
 	return device.Process(ctx, route, data)
 }
 
-type routerOpt func(*Router)
+type funcRouterOption func(*Router)
 type routerOption struct{}
 
 var RouterOption routerOption
 
-func (routerOption) WithDevice(devices ...Device) routerOpt {
+func (routerOption) WithDevice(devices ...Device) funcRouterOption {
 	return func(r *Router) {
 		r.WithDevice(devices...)
 	}
@@ -62,7 +62,7 @@ func (r *Router) WithDevice(devices ...Device) *Router {
 	return r
 }
 
-func (routerOption) WithName(name string) routerOpt {
+func (routerOption) WithName(name string) funcRouterOption {
 	return func(r *Router) {
 		r.WithName(name)
 	}
