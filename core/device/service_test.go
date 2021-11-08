@@ -9,6 +9,7 @@ import (
 	"github.com/aceaura/libra/core/component"
 	"github.com/aceaura/libra/core/device"
 	"github.com/aceaura/libra/core/encoding"
+	"github.com/aceaura/libra/core/message"
 	"github.com/aceaura/libra/core/route"
 	"github.com/aceaura/libra/magic"
 )
@@ -38,12 +39,12 @@ type Client struct {
 	logChan chan<- string
 }
 
-func (s *Client) Process(ctx context.Context, rt route.Route, data []byte) error {
-	if rt.Assembling() {
-		return s.Gateway().Process(ctx, rt, data)
+func (s *Client) Process(ctx context.Context, msg *message.Message) error {
+	if msg.State() == message.MessageStateAssembling {
+		return s.Gateway().Process(ctx, msg)
 	}
 	resp := &Pong{}
-	if err := e.Unmarshal(data, resp); err != nil {
+	if err := e.Unmarshal(msg.Data(), resp); err != nil {
 		return err
 	}
 	s.logChan <- fmt.Sprintf("%v", resp)
@@ -93,8 +94,9 @@ func TestDevice(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error getting from encoding: %v", err)
 	}
+	msg := message.NewMessage(0, *route, encoding.Empty(), reqData)
 
-	if err = client.Process(ctx, *route, reqData); err != nil {
+	if err = client.Process(ctx, msg); err != nil {
 		t.Fatalf("unexpected error getting from device: %v", err)
 	}
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)

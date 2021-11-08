@@ -3,11 +3,11 @@ package scheduler
 import (
 	"context"
 
-	"github.com/aceaura/libra/core/route"
+	"github.com/aceaura/libra/core/message"
 )
 
 type Dispatcher interface {
-	Dispatch(context.Context, route.Route) *Scheduler
+	Dispatch(context.Context, *message.Message) *Scheduler
 }
 
 type defaultDispatcher int
@@ -16,6 +16,6 @@ func DefaultDispatcher() Dispatcher {
 	return new(defaultDispatcher)
 }
 
-func (defaultDispatcher) Dispatch(context.Context, route.Route) *Scheduler {
+func (defaultDispatcher) Dispatch(context.Context, *message.Message) *Scheduler {
 	return Empty()
 }

@@ -1,16 +1,9 @@
 package route
 
 import (
-	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/aceaura/libra/magic"
-)
-
-var (
-	ErrRouteDeadEnd       = errors.New("route has gone to a dead end")
-	ErrRouteMissingDevice = errors.New("route has gone to a missing device")
 )
 
 type Route struct {
@@ -83,10 +76,6 @@ func (r Route) Reverse() Route {
 		dst:      r.src,
 		dstIndex: 0,
 	}
-}
-
-func (r Route) Error(err error) error {
-	return fmt.Errorf("route %v error: %w", r, err)
 }
 
 type funcRouteOption func(*Route)

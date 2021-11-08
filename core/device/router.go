@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/aceaura/libra/core/route"
+	"github.com/aceaura/libra/core/message"
 )
 
 type Router struct {
@@ -29,20 +29,19 @@ func (r *Router) String() string {
 	return r.name
 }
 
-func (r *Router) Process(ctx context.Context, rt route.Route, data []byte) error {
-	if rt.Assembling() {
-		return r.gateway.Process(ctx, rt, data)
+func (r *Router) Process(ctx context.Context, msg *message.Message) error {
+	if msg.State() == message.MessageStateAssembling {
+		return r.gateway.Process(ctx, msg)
 	}
-	return r.localProcess(ctx, rt.Forward(), data)
+	return r.localProcess(ctx, msg.Forward())
 }
 
-func (r *Router) localProcess(ctx context.Context, rt route.Route, data []byte) error {
-	name := rt.Name()
-	device := r.Route(name)
+func (r *Router) localProcess(ctx context.Context, msg *message.Message) error {
+	device := r.Locate(msg.Position())
 	if device == nil {
-		return rt.Error(route.ErrRouteMissingDevice)
+		return routeErr(msg.RouteString(), ErrRouteMissingDevice)
 	}
-	return device.Process(ctx, rt, data)
+	return device.Process(ctx, msg)
 }
 
 type funcRouterOption func(*Router)

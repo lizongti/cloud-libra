@@ -4,7 +4,7 @@ import (
 	"context"
 	"reflect"
 
-	"github.com/aceaura/libra/core/route"
+	"github.com/aceaura/libra/core/message"
 	"github.com/aceaura/libra/core/scheduler"
 	"github.com/aceaura/libra/magic"
 )
@@ -30,14 +30,14 @@ func (h *Handler) String() string {
 	return h.method.Name
 }
 
-func (h *Handler) Process(ctx context.Context, rt route.Route, data []byte) error {
-	if rt.Assembling() {
-		return h.gateway.Process(ctx, rt, data)
+func (h *Handler) Process(ctx context.Context, msg *message.Message) error {
+	if msg.State() == message.MessageStateAssembling {
+		return h.gateway.Process(ctx, msg)
 	}
-	return h.localProcess(ctx, rt, data)
+	return h.localProcess(ctx, msg)
 }
 
-func (h *Handler) localProcess(ctx context.Context, rt route.Route, reqData []byte) error {
+func (h *Handler) localProcess(ctx context.Context, reqMsg *message.Message) error {
 	if h.method.Type == magic.TypeNil {
 		return nil
 	}
@@ -47,28 +47,25 @@ func (h *Handler) localProcess(ctx context.Context, rt route.Route, reqData []by
 		scheduler.TaskOption.WithContext(ctx),
 		scheduler.TaskOption.WithStage(func(t *scheduler.Task) error {
 			ctx := t.Context()
-			respData, err := h.do(ctx, reqData)
+			respMsg, err := h.do(ctx, reqMsg)
 			if err != nil {
 				return err
 			}
-			return s.Process(ctx, rt.Reverse(), respData)
+			return s.Process(ctx, respMsg)
 		}),
-	).Publish(s.dispatch(ctx, rt))
+	).Publish(s.dispatch(ctx, reqMsg))
 
 	return nil
 }
 
-func (h *Handler) do(ctx context.Context, reqData []byte) (respData []byte, err error) {
+func (h *Handler) do(ctx context.Context, reqMsg *message.Message) (*message.Message, error) {
 	s := h.gateway.(*Service)
 	mt := h.method.Type
-	var req interface{}
-	if mt.In(2) == magic.TypeOfBytes {
-		req = reqData
-	} else {
-		req = reflect.New(mt.In(2).Elem()).Interface()
-		if err = s.encoding.Unmarshal(reqData, req); err != nil {
-			return nil, err
-		}
+	reqData := reqMsg.Data()
+	req := reflect.New(mt.In(2).Elem()).Interface()
+	err := s.encoding.Unmarshal(reqData, req)
+	if err != nil {
+		return nil, err
 	}
 
 	in := []reflect.Value{reflect.ValueOf(s.component), reflect.ValueOf(ctx), reflect.ValueOf(req)}
@@ -78,10 +75,11 @@ func (h *Handler) do(ctx context.Context, reqData []byte) (respData []byte, err 
 		return nil, e.(error)
 	}
 	resp := out[0].Interface()
-	if respData, err = s.encoding.Marshal(resp); err != nil {
+	respData, err := s.encoding.Marshal(resp)
+	if err != nil {
 		return nil, err
 	}
-	return respData, err
+	return reqMsg.Reply(respData), nil
 }
 
 type funcHandlerOption func(*Handler)

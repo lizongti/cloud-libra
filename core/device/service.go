@@ -6,7 +6,7 @@ import (
 
 	"github.com/aceaura/libra/core/component"
 	"github.com/aceaura/libra/core/encoding"
-	"github.com/aceaura/libra/core/route"
+	"github.com/aceaura/libra/core/message"
 	"github.com/aceaura/libra/core/scheduler"
 	"github.com/aceaura/libra/magic"
 )
@@ -36,20 +36,19 @@ func (s *Service) String() string {
 	return magic.TypeName(s.component)
 }
 
-func (s *Service) Process(ctx context.Context, rt route.Route, data []byte) error {
-	if rt.Assembling() {
-		return s.gateway.Process(ctx, rt, data)
+func (s *Service) Process(ctx context.Context, msg *message.Message) error {
+	if msg.State() == message.MessageStateAssembling {
+		return s.gateway.Process(ctx, msg)
 	}
-	return s.localProcess(ctx, rt.Forward(), data)
+	return s.localProcess(ctx, msg.Forward())
 }
 
-func (s *Service) localProcess(ctx context.Context, rt route.Route, data []byte) error {
-	name := rt.Name()
-	device := s.Route(name)
-	if device == nil {
-		return rt.Error(route.ErrRouteMissingDevice)
+func (s *Service) localProcess(ctx context.Context, msg *message.Message) error {
+	device := s.Locate(msg.Position())
+	if device != nil {
+		return device.Process(ctx, msg)
 	}
-	return device.Process(ctx, rt, data)
+	return routeErr(msg.RouteString(), ErrRouteMissingDevice)
 }
 
 func (s *Service) bind(component component.Component) {
@@ -68,8 +67,8 @@ func (s *Service) bind(component component.Component) {
 	}
 }
 
-func (s *Service) dispatch(ctx context.Context, rt route.Route) *scheduler.Scheduler {
-	return s.dispatcher.Dispatch(ctx, rt)
+func (s *Service) dispatch(ctx context.Context, msg *message.Message) *scheduler.Scheduler {
+	return s.dispatcher.Dispatch(ctx, msg)
 }
 
 func isMethodHandler(method reflect.Method) bool {

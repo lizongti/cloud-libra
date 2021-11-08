@@ -104,8 +104,8 @@ func NewCodec(opts ...funcCodecOption) *Codec {
 
 var emptyCodec = NewCodec()
 
-func Empty() *Codec {
-	return emptyCodec
+func Empty() Codec {
+	return *emptyCodec
 }
 
 func (c Codec) String() string {

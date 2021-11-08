@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/aceaura/libra/core/route"
+	"github.com/aceaura/libra/core/message"
 	"github.com/aceaura/libra/magic"
 )
 
@@ -31,21 +31,21 @@ func (b *Bus) Access(device Device) {
 	b.gateway = Hole()
 }
 
-func (b *Bus) Process(ctx context.Context, rt route.Route, data []byte) error {
-	if rt.Assembling() {
-		return b.localProcess(ctx, rt.Forward(), data)
+func (b *Bus) Process(ctx context.Context, msg *message.Message) error {
+	if msg.State() == message.MessageStateAssembling {
+		return b.localProcess(ctx, msg.Forward())
 	}
 
-	return rt.Error(route.ErrRouteDeadEnd)
+	return routeErr(msg.RouteString(), ErrRouteDeadEnd)
 }
 
-func (b *Bus) localProcess(ctx context.Context, rt route.Route, data []byte) error {
-	name := rt.Name()
-	device := b.Route(name)
-	if device == nil {
-		return rt.Error(route.ErrRouteMissingDevice)
+func (b *Bus) localProcess(ctx context.Context, msg *message.Message) error {
+	device := b.Locate(msg.Position())
+	if device != nil {
+		return device.Process(ctx, msg)
 	}
-	return device.Process(ctx, rt, data)
+
+	return routeErr(msg.RouteString(), ErrRouteMissingDevice)
 }
 
 type funcBusOption func(*Bus)

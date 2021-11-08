@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"sync"
 
-	"github.com/aceaura/libra/core/route"
+	"github.com/aceaura/libra/core/message"
 	"github.com/aceaura/libra/magic"
 )
 
@@ -54,7 +54,7 @@ func (b *Base) Extend(device Device) {
 	b.extensions[name] = append(b.extensions[name], device)
 }
 
-func (b *Base) Route(name string) Device {
+func (b *Base) Locate(name string) Device {
 	b.rwMutex.RLock()
 	defer b.rwMutex.RUnlock()
 
@@ -65,6 +65,6 @@ func (b *Base) Route(name string) Device {
 	return devices[rand.Intn(len(devices))]
 }
 
-func (b *Base) Process(_ context.Context, r route.Route, _ []byte) error {
-	return r.Error(route.ErrRouteDeadEnd)
+func (b *Base) Process(_ context.Context, msg *message.Message) error {
+	return routeErr(msg.RouteString(), ErrRouteDeadEnd)
 }
