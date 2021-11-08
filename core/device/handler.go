@@ -52,7 +52,10 @@ func (h *Handler) localProcess(ctx context.Context, reqMsg *message.Message) err
 			if err != nil {
 				return err
 			}
-			return s.Process(ctx, respMsg)
+			if respMsg != nil {
+				return s.Process(ctx, respMsg)
+			}
+			return nil
 		}),
 	).Publish(s.dispatch(ctx, reqMsg))
 
@@ -85,12 +88,16 @@ func (h *Handler) do(ctx context.Context, reqMsg *message.Message) (*message.Mes
 		return nil, e.(error)
 	}
 
+	resp := out[0].Interface()
+	if resp == nil {
+		return nil, nil
+	}
+
 	respMsg := &message.Message{
 		ID:       reqMsg.ID,
 		Route:    reqMsg.Route.Reverse(),
 		Encoding: reqMsg.Encoding.Reverse(),
 	}
-	resp := out[0].Interface()
 	respData, err := reqMsg.Encoding.Marshal(resp)
 	if err != nil {
 		return nil, err
