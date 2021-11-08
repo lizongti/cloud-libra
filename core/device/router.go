@@ -30,16 +30,17 @@ func (r *Router) String() string {
 }
 
 func (r *Router) Process(ctx context.Context, msg *message.Message) error {
-	if msg.State() == message.MessageStateAssembling {
+	if msg.Route.Assembling() {
 		return r.gateway.Process(ctx, msg)
 	}
-	return r.localProcess(ctx, msg.Forward())
+	msg.Route = msg.Route.Forward()
+	return r.localProcess(ctx, msg)
 }
 
 func (r *Router) localProcess(ctx context.Context, msg *message.Message) error {
-	device := r.Locate(msg.Position())
+	device := r.Locate(msg.Route.Position())
 	if device == nil {
-		return routeErr(msg.RouteString(), ErrRouteMissingDevice)
+		return msg.Route.Error(ErrRouteMissingDevice)
 	}
 	return device.Process(ctx, msg)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/aceaura/libra/core/encoding"
 	"github.com/aceaura/libra/core/message"
 	"github.com/aceaura/libra/core/scheduler"
 	"github.com/aceaura/libra/magic"
@@ -31,7 +32,7 @@ func (h *Handler) String() string {
 }
 
 func (h *Handler) Process(ctx context.Context, msg *message.Message) error {
-	if msg.State() == message.MessageStateAssembling {
+	if msg.Route.Assembling() {
 		return h.gateway.Process(ctx, msg)
 	}
 	return h.localProcess(ctx, msg)
@@ -61,11 +62,20 @@ func (h *Handler) localProcess(ctx context.Context, reqMsg *message.Message) err
 func (h *Handler) do(ctx context.Context, reqMsg *message.Message) (*message.Message, error) {
 	s := h.gateway.(*Service)
 	mt := h.method.Type
-	reqData := reqMsg.Data()
-	req := reflect.New(mt.In(2).Elem()).Interface()
-	err := reqMsg.Unmarshal(reqData, req)
-	if err != nil {
-		return nil, err
+	var req interface{}
+	if mt.In(2) == magic.TypeOfBytes {
+		bytes := &encoding.Bytes{}
+		err := reqMsg.Encoding.Unmarshal(reqMsg.Data, bytes)
+		if err != nil {
+			return nil, err
+		}
+		req = bytes.Data
+	} else {
+		req = reflect.New(mt.In(2).Elem()).Interface()
+		err := reqMsg.Encoding.Unmarshal(reqMsg.Data, req)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	in := []reflect.Value{reflect.ValueOf(s.component), reflect.ValueOf(ctx), reflect.ValueOf(req)}
@@ -74,12 +84,19 @@ func (h *Handler) do(ctx context.Context, reqMsg *message.Message) (*message.Mes
 	if e := out[1].Interface(); e != nil {
 		return nil, e.(error)
 	}
+
+	respMsg := &message.Message{
+		ID:       reqMsg.ID,
+		Route:    reqMsg.Route.Reverse(),
+		Encoding: reqMsg.Encoding.Reverse(),
+	}
 	resp := out[0].Interface()
-	respData, err := s.encoding.Marshal(resp)
+	respData, err := reqMsg.Encoding.Marshal(resp)
 	if err != nil {
 		return nil, err
 	}
-	return reqMsg.Reply(respData), nil
+	respMsg.Data = respData
+	return respMsg, nil
 }
 
 type funcHandlerOption func(*Handler)

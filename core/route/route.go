@@ -1,6 +1,7 @@
 package route
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/aceaura/libra/magic"
@@ -66,7 +67,7 @@ func (r Route) Forward() Route {
 	return r
 }
 
-func (r Route) Name() string {
+func (r Route) Position() string {
 	return r.dst[r.dstIndex]
 }
 
@@ -76,6 +77,10 @@ func (r Route) Reverse() Route {
 		dst:      r.src,
 		dstIndex: 0,
 	}
+}
+
+func (r Route) Error(err error) error {
+	return fmt.Errorf("route %v error: %w", r, err)
 }
 
 type funcRouteOption func(*Route)

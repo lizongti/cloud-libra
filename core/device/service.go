@@ -37,21 +37,22 @@ func (s *Service) String() string {
 }
 
 func (s *Service) Process(ctx context.Context, msg *message.Message) error {
-	if msg.State() == message.MessageStateAssembling {
+	if msg.Route.Assembling() {
 		return s.gateway.Process(ctx, msg)
 	}
-	return s.localProcess(ctx, msg.Forward())
+	msg.Route = msg.Route.Forward()
+	return s.localProcess(ctx, msg)
 }
 
 func (s *Service) localProcess(ctx context.Context, msg *message.Message) error {
-	device := s.Locate(msg.Position())
+	device := s.Locate(msg.Route.Position())
 	if device != nil {
-		if !msg.HasEncoding() {
-			msg.SetEncoding(s.encoding)
+		if msg.Encoding == encoding.Empty() {
+			msg.Encoding = s.encoding
 		}
 		return device.Process(ctx, msg)
 	}
-	return routeErr(msg.RouteString(), ErrRouteMissingDevice)
+	return msg.Route.Error(ErrRouteMissingDevice)
 }
 
 func (s *Service) bind(component component.Component) {

@@ -66,5 +66,5 @@ func (b *Base) Locate(name string) Device {
 }
 
 func (b *Base) Process(_ context.Context, msg *message.Message) error {
-	return routeErr(msg.RouteString(), ErrRouteDeadEnd)
+	return msg.Route.Error(ErrRouteDeadEnd)
 }

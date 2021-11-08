@@ -3,7 +3,6 @@ package device
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/aceaura/libra/core/message"
 	"github.com/disiqueira/gotree"
@@ -13,10 +12,6 @@ var (
 	ErrRouteDeadEnd       = errors.New("route has gone to a dead end")
 	ErrRouteMissingDevice = errors.New("route has gone to a missing device")
 )
-
-func routeErr(routeStr string, err error) error {
-	return fmt.Errorf("route %s error: %w", routeStr, err)
-}
 
 type Device interface {
 	String() string

@@ -32,20 +32,21 @@ func (b *Bus) Access(device Device) {
 }
 
 func (b *Bus) Process(ctx context.Context, msg *message.Message) error {
-	if msg.State() == message.MessageStateAssembling {
-		return b.localProcess(ctx, msg.Forward())
+	if msg.Route.Assembling() {
+		msg.Route = msg.Route.Forward()
+		return b.localProcess(ctx, msg)
 	}
 
-	return routeErr(msg.RouteString(), ErrRouteDeadEnd)
+	return msg.Route.Error(ErrRouteDeadEnd)
 }
 
 func (b *Bus) localProcess(ctx context.Context, msg *message.Message) error {
-	device := b.Locate(msg.Position())
+	device := b.Locate(msg.Route.Position())
 	if device != nil {
 		return device.Process(ctx, msg)
 	}
 
-	return routeErr(msg.RouteString(), ErrRouteMissingDevice)
+	return msg.Route.Error(ErrRouteMissingDevice)
 }
 
 type funcBusOption func(*Bus)
