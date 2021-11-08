@@ -24,14 +24,19 @@ type pipeline struct {
 	exitChan chan struct{}
 }
 
-var scheduler = NewScheduler()
+var defaultScheduler = NewScheduler()
+var emptyScheduler *Scheduler
 
 func init() {
-	scheduler.WithSafety().WithBackground().Serve()
+	defaultScheduler.WithSafety().WithBackground().Serve()
 }
 
 func Default() *Scheduler {
-	return scheduler
+	return defaultScheduler
+}
+
+func Empty() *Scheduler {
+	return emptyScheduler
 }
 
 func NewScheduler(opts ...funcSchedulerOption) *Scheduler {
@@ -132,6 +137,10 @@ func (s *Scheduler) digest(p *pipeline) {
 }
 
 func (s *Scheduler) schedule(t *Task) {
+	if s == emptyScheduler {
+		t.execute()
+		return
+	}
 	s.taskChan <- t
 }
 
@@ -141,7 +150,7 @@ func (s *Scheduler) close(p *pipeline) {
 }
 
 func (s *Scheduler) needReport() bool {
-	return s.reportChan != nil
+	return s != emptyScheduler && s.reportChan != nil
 }
 
 func (s *Scheduler) report(r *Report) {

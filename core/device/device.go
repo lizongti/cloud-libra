@@ -3,6 +3,7 @@ package device
 import (
 	"context"
 
+	"github.com/aceaura/libra/core/route"
 	"github.com/disiqueira/gotree"
 )
 
@@ -13,7 +14,7 @@ type Device interface {
 	Route(name string) Device
 	Gateway() Device
 	Extensions() map[string][]Device
-	Process(context.Context, Route, []byte) error
+	Process(context.Context, route.Route, []byte) error
 }
 
 func Tree(device Device) string {

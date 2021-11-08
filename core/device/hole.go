@@ -1,6 +1,10 @@
 package device
 
-import "context"
+import (
+	"context"
+
+	"github.com/aceaura/libra/core/route"
+)
 
 type hole struct {
 	*Base
@@ -16,6 +20,6 @@ func newHole() *hole {
 	}
 }
 
-func (b *hole) Process(context.Context, Route, []byte) error {
+func (b *hole) Process(context.Context, route.Route, []byte) error {
 	return nil
 }

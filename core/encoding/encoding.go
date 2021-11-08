@@ -102,10 +102,10 @@ func NewChain(opts ...funcChainOption) *Chain {
 	return e
 }
 
-var nilChain = NewChain()
+var emptyChain = NewChain()
 
-func Nil() *Chain {
-	return nilChain
+func Empty() *Chain {
+	return emptyChain
 }
 
 func (c Chain) String() string {

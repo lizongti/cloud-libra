@@ -3,7 +3,7 @@ package cluster
 import (
 	"fmt"
 
-	"github.com/aceaura/libra/cluster/component"
+	"github.com/aura-studio/nano/component"
 )
 
 type Node struct {

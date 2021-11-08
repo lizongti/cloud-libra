@@ -4,34 +4,27 @@ import (
 	"context"
 	"reflect"
 
-	"github.com/aceaura/libra/cluster/component"
-	"github.com/aceaura/libra/encoding"
+	"github.com/aceaura/libra/core/component"
+	"github.com/aceaura/libra/core/dispatcher"
+	"github.com/aceaura/libra/core/encoding"
+	"github.com/aceaura/libra/core/route"
+	routepkg "github.com/aceaura/libra/core/route"
+	"github.com/aceaura/libra/core/scheduler"
 	"github.com/aceaura/libra/magic"
-	"github.com/aceaura/libra/scheduler"
 )
-
-type DispatchFunc func(context.Context, Route) *scheduler.Scheduler
-
-var defaultDispatchFunc DispatchFunc
-
-func init() {
-	defaultDispatchFunc = func(context.Context, Route) *scheduler.Scheduler {
-		return scheduler.Default()
-	}
-}
 
 type Service struct {
 	*Base
-	component    component.Component
-	encoding     encoding.Encoding
-	dispatchFunc DispatchFunc
+	component  component.Component
+	encoding   encoding.Encoding
+	dispatcher dispatcher.Dispatcher
 }
 
 func NewService(opts ...funcServiceOption) *Service {
 	s := &Service{
-		Base:         NewBase(),
-		encoding:     encoding.Nil(),
-		dispatchFunc: defaultDispatchFunc,
+		Base:       NewBase(),
+		encoding:   encoding.Empty(),
+		dispatcher: dispatcher.Default(),
 	}
 
 	for _, opt := range opts {
@@ -45,18 +38,18 @@ func (s *Service) String() string {
 	return magic.TypeName(s.component)
 }
 
-func (s *Service) Process(ctx context.Context, route Route, data []byte) error {
+func (s *Service) Process(ctx context.Context, route routepkg.Route, data []byte) error {
 	if route.Assembling() {
 		return s.gateway.Process(ctx, route, data)
 	}
 	return s.localProcess(ctx, route.Forward(), data)
 }
 
-func (s *Service) localProcess(ctx context.Context, route Route, data []byte) error {
+func (s *Service) localProcess(ctx context.Context, route routepkg.Route, data []byte) error {
 	name := route.Name()
 	device := s.Route(name)
 	if device == nil {
-		return route.Error(ErrRouteMissingDevice)
+		return route.Error(routepkg.ErrRouteMissingDevice)
 	}
 	return device.Process(ctx, route, data)
 }
@@ -77,8 +70,8 @@ func (s *Service) bind(component component.Component) {
 	}
 }
 
-func (s *Service) dispatch(ctx context.Context, route Route) *scheduler.Scheduler {
-	return s.dispatchFunc(ctx, route)
+func (s *Service) dispatch(ctx context.Context, route route.Route) *scheduler.Scheduler {
+	return s.dispatcher.Dispatch(ctx, route)
 }
 
 func isMethodHandler(method reflect.Method) bool {
@@ -148,13 +141,13 @@ func (s *Service) WithEncoding(encoding encoding.Encoding) *Service {
 	return s
 }
 
-func (serviceOption) WithDispatchFunc(dispatchFunc DispatchFunc) funcServiceOption {
+func (serviceOption) WithDispatcher(dispatcher dispatcher.Dispatcher) funcServiceOption {
 	return func(s *Service) {
-		s.WithDispatchFunc(dispatchFunc)
+		s.WithDispatcher(dispatcher)
 	}
 }
 
-func (s *Service) WithDispatchFunc(dispatchFunc DispatchFunc) *Service {
-	s.dispatchFunc = dispatchFunc
+func (s *Service) WithDispatcher(dispatcher dispatcher.Dispatcher) *Service {
+	s.dispatcher = dispatcher
 	return s
 }

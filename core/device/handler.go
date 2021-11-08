@@ -4,8 +4,9 @@ import (
 	"context"
 	"reflect"
 
+	routepkg "github.com/aceaura/libra/core/route"
+	"github.com/aceaura/libra/core/scheduler"
 	"github.com/aceaura/libra/magic"
-	"github.com/aceaura/libra/scheduler"
 )
 
 type Handler struct {
@@ -29,32 +30,31 @@ func (h *Handler) String() string {
 	return h.method.Name
 }
 
-func (h *Handler) Process(ctx context.Context, route Route, data []byte) error {
+func (h *Handler) Process(ctx context.Context, route routepkg.Route, data []byte) error {
 	if route.Assembling() {
 		return h.gateway.Process(ctx, route, data)
 	}
 	return h.localProcess(ctx, route, data)
 }
 
-func (h *Handler) localProcess(ctx context.Context, route Route, reqData []byte) error {
+func (h *Handler) localProcess(ctx context.Context, route routepkg.Route, reqData []byte) error {
 	if h.method.Type == magic.TypeNil {
 		return nil
 	}
 
 	s := h.gateway.(*Service)
-
-	stage := func(t *scheduler.Task) error {
-		ctx := t.Context()
-		respData, err := h.do(ctx, reqData)
-		if err != nil {
-			return err
-		}
-		return s.Process(ctx, route.Reverse(), respData)
-	}
 	scheduler.NewTask(
 		scheduler.TaskOption.WithContext(ctx),
-		scheduler.TaskOption.WithStage(stage),
+		scheduler.TaskOption.WithStage(func(t *scheduler.Task) error {
+			ctx := t.Context()
+			respData, err := h.do(ctx, reqData)
+			if err != nil {
+				return err
+			}
+			return s.Process(ctx, route.Reverse(), respData)
+		}),
 	).Publish(s.dispatch(ctx, route))
+
 	return nil
 }
 

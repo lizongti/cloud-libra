@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"sync"
 
+	"github.com/aceaura/libra/core/route"
 	"github.com/aceaura/libra/magic"
 )
 
@@ -64,6 +65,6 @@ func (b *Base) Route(name string) Device {
 	return devices[rand.Intn(len(devices))]
 }
 
-func (b *Base) Process(_ context.Context, route Route, _ []byte) error {
-	return route.Error(ErrRouteDeadEnd)
+func (b *Base) Process(_ context.Context, r route.Route, _ []byte) error {
+	return r.Error(route.ErrRouteDeadEnd)
 }

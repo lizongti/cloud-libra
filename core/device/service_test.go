@@ -6,16 +6,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aceaura/libra/cluster/component"
+	"github.com/aceaura/libra/cluster"
 	"github.com/aceaura/libra/cluster/device"
-	"github.com/aceaura/libra/encoding"
+	"github.com/aceaura/libra/core/encoding"
 	"github.com/aceaura/libra/magic"
 )
 
 var e = encoding.NewJSON()
 
 type Try struct {
-	component.ComponentBase
+	cluster.ComponentBase
 	logChan chan<- string
 }
 
@@ -37,7 +37,7 @@ type Client struct {
 	logChan chan<- string
 }
 
-func (s *Client) Process(ctx context.Context, route device.Route, data []byte) error {
+func (s *Client) Process(ctx context.Context, route cluster.Route, data []byte) error {
 	if route.Assembling() {
 		return s.Gateway().Process(ctx, route, data)
 	}
@@ -79,7 +79,7 @@ func TestDevice(t *testing.T) {
 	t.Logf("\n%s", device.Tree(bus))
 
 	ctx := context.Background()
-	route := device.NewRoute().WithSrc(
+	route := cluster.NewRoute().WithSrc(
 		"/anonymous", magic.SeparatorSlash, magic.SeparatorUnderscore,
 	).WithDst(
 		"/1.0.0/try/echo", magic.SeparatorSlash, magic.SeparatorUnderscore,

@@ -3,6 +3,8 @@ package device
 import (
 	"context"
 	"sync"
+
+	routepkg "github.com/aceaura/libra/core/route"
 )
 
 type Router struct {
@@ -27,18 +29,18 @@ func (r *Router) String() string {
 	return r.name
 }
 
-func (r *Router) Process(ctx context.Context, route Route, data []byte) error {
+func (r *Router) Process(ctx context.Context, route routepkg.Route, data []byte) error {
 	if route.Assembling() {
 		return r.gateway.Process(ctx, route, data)
 	}
 	return r.localProcess(ctx, route.Forward(), data)
 }
 
-func (r *Router) localProcess(ctx context.Context, route Route, data []byte) error {
+func (r *Router) localProcess(ctx context.Context, route routepkg.Route, data []byte) error {
 	name := route.Name()
 	device := r.Route(name)
 	if device == nil {
-		return route.Error(ErrRouteMissingDevice)
+		return route.Error(routepkg.ErrRouteMissingDevice)
 	}
 	return device.Process(ctx, route, data)
 }

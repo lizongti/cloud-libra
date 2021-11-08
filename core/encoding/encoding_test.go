@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/aceaura/libra/encoding"
+	"github.com/aceaura/libra/core/encoding"
 	"github.com/aceaura/libra/magic"
 )
 
