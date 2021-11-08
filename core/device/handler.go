@@ -4,7 +4,7 @@ import (
 	"context"
 	"reflect"
 
-	routepkg "github.com/aceaura/libra/core/route"
+	"github.com/aceaura/libra/core/route"
 	"github.com/aceaura/libra/core/scheduler"
 	"github.com/aceaura/libra/magic"
 )
@@ -30,14 +30,14 @@ func (h *Handler) String() string {
 	return h.method.Name
 }
 
-func (h *Handler) Process(ctx context.Context, route routepkg.Route, data []byte) error {
-	if route.Assembling() {
-		return h.gateway.Process(ctx, route, data)
+func (h *Handler) Process(ctx context.Context, rt route.Route, data []byte) error {
+	if rt.Assembling() {
+		return h.gateway.Process(ctx, rt, data)
 	}
-	return h.localProcess(ctx, route, data)
+	return h.localProcess(ctx, rt, data)
 }
 
-func (h *Handler) localProcess(ctx context.Context, route routepkg.Route, reqData []byte) error {
+func (h *Handler) localProcess(ctx context.Context, rt route.Route, reqData []byte) error {
 	if h.method.Type == magic.TypeNil {
 		return nil
 	}
@@ -51,9 +51,9 @@ func (h *Handler) localProcess(ctx context.Context, route routepkg.Route, reqDat
 			if err != nil {
 				return err
 			}
-			return s.Process(ctx, route.Reverse(), respData)
+			return s.Process(ctx, rt.Reverse(), respData)
 		}),
-	).Publish(s.dispatch(ctx, route))
+	).Publish(s.dispatch(ctx, rt))
 
 	return nil
 }

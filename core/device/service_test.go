@@ -9,7 +9,7 @@ import (
 	"github.com/aceaura/libra/core/component"
 	"github.com/aceaura/libra/core/device"
 	"github.com/aceaura/libra/core/encoding"
-	routepkg "github.com/aceaura/libra/core/route"
+	"github.com/aceaura/libra/core/route"
 	"github.com/aceaura/libra/magic"
 )
 
@@ -38,9 +38,9 @@ type Client struct {
 	logChan chan<- string
 }
 
-func (s *Client) Process(ctx context.Context, route routepkg.Route, data []byte) error {
-	if route.Assembling() {
-		return s.Gateway().Process(ctx, route, data)
+func (s *Client) Process(ctx context.Context, rt route.Route, data []byte) error {
+	if rt.Assembling() {
+		return s.Gateway().Process(ctx, rt, data)
 	}
 	resp := &Pong{}
 	if err := e.Unmarshal(data, resp); err != nil {
@@ -81,7 +81,7 @@ func TestDevice(t *testing.T) {
 	t.Logf("\n%s", device.Tree(bus))
 
 	ctx := context.Background()
-	route := routepkg.NewRoute().WithSrc(
+	route := route.NewRoute().WithSrc(
 		"/anonymous", magic.SeparatorSlash, magic.SeparatorUnderscore,
 	).WithDst(
 		"/1.0.0/try/echo", magic.SeparatorSlash, magic.SeparatorUnderscore,

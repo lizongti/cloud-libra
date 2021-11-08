@@ -60,55 +60,55 @@ func (b Bytes) Copy(in Bytes) {
 	copy(b.Data, in.Data)
 }
 
-type CodecSet map[string]Encoding
+type EncodingSet map[string]Encoding
 
-func newCodecSet() CodecSet {
+func newEncodingSet() EncodingSet {
 	return make(map[string]Encoding)
 }
 
-var codecSet = newCodecSet()
+var encodingSet = newEncodingSet()
 
-func register(codecs ...Encoding) {
-	codecSet.register(codecs...)
+func register(encodings ...Encoding) {
+	encodingSet.register(encodings...)
 }
 
-func (cs CodecSet) register(codecs ...Encoding) {
+func (es EncodingSet) register(codecs ...Encoding) {
 	for _, codec := range codecs {
-		cs[magic.TypeName(codec)] = codec
+		es[magic.TypeName(codec)] = codec
 	}
 }
 
 func codec(name string) (Encoding, error) {
-	return codecSet.codec(name)
+	return encodingSet.codec(name)
 }
 
-func (es CodecSet) codec(name string) (Encoding, error) {
+func (es EncodingSet) codec(name string) (Encoding, error) {
 	if e, ok := es[name]; ok {
 		return e, nil
 	}
 	return nil, ErrEncodingMissingCodec
 }
 
-type Chain struct {
+type Codec struct {
 	encoder []string
 	decoder []string
 }
 
-func NewChain(opts ...funcChainOption) *Chain {
-	e := &Chain{}
+func NewCodec(opts ...funcCodecOption) *Codec {
+	e := &Codec{}
 	for _, opt := range opts {
 		opt(e)
 	}
 	return e
 }
 
-var emptyChain = NewChain()
+var emptyCodec = NewCodec()
 
-func Empty() *Chain {
-	return emptyChain
+func Empty() *Codec {
+	return emptyCodec
 }
 
-func (c Chain) String() string {
+func (c Codec) String() string {
 	var builder strings.Builder
 	builder.WriteString(magic.SeparatorBracketleft)
 	for index, name := range c.encoder {
@@ -133,8 +133,8 @@ func (c Chain) String() string {
 	return builder.String()
 }
 
-func (c Chain) Reverse() Chain {
-	re := Chain{
+func (c Codec) Reverse() Codec {
+	re := Codec{
 		encoder: make([]string, len(c.decoder)),
 		decoder: make([]string, len(c.encoder)),
 	}
@@ -165,7 +165,7 @@ func Unmarshal(e Encoding, data []byte, v interface{}) error {
 	return e.Unmarshal(data, v)
 }
 
-func (c Chain) Marshal(v interface{}) ([]byte, error) {
+func (c Codec) Marshal(v interface{}) ([]byte, error) {
 	var data []byte
 	for index, name := range c.encoder {
 		codec, err := codec(name)
@@ -188,7 +188,7 @@ func (c Chain) Marshal(v interface{}) ([]byte, error) {
 	return data, nil
 }
 
-func (c Chain) Unmarshal(data []byte, v interface{}) error {
+func (c Codec) Unmarshal(data []byte, v interface{}) error {
 	bytes := MakeBytes(nil)
 	for index, name := range c.decoder {
 		codec, err := codec(name)
@@ -211,18 +211,18 @@ func (c Chain) Unmarshal(data []byte, v interface{}) error {
 	return nil
 }
 
-type funcChainOption func(*Chain)
+type funcCodecOption func(*Codec)
 type chainOption struct{}
 
 var ChainOption chainOption
 
-func (chainOption) WithEncoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) funcChainOption {
-	return func(c *Chain) {
+func (chainOption) WithEncoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) funcCodecOption {
+	return func(c *Codec) {
 		c.WithEncoder(path, codecSep, wordSep)
 	}
 }
 
-func (c *Chain) WithEncoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) *Chain {
+func (c *Codec) WithEncoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) *Codec {
 	names := strings.Split(path, codecSep)
 	for _, name := range names {
 		c.encoder = append(c.encoder, magic.Standardize(name, wordSep))
@@ -230,13 +230,13 @@ func (c *Chain) WithEncoder(path string, codecSep magic.SeparatorType, wordSep m
 	return c
 }
 
-func (chainOption) WithDecoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) funcChainOption {
-	return func(c *Chain) {
+func (chainOption) WithDecoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) funcCodecOption {
+	return func(c *Codec) {
 		c.WithDecoder(path, codecSep, wordSep)
 	}
 }
 
-func (c *Chain) WithDecoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) *Chain {
+func (c *Codec) WithDecoder(path string, codecSep magic.SeparatorType, wordSep magic.SeparatorType) *Codec {
 	names := strings.Split(path, codecSep)
 	for _, name := range names {
 		c.decoder = append(c.decoder, magic.Standardize(name, wordSep))

@@ -5,10 +5,8 @@ import (
 	"reflect"
 
 	"github.com/aceaura/libra/core/component"
-	"github.com/aceaura/libra/core/dispatcher"
 	"github.com/aceaura/libra/core/encoding"
 	"github.com/aceaura/libra/core/route"
-	routepkg "github.com/aceaura/libra/core/route"
 	"github.com/aceaura/libra/core/scheduler"
 	"github.com/aceaura/libra/magic"
 )
@@ -17,14 +15,14 @@ type Service struct {
 	*Base
 	component  component.Component
 	encoding   encoding.Encoding
-	dispatcher dispatcher.Dispatcher
+	dispatcher scheduler.Dispatcher
 }
 
 func NewService(opts ...funcServiceOption) *Service {
 	s := &Service{
 		Base:       NewBase(),
 		encoding:   encoding.Empty(),
-		dispatcher: dispatcher.Default(),
+		dispatcher: scheduler.DefaultDispatcher(),
 	}
 
 	for _, opt := range opts {
@@ -38,20 +36,20 @@ func (s *Service) String() string {
 	return magic.TypeName(s.component)
 }
 
-func (s *Service) Process(ctx context.Context, route routepkg.Route, data []byte) error {
-	if route.Assembling() {
-		return s.gateway.Process(ctx, route, data)
+func (s *Service) Process(ctx context.Context, rt route.Route, data []byte) error {
+	if rt.Assembling() {
+		return s.gateway.Process(ctx, rt, data)
 	}
-	return s.localProcess(ctx, route.Forward(), data)
+	return s.localProcess(ctx, rt.Forward(), data)
 }
 
-func (s *Service) localProcess(ctx context.Context, route routepkg.Route, data []byte) error {
-	name := route.Name()
+func (s *Service) localProcess(ctx context.Context, rt route.Route, data []byte) error {
+	name := rt.Name()
 	device := s.Route(name)
 	if device == nil {
-		return route.Error(routepkg.ErrRouteMissingDevice)
+		return rt.Error(route.ErrRouteMissingDevice)
 	}
-	return device.Process(ctx, route, data)
+	return device.Process(ctx, rt, data)
 }
 
 func (s *Service) bind(component component.Component) {
@@ -70,8 +68,8 @@ func (s *Service) bind(component component.Component) {
 	}
 }
 
-func (s *Service) dispatch(ctx context.Context, route route.Route) *scheduler.Scheduler {
-	return s.dispatcher.Dispatch(ctx, route)
+func (s *Service) dispatch(ctx context.Context, rt route.Route) *scheduler.Scheduler {
+	return s.dispatcher.Dispatch(ctx, rt)
 }
 
 func isMethodHandler(method reflect.Method) bool {
@@ -141,13 +139,13 @@ func (s *Service) WithEncoding(encoding encoding.Encoding) *Service {
 	return s
 }
 
-func (serviceOption) WithDispatcher(dispatcher dispatcher.Dispatcher) funcServiceOption {
+func (serviceOption) WithDispatcher(dispatcher scheduler.Dispatcher) funcServiceOption {
 	return func(s *Service) {
 		s.WithDispatcher(dispatcher)
 	}
 }
 
-func (s *Service) WithDispatcher(dispatcher dispatcher.Dispatcher) *Service {
+func (s *Service) WithDispatcher(dispatcher scheduler.Dispatcher) *Service {
 	s.dispatcher = dispatcher
 	return s
 }
