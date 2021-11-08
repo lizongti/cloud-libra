@@ -27,3 +27,7 @@ func (XML) Marshal(v interface{}) ([]byte, error) {
 func (XML) Unmarshal(data []byte, v interface{}) error {
 	return xml.Unmarshal(data, v)
 }
+
+func (x XML) Reverse() Encoding {
+	return x
+}

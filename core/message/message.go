@@ -27,19 +27,39 @@ func (m MessageStateType) String() string {
 }
 
 type Message struct {
-	id    uint64
-	route route.Route
-	codec encoding.Codec
-	data  []byte
+	id       uint64
+	route    route.Route
+	encoding encoding.Encoding
+	data     []byte
 }
 
-func NewMessage(id uint64, route route.Route, codec encoding.Codec, data []byte) *Message {
+func NewMessage(id uint64, route route.Route, encoding encoding.Encoding, data []byte) *Message {
 	return &Message{
-		id:    id,
-		route: route,
-		codec: codec,
-		data:  data,
+		id:       id,
+		route:    route,
+		encoding: encoding,
+		data:     data,
 	}
+}
+
+func (m *Message) HasEncoding() bool {
+	return m.encoding != encoding.Empty()
+}
+
+func (m *Message) SetEncoding(e encoding.Encoding) {
+	m.encoding = e
+}
+
+func (m *Message) String() string {
+	return ""
+}
+
+func (m *Message) Marshal(v interface{}) ([]byte, error) {
+	return m.encoding.Marshal(v)
+}
+
+func (m *Message) Unmarshal(data []byte, v interface{}) error {
+	return m.encoding.Unmarshal(data, v)
 }
 
 func (m *Message) RouteString() string {
@@ -68,9 +88,9 @@ func (m *Message) State() MessageStateType {
 
 func (m *Message) Reply(data []byte) *Message {
 	return &Message{
-		id:    m.id,
-		route: m.route.Reverse(),
-		codec: m.codec.Reverse(),
-		data:  data,
+		id:       m.id,
+		route:    m.route.Reverse(),
+		encoding: m.encoding.Reverse(),
+		data:     data,
 	}
 }

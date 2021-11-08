@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	ErrBase64WrongValueType    = errors.New("codec base64 converts on wrong type value")
-	ErrBase64URLWrongValueType = errors.New("codec base64URL converts on wrong type value")
+	ErrBase64WrongValueType    = errors.New("encoding base64 converts on wrong type value")
+	ErrBase64URLWrongValueType = errors.New("encoding base64URL converts on wrong type value")
 )
 
 type Base64 struct{}
@@ -56,6 +56,10 @@ func (Base64) Unmarshal(data []byte, v interface{}) error {
 	}
 }
 
+func (b Base64) Reverse() Encoding {
+	return b
+}
+
 type Base64URL struct{}
 
 func init() {
@@ -98,4 +102,8 @@ func (Base64URL) Unmarshal(data []byte, v interface{}) error {
 	default:
 		return ErrBase64URLWrongValueType
 	}
+}
+
+func (b Base64URL) Reverse() Encoding {
+	return b
 }

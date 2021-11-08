@@ -63,7 +63,7 @@ func (h *Handler) do(ctx context.Context, reqMsg *message.Message) (*message.Mes
 	mt := h.method.Type
 	reqData := reqMsg.Data()
 	req := reflect.New(mt.In(2).Elem()).Interface()
-	err := s.encoding.Unmarshal(reqData, req)
+	err := reqMsg.Unmarshal(reqData, req)
 	if err != nil {
 		return nil, err
 	}

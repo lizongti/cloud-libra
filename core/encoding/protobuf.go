@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	ErrProtobufWrongValueType = errors.New("codec protobuf converts on wrong type value")
+	ErrProtobufWrongValueType = errors.New("encoding protobuf converts on wrong type value")
 )
 
 type Protobuf struct{}
@@ -43,4 +43,8 @@ func (Protobuf) Unmarshal(data []byte, v interface{}) error {
 		return ErrProtobufWrongValueType
 	}
 	return proto.Unmarshal(data, pb)
+}
+
+func (p Protobuf) Reverse() Encoding {
+	return p
 }

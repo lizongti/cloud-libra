@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrLazyWrongValueType = errors.New("codec lazy converts on wrong type value")
+	ErrLazyWrongValueType = errors.New("encoding lazy converts on wrong type value")
 )
 
 type Lazy struct{}
@@ -52,4 +52,8 @@ func (Lazy) Unmarshal(data []byte, v interface{}) error {
 	default:
 		return ErrLazyWrongValueType
 	}
+}
+
+func (l Lazy) Reverse() Encoding {
+	return l
 }

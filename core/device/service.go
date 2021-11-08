@@ -46,6 +46,9 @@ func (s *Service) Process(ctx context.Context, msg *message.Message) error {
 func (s *Service) localProcess(ctx context.Context, msg *message.Message) error {
 	device := s.Locate(msg.Position())
 	if device != nil {
+		if !msg.HasEncoding() {
+			msg.SetEncoding(s.encoding)
+		}
 		return device.Process(ctx, msg)
 	}
 	return routeErr(msg.RouteString(), ErrRouteMissingDevice)

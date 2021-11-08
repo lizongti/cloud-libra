@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	ErrJSONWrongValueType = errors.New("codec JSON converts on wrong type value")
+	ErrJSONWrongValueType = errors.New("encoding JSON converts on wrong type value")
 )
 
 type JSON struct{}
@@ -31,4 +31,8 @@ func (JSON) Marshal(v interface{}) ([]byte, error) {
 
 func (JSON) Unmarshal(data []byte, v interface{}) error {
 	return json.Unmarshal(data, v)
+}
+
+func (j JSON) Reverse() Encoding {
+	return j
 }

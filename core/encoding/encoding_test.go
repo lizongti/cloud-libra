@@ -24,7 +24,7 @@ func TestChain(t *testing.T) {
 	}
 	t.Logf("ts1: %+v", ts1)
 
-	e1 := *encoding.NewCodec().WithEncoder(
+	e1 := *encoding.NewChain().WithEncoder(
 		"json.base64.lazy", magic.SeparatorPeriod, magic.SeparatorUnderscore,
 	).WithDecoder(
 		"lazy.base64.xml", magic.SeparatorPeriod, magic.SeparatorUnderscore,

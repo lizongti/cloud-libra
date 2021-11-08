@@ -55,7 +55,6 @@ func TestDevice(t *testing.T) {
 	const (
 		timeout     = 10
 		version     = "1.0.0"
-		codec       = "json"
 		logChanSize = 2
 	)
 	logChan := make(chan string, logChanSize)
