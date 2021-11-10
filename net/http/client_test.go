@@ -1,6 +1,7 @@
 package http_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -304,6 +305,41 @@ func TestClientRetry(t *testing.T) {
 func TestProxy(t *testing.T) {
 	http.NewServer().Proxy().Background().Serve("localhost:1990")
 	resp, body, err := http.Get("www.baidu.com", http.ClientOption.Proxy("http://localhost:1990"))
+	if err != nil {
+		t.Fatalf("unexpected error getting from client: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		t.Fatalf("expected a status code of 200, got %v", resp.StatusCode)
+	}
+	if len(body) == 0 {
+		t.Fatal("expected a body with content")
+	}
+	t.Log(string(body))
+}
+
+func TestContext(t *testing.T) {
+	const (
+		clientTimout = 1
+		serverSleep  = 100
+	)
+	route := http.Route{"/", func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(time.Second * serverSleep)
+	}}
+	http.Serve("localhost:1989",
+		http.ServerOption.Background(),
+		http.ServerOption.Routes(route),
+	)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*clientTimout)
+	defer cancel()
+	text := "this is a body text"
+	reqBodyFunc := func() (io.Reader, error) {
+		return strings.NewReader(text), nil
+	}
+	resp, body, err := http.NewClient(
+		http.ClientOption.RequestBody(reqBodyFunc),
+		http.ClientOption.Context(ctx),
+	).Get("localhost:1989")
 	if err != nil {
 		t.Fatalf("unexpected error getting from client: %v", err)
 	}

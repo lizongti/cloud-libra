@@ -1,7 +1,6 @@
 package http
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -112,12 +111,13 @@ func (c *Client) do(method string, httpURL string) (*http.Response, []byte, erro
 			if err != nil {
 				return nil, err
 			}
-		} else {
-			body = bytes.NewReader(nil)
 		}
 		req, err := http.NewRequest(method, httpURL, body)
 		if err != nil {
 			return nil, err
+		}
+		if c.opts.context != nil {
+			req = req.WithContext(c.opts.context)
 		}
 		req.Header.Set("Content-Type", c.opts.contentType)
 
@@ -188,6 +188,7 @@ var defaultClientOptions = clientOptions{
 	safety:           false,
 	timeout:          0,
 	proxy:            "",
+	context:          nil,
 }
 
 type ClientOptionApllier interface {
