@@ -2,13 +2,13 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -25,25 +25,19 @@ type (
 )
 
 type Client struct {
-	protocol           string
-	contentType        string
-	retry              int
-	form               url.Values
-	body               io.Reader
-	responseBodyReader func(io.Reader) error
-	safety             bool
-	client             http.Client
+	opts clientOptions
 }
 
-func NewClient(opts ...funcClientOption) *Client {
+func NewClient(opt ...funcClientOption) *Client {
+	opts := defaultClientOptions
+	for _, o := range opt {
+		o.apply(&opts)
+	}
+
 	c := &Client{
-		form:        make(url.Values),
-		contentType: "text/plain",
-		retry:       1,
+		opts: opts,
 	}
-	for _, opt := range opts {
-		opt(c)
-	}
+
 	return c
 }
 
@@ -76,40 +70,63 @@ func Do(method string, url string, opts ...funcClientOption) (*http.Response, []
 }
 
 func (c *Client) Do(method string, url string) (resp *http.Response, body []byte, err error) {
-	if c.safety {
+	if c.opts.safety {
 		defer func() {
 			if e := recover(); e != nil {
 				err = fmt.Errorf("%v", e)
 			}
 		}()
 	}
+
 	return c.do(method, url)
 }
 
-func (c *Client) do(method string, url string) (*http.Response, []byte, error) {
-	return c.requestWithRetry(func() (*http.Response, error) {
-		submatch := regexp.MustCompile("(https?://)?(.+)").FindStringSubmatch(url)
-		if submatch[1] == "" {
-			if c.protocol == "" {
-				c.protocol = "http"
-			}
-			url = fmt.Sprintf("%s://%s", c.protocol, submatch[0])
+func (c *Client) do(method string, httpURL string) (*http.Response, []byte, error) {
+	submatch := regexp.MustCompile("(https?://)?(.+)").FindStringSubmatch(httpURL)
+	if submatch[1] == "" {
+		httpURL = fmt.Sprintf("%s://%s", c.opts.protocol, submatch[0])
+	}
+
+	if len(c.opts.form) > 0 {
+		httpURL = fmt.Sprintf("%s?%s", httpURL, c.opts.form.Encode())
+	}
+
+	client := &http.Client{
+		Timeout: c.opts.timeout,
+	}
+
+	if c.opts.proxy != "" {
+		proxyURL, err := url.Parse(c.opts.proxy)
+		if err != nil {
+			return nil, nil, err
 		}
 
-		if len(c.form) > 0 {
-			url = fmt.Sprintf("%s?%s", url, c.form.Encode())
+		client.Transport = &http.Transport{Proxy: http.ProxyURL(proxyURL)}
+	}
+
+	return c.requestWithRetry(func() (*http.Response, error) {
+		var err error
+		var body io.Reader
+		if c.opts.requestBodyFunc != nil {
+			body, err = c.opts.requestBodyFunc()
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			body = bytes.NewReader(nil)
 		}
-		req, err := http.NewRequest(method, url, c.body)
+		req, err := http.NewRequest(method, httpURL, body)
 		if err != nil {
 			return nil, err
 		}
-		req.Header.Set("Content-Type", c.contentType)
-		return c.client.Do(req)
+		req.Header.Set("Content-Type", c.opts.contentType)
+
+		return client.Do(req)
 	})
 }
 
 func (c *Client) requestWithRetry(f func() (*http.Response, error)) (resp *http.Response, body []byte, err error) {
-	for times := 1; times <= c.retry; times++ {
+	for times := 1; times <= c.opts.retry; times++ {
 		resp, body, err = c.request(f)
 		if err == nil && resp.StatusCode == 200 {
 			break
@@ -128,8 +145,8 @@ func (c *Client) request(f func() (*http.Response, error)) (resp *http.Response,
 	if err != nil {
 		return nil, nil, err
 	}
-	if c.responseBodyReader != nil {
-		err = c.responseBodyReader(resp.Body)
+	if c.opts.responseBodyFunc != nil {
+		err = c.opts.responseBodyFunc(resp.Body)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -143,130 +160,156 @@ func (c *Client) request(f func() (*http.Response, error)) (resp *http.Response,
 	return resp, body, nil
 }
 
-type funcClientOption func(*Client)
-type clientOption struct{}
+func (c *Client) prepareClient() error {
+
+	return nil
+}
+
+type clientOptions struct {
+	protocol         string
+	contentType      string
+	retry            int
+	form             url.Values
+	requestBodyFunc  func() (io.Reader, error)
+	responseBodyFunc func(io.Reader) error
+	safety           bool
+	timeout          time.Duration
+	proxy            string
+	context          context.Context
+}
+
+var defaultClientOptions = clientOptions{
+	protocol:         "http",
+	contentType:      "text/plain",
+	retry:            1,
+	form:             nil,
+	requestBodyFunc:  nil,
+	responseBodyFunc: nil,
+	safety:           false,
+	timeout:          0,
+	proxy:            "",
+}
+
+type ClientOptionApllier interface {
+	apply(*clientOptions)
+}
+
+type funcClientOption func(*clientOptions)
+
+func (fco funcClientOption) apply(co *clientOptions) {
+	fco(co)
+}
+
+type clientOption int
 
 var ClientOption clientOption
 
-func (clientOption) WithProtocol(protocol string) funcClientOption {
-	return func(c *Client) {
-		c.WithProtocol(protocol)
+func (clientOption) Protocol(protocol string) funcClientOption {
+	return func(co *clientOptions) {
+		co.protocol = protocol
 	}
 }
 
-func (c *Client) WithProtocol(protocol string) *Client {
-	c.protocol = protocol
+func (c *Client) Protocol(protocol string) *Client {
+	ClientOption.Protocol(protocol).apply(&c.opts)
 	return c
 }
 
-func (clientOption) WithTimeout(timeout time.Duration) funcClientOption {
-	return func(c *Client) {
-		c.WithTimeout(timeout)
+func (clientOption) Timeout(timeout time.Duration) funcClientOption {
+	return func(co *clientOptions) {
+		co.timeout = timeout
 	}
 }
 
-func (c *Client) WithTimeout(timeout time.Duration) *Client {
-	c.client.Timeout = timeout
+func (c *Client) Timeout(timeout time.Duration) *Client {
+	ClientOption.Timeout(timeout).apply(&c.opts)
 	return c
 }
 
-func (clientOption) WithRetry(retry int) funcClientOption {
-	return func(c *Client) {
-		c.WithRetry(retry)
+func (clientOption) Retry(retry int) funcClientOption {
+	return func(co *clientOptions) {
+		co.retry = retry
 	}
 }
 
-func (c *Client) WithRetry(retry int) *Client {
-	c.retry = retry
+func (c *Client) Retry(retry int) *Client {
+	ClientOption.Retry(retry).apply(&c.opts)
 	return c
 }
 
-func (clientOption) WithProxy(proxy string) funcClientOption {
-	return func(c *Client) {
-		c.WithProxy(proxy)
+func (clientOption) Proxy(proxy string) funcClientOption {
+	return func(co *clientOptions) {
+		co.proxy = proxy
 	}
 }
 
-func (c *Client) WithProxy(proxy string) *Client {
-	fixedURL, err := url.Parse(proxy)
-	if err != nil {
-		panic(err)
-	}
-	c.client.Transport = &http.Transport{Proxy: http.ProxyURL(fixedURL)}
+func (c *Client) Proxy(proxy string) *Client {
+	ClientOption.Proxy(proxy).apply(&c.opts)
 	return c
 }
 
-func (clientOption) WithContentType(contentType string) funcClientOption {
-	return func(c *Client) {
-		c.WithContentType(contentType)
+func (clientOption) ContentType(contentType string) funcClientOption {
+	return func(co *clientOptions) {
+		co.contentType = contentType
 	}
 }
 
-func (c *Client) WithContentType(contentType string) *Client {
-	c.contentType = contentType
+func (c *Client) ContentType(contentType string) *Client {
+	ClientOption.ContentType(contentType).apply(&c.opts)
 	return c
 }
 
-func (clientOption) WithForm(form url.Values) funcClientOption {
-	return func(c *Client) {
-		c.WithForm(form)
+func (clientOption) Form(form url.Values) funcClientOption {
+	return func(co *clientOptions) {
+		co.form = form
 	}
 }
 
-func (c *Client) WithForm(form url.Values) *Client {
-	c.form = form
+func (c *Client) Form(form url.Values) *Client {
+	ClientOption.Form(form).apply(&c.opts)
 	return c
 }
 
-func (clientOption) WithParam(key string, value string) funcClientOption {
-	return func(c *Client) {
-		c.WithParam(key, value)
+func (clientOption) RequestBody(requestBodyFunc func() (io.Reader, error)) funcClientOption {
+	return func(co *clientOptions) {
+		co.requestBodyFunc = requestBodyFunc
 	}
 }
 
-func (c *Client) WithParam(key string, value string) *Client {
-	c.form.Set(key, value)
+func (c *Client) RequestBody(requestBodyFunc func() (io.Reader, error)) *Client {
+	ClientOption.RequestBody(requestBodyFunc).apply(&c.opts)
 	return c
 }
 
-func (clientOption) WithBody(body interface{}) funcClientOption {
-	return func(c *Client) {
-		c.WithBody(body)
+func (clientOption) ResponseBodyFunc(responseBodyFunc func(io.Reader) error) funcClientOption {
+	return func(co *clientOptions) {
+		co.responseBodyFunc = responseBodyFunc
 	}
 }
 
-func (c *Client) WithBody(body interface{}) *Client {
-	switch body := body.(type) {
-	case string:
-		c.body = strings.NewReader(body)
-	case []byte:
-		c.body = bytes.NewReader(body)
-	case io.Reader:
-		c.body = body
-	default:
-		c.body = strings.NewReader(fmt.Sprintf("%v", body))
-	}
+func (c *Client) ResponseBodyFunc(responseBodyFunc func(io.Reader) error) *Client {
+	ClientOption.ResponseBodyFunc(responseBodyFunc).apply(&c.opts)
 	return c
 }
 
-func (clientOption) WithResponseBodyReader(responseBodyReader func(io.Reader) error) funcClientOption {
-	return func(c *Client) {
-		c.WithResponseBodyReader(responseBodyReader)
+func (clientOption) Safety() funcClientOption {
+	return func(co *clientOptions) {
+		co.safety = true
 	}
 }
 
-func (c *Client) WithResponseBodyReader(responseBodyReader func(io.Reader) error) *Client {
-	c.responseBodyReader = responseBodyReader
+func (c *Client) Safety() *Client {
+	ClientOption.Safety().apply(&c.opts)
 	return c
 }
 
-func (clientOption) WithSafety() funcClientOption {
-	return func(c *Client) {
-		c.WithSafety()
+func (clientOption) Context(context context.Context) funcClientOption {
+	return func(co *clientOptions) {
+		co.context = context
 	}
 }
 
-func (c *Client) WithSafety() *Client {
-	c.safety = true
+func (c *Client) Context(context context.Context) *Client {
+	ClientOption.Context(context).apply(&c.opts)
 	return c
 }

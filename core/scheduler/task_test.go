@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aceaura/libra/scheduler"
+	"github.com/aceaura/libra/core/scheduler"
 )
 
 func TestTaskState(t *testing.T) {

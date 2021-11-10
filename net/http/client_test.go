@@ -104,9 +104,11 @@ func TestClientDoHead(t *testing.T) {
 }
 
 func TestClientParam(t *testing.T) {
+	form := url.Values{}
+	form.Add("platform", "pc")
+	form.Add("sa", "pcindex_entry")
 	resp, body, err := http.Get("https://top.baidu.com/board",
-		http.ClientOption.WithParam("platform", "pc"),
-		http.ClientOption.WithParam("sa", "pcindex_entry"),
+		http.ClientOption.Form(form),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error getting from client: %v", err)
@@ -121,7 +123,7 @@ func TestClientParam(t *testing.T) {
 }
 
 func TestClientForm(t *testing.T) {
-	resp, body, err := http.NewClient().WithForm(url.Values{
+	resp, body, err := http.NewClient().Form(url.Values{
 		"platform": []string{"pc"},
 		"sa":       []string{"pcindex_entry"},
 	}).Get("https://top.baidu.com/board")
@@ -138,7 +140,8 @@ func TestClientForm(t *testing.T) {
 }
 
 func TestClientProtocol(t *testing.T) {
-	resp, body, err := http.NewClient().WithProtocol("https").Get("top.baidu.com/board?platform=pc&sa=pcindex_entry")
+	resp, body, err := http.NewClient().Protocol("https").Get(
+		"top.baidu.com/board?platform=pc&sa=pcindex_entry")
 	if err != nil {
 		t.Fatalf("unexpected error getting from client: %v", err)
 	}
@@ -152,7 +155,9 @@ func TestClientProtocol(t *testing.T) {
 }
 
 func TestClientTimeout(t *testing.T) {
-	_, body, err := http.NewClient().WithTimeout(time.Duration(1) * time.Microsecond).Get("https://top.baidu.com/board?platform=pc&sa=pcindex_entry")
+	_, body, err := http.NewClient().Timeout(
+		time.Duration(1) * time.Microsecond).Get(
+		"https://top.baidu.com/board?platform=pc&sa=pcindex_entry")
 	if strings.Index(err.Error(), "context deadline exceeded") < 0 {
 		t.Fatal("expected an error with timeout")
 	}
@@ -160,7 +165,10 @@ func TestClientTimeout(t *testing.T) {
 }
 
 func TestClientContentType(t *testing.T) {
-	resp, body, err := http.NewClient().WithContentType("exception").WithRetry(3).Get("https://top.baidu.com/board?platform=pc&sa=pcindex_entry")
+	resp, body, err := http.NewClient(
+		http.ClientOption.ContentType("exception"),
+		http.ClientOption.Retry(3),
+	).Get("https://top.baidu.com/board?platform=pc&sa=pcindex_entry")
 	if err != nil {
 		t.Fatalf("unexpected error getting from client: %v", err)
 	}
@@ -172,7 +180,8 @@ func TestClientContentType(t *testing.T) {
 	}
 	contentType := resp.Request.Header["Content-Type"][0]
 	if contentType != "exception" {
-		t.Fatalf("unexpected content type getting from client: %s", contentType)
+		t.Fatalf("unexpected content type getting from client: %s",
+			contentType)
 	}
 	t.Log(string(body))
 }
@@ -180,10 +189,14 @@ func TestClientContentType(t *testing.T) {
 func TestClientResponseBodyReader(t *testing.T) {
 	var body []byte
 	var err error
-	resp, _, err := http.NewClient().WithResponseBodyReader(func(r io.Reader) error {
+	respBodyFunc := func(r io.Reader) error {
 		body, err = ioutil.ReadAll(r)
 		return err
-	}).WithRetry(3).Get("https://top.baidu.com/board?platform=pc&sa=pcindex_entry")
+	}
+	resp, _, err := http.NewClient(
+		http.ClientOption.ResponseBodyFunc(respBodyFunc),
+		http.ClientOption.Retry(3),
+	).Get("https://top.baidu.com/board?platform=pc&sa=pcindex_entry")
 	if err != nil {
 		t.Fatalf("unexpected error getting from client: %v", err)
 	}
@@ -198,26 +211,37 @@ func TestClientResponseBodyReader(t *testing.T) {
 
 func TestClientSafety(t *testing.T) {
 	text := "safety exception"
-	_, _, err := http.NewClient().WithResponseBodyReader(func(r io.Reader) error {
+	respBodyFunc := func(r io.Reader) error {
 		panic(errors.New(text))
-	}).WithSafety().Get("https://top.baidu.com/board?platform=pc&sa=pcindex_entry")
+	}
+	_, _, err := http.NewClient(
+		http.ClientOption.ResponseBodyFunc(respBodyFunc),
+		http.ClientOption.Safety(),
+	).Get("https://top.baidu.com/board?platform=pc&sa=pcindex_entry")
 	if strings.Index(err.Error(), text) < 0 {
 		t.Fatal("expected an error with safety exception")
 	}
 }
 
-func TestClientBody(t *testing.T) {
-	http.Serve("localhost:1989",
-		http.ServerOption.WithBackground(),
-		http.ServerOption.WithRoute("/", func(w http.ResponseWriter, r *http.Request) {
-			body, err := ioutil.ReadAll(r.Body)
-			if err != nil {
-				t.Fatal(err)
-			}
-			fmt.Fprint(w, string(body))
-		}))
+func TestClientRequestBody(t *testing.T) {
+	route := http.Route{"/", func(w http.ResponseWriter, r *http.Request) {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		fmt.Fprint(w, string(body))
+	}}
 	text := "this is a body text"
-	resp, body, err := http.NewClient().WithBody(text).Get("localhost:1989")
+	reqBodyFunc := func() (io.Reader, error) {
+		return strings.NewReader(text), nil
+	}
+	http.Serve("localhost:1989",
+		http.ServerOption.Background(),
+		http.ServerOption.Routes(route))
+
+	resp, body, err := http.NewClient(
+		http.ClientOption.RequestBody(reqBodyFunc),
+	).Get("localhost:1989")
 	if err != nil {
 		t.Fatalf("unexpected error getting from client: %v", err)
 	}
@@ -234,22 +258,37 @@ func TestClientBody(t *testing.T) {
 }
 
 func TestClientRetry(t *testing.T) {
+	const (
+		clientTimout = 1
+		serverSleep  = 100
+		maxRetry     = 3
+	)
 	var count int = 1
+	route := http.Route{"/", func(w http.ResponseWriter, r *http.Request) {
+		if count < maxRetry {
+			count++
+			time.Sleep(time.Second * serverSleep)
+		}
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		fmt.Fprint(w, string(body))
+	}}
+
 	http.Serve("localhost:1989",
-		http.ServerOption.WithBackground(),
-		http.ServerOption.WithRoute("/", func(w http.ResponseWriter, r *http.Request) {
-			if count < 3 {
-				count++
-				time.Sleep(time.Second * 2)
-			}
-			body, err := ioutil.ReadAll(r.Body)
-			if err != nil {
-				t.Fatal(err)
-			}
-			fmt.Fprint(w, string(body))
-		}))
+		http.ServerOption.Background(),
+		http.ServerOption.Routes(route),
+	)
 	text := "this is a body text"
-	resp, body, err := http.NewClient().WithTimeout(time.Second * 1).WithRetry(3).WithBody(text).Get("localhost:1989")
+	reqBodyFunc := func() (io.Reader, error) {
+		return strings.NewReader(text), nil
+	}
+	resp, body, err := http.NewClient(
+		http.ClientOption.Timeout(time.Second*clientTimout),
+		http.ClientOption.Retry(maxRetry),
+		http.ClientOption.RequestBody(reqBodyFunc),
+	).Get("localhost:1989")
 	if err != nil {
 		t.Fatalf("unexpected error getting from client: %v", err)
 	}
@@ -263,8 +302,8 @@ func TestClientRetry(t *testing.T) {
 }
 
 func TestProxy(t *testing.T) {
-	http.NewServer().WithProxy().WithBackground().Serve("localhost:1990")
-	resp, body, err := http.Get("www.baidu.com", http.ClientOption.WithProxy("http://localhost:1990"))
+	http.NewServer().Proxy().Background().Serve("localhost:1990")
+	resp, body, err := http.Get("www.baidu.com", http.ClientOption.Proxy("http://localhost:1990"))
 	if err != nil {
 		t.Fatalf("unexpected error getting from client: %v", err)
 	}

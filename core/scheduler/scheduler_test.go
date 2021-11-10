@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aceaura/libra/scheduler"
+	"github.com/aceaura/libra/core/scheduler"
 )
 
 func TestParallel(t *testing.T) {
