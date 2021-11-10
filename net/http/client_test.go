@@ -336,18 +336,14 @@ func TestContext(t *testing.T) {
 	reqBodyFunc := func() (io.Reader, error) {
 		return strings.NewReader(text), nil
 	}
-	resp, body, err := http.NewClient(
+	_, _, err := http.NewClient(
 		http.ClientOption.RequestBody(reqBodyFunc),
 		http.ClientOption.Context(ctx),
 	).Get("localhost:1989")
 	if err != nil {
-		t.Fatalf("unexpected error getting from client: %v", err)
+		if errors.Is(err, context.DeadlineExceeded) {
+			return
+		}
 	}
-	if resp.StatusCode != 200 {
-		t.Fatalf("expected a status code of 200, got %v", resp.StatusCode)
-	}
-	if len(body) == 0 {
-		t.Fatal("expected a body with content")
-	}
-	t.Log(string(body))
+	t.Fatalf("expected an deadline exceeded error")
 }
