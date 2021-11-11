@@ -62,7 +62,7 @@ type Report struct {
 	StageDuration time.Duration
 }
 
-func NewTask(opt ...funcTaskOption) *Task {
+func NewTask(opt ...ApplyTaskOption) *Task {
 	uuid, _ := uuid.NewV4()
 	now := time.Now()
 
@@ -73,6 +73,7 @@ func NewTask(opt ...funcTaskOption) *Task {
 	}
 
 	t := &Task{
+		opts:         opts,
 		id:           uuid.String(),
 		values:       sync.Map{},
 		state:        TaskStateCreated,
@@ -245,7 +246,7 @@ var defaultTaskOptions = taskOptions{
 	timeout:       0,
 }
 
-type TaskOptionAppllier interface {
+type ApplyTaskOption interface {
 	apply(*taskOptions)
 }
 
