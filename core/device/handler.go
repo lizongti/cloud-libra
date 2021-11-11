@@ -12,19 +12,9 @@ import (
 
 type Handler struct {
 	*Base
-	method reflect.Method
-}
-
-func NewHandler(opts ...funcHandlerOption) *Handler {
-	h := &Handler{
-		Base: NewBase(),
-	}
-
-	for _, opt := range opts {
-		opt(h)
-	}
-
-	return h
+	receiver   reflect.Value
+	method     reflect.Method
+	dispatcher scheduler.Dispatcher
 }
 
 func (h *Handler) String() string {
@@ -43,27 +33,24 @@ func (h *Handler) localProcess(ctx context.Context, reqMsg *message.Message) err
 		return nil
 	}
 
-	s := h.gateway.(*Service)
-	scheduler.NewTask(
-		scheduler.TaskOption.WithContext(ctx),
-		scheduler.TaskOption.WithStage(func(t *scheduler.Task) error {
-			ctx := t.Context()
-			respMsg, err := h.do(ctx, reqMsg)
-			if err != nil {
-				return err
-			}
-			if respMsg != nil {
-				return s.Process(ctx, respMsg)
-			}
-			return nil
-		}),
-	).Publish(s.dispatch(ctx, reqMsg))
+	stage := func(t *scheduler.Task) error {
+		ctx := t.Context()
+		respMsg, err := h.do(ctx, reqMsg)
+		if err != nil {
+			return err
+		}
+		if respMsg != nil {
+			return h.Process(ctx, respMsg)
+		}
+		return nil
+	}
+
+	scheduler.NewTask().WithContext(ctx).WithStage(stage).Publish(h.dispatcher.Dispatch(ctx, reqMsg))
 
 	return nil
 }
 
 func (h *Handler) do(ctx context.Context, reqMsg *message.Message) (*message.Message, error) {
-	s := h.gateway.(*Service)
 	mt := h.method.Type
 	var req interface{}
 	if mt.In(2) == magic.TypeOfBytes {
@@ -81,7 +68,7 @@ func (h *Handler) do(ctx context.Context, reqMsg *message.Message) (*message.Mes
 		}
 	}
 
-	in := []reflect.Value{reflect.ValueOf(s.component), reflect.ValueOf(ctx), reflect.ValueOf(req)}
+	in := []reflect.Value{h.receiver, reflect.ValueOf(ctx), reflect.ValueOf(req)}
 
 	out := h.method.Func.Call(in)
 	if e := out[1].Interface(); e != nil {
@@ -104,20 +91,4 @@ func (h *Handler) do(ctx context.Context, reqMsg *message.Message) (*message.Mes
 	}
 	respMsg.Data = respData
 	return respMsg, nil
-}
-
-type funcHandlerOption func(*Handler)
-type handlerOption struct{}
-
-var HandlerOption handlerOption
-
-func (handlerOption) WithMethod(method reflect.Method) funcHandlerOption {
-	return func(h *Handler) {
-		h.WithMethod(method)
-	}
-}
-
-func (h *Handler) WithMethod(method reflect.Method) *Handler {
-	h.method = method
-	return h
 }

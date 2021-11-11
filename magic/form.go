@@ -60,3 +60,30 @@ func camelize(s string) string {
 	}
 	return string(b)
 }
+
+type ChainStyle struct {
+	ChainSeperator SeparatorType
+	WordSeparator  SeparatorType
+}
+
+func Chain(s string, cs ChainStyle) []string {
+	chain := strings.Split(s, cs.ChainSeperator)
+	for index := 0; index < len(chain); index++ {
+		chain[index] = Standardize(chain[index], cs.WordSeparator)
+	}
+	return chain
+}
+
+func ChainPeriodUnderscore(s string) []string {
+	return Chain(s, ChainStyle{
+		ChainSeperator: SeparatorPeriod,
+		WordSeparator:  SeparatorUnderscore,
+	})
+}
+
+func ChainSplashUnderScore(s string) []string {
+	return Chain(s, ChainStyle{
+		ChainSeperator: SeparatorSlash,
+		WordSeparator:  SeparatorUnderscore,
+	})
+}

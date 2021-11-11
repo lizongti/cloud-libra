@@ -19,6 +19,12 @@ func NewChain(opts ...funcChainOption) *Chain {
 	return e
 }
 
+var empty *Chain = NewChain()
+
+func Empty() *Chain {
+	return empty
+}
+
 func (c Chain) String() string {
 	var builder strings.Builder
 	builder.WriteString(magic.SeparatorBracketleft)

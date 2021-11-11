@@ -2,15 +2,16 @@ package device
 
 import (
 	"context"
-	"sync"
+	"reflect"
 
+	"github.com/aceaura/libra/core/component"
 	"github.com/aceaura/libra/core/message"
+	"github.com/aceaura/libra/magic"
 )
 
 type Router struct {
 	*Base
-	name    string
-	rwMutex sync.RWMutex
+	name string
 }
 
 func NewRouter(opts ...funcRouterOption) *Router {
@@ -45,6 +46,45 @@ func (r *Router) localProcess(ctx context.Context, msg *message.Message) error {
 	return device.Process(ctx, msg)
 }
 
+func (r *Router) extractService(service component.Service) {
+	if r.name == "" {
+		r.name = magic.TypeName(service)
+	}
+	t := reflect.TypeOf(service)
+
+	for index := 0; index < t.NumMethod(); index++ {
+		method := t.Method(index)
+		mt := method.Type
+
+		switch {
+		case mt.PkgPath() != "": // Check method is exported
+			continue
+		case mt.NumIn() != 3: // Check num in
+			continue
+		case mt.NumOut() != 2: // Check num in
+			continue
+		case !mt.In(1).Implements(magic.TypeOfContext): // Check context.Context
+			continue
+		case !mt.Out(1).Implements(magic.TypeOfError): // Check error
+			continue
+		case mt.In(2).Kind() != reflect.Ptr && mt.In(2) != magic.TypeOfBytes: // Check request:  pointer or bytes
+			continue
+		case mt.Out(0).Kind() != reflect.Ptr && mt.Out(0) != magic.TypeOfBytes: // Check response: pointer or bytes
+			continue
+		}
+
+		receiver := reflect.ValueOf(service)
+		h := &Handler{
+			Base:       NewBase(),
+			receiver:   receiver,
+			method:     method,
+			dispatcher: service.Dispatcher(),
+		}
+		h.Access(r)
+		r.Extend(h)
+	}
+}
+
 type funcRouterOption func(*Router)
 type routerOption struct{}
 
@@ -62,6 +102,18 @@ func (r *Router) WithDevice(devices ...Device) *Router {
 		device.Access(r)
 	}
 	return r
+}
+
+func (routerOption) WithService(services ...component.Service) funcRouterOption {
+	return func(r *Router) {
+		r.WithService(services...)
+	}
+}
+
+func (r *Router) WithService(services ...component.Service) {
+	for _, service := range services {
+		r.extractService(service)
+	}
 }
 
 func (routerOption) WithName(name string) funcRouterOption {

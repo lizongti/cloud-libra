@@ -8,16 +8,17 @@ import (
 )
 
 type Route struct {
-	src      []string
-	dst      []string
-	dstIndex int
+	src   []string
+	dst   []string
+	index int
 }
 
-func NewRoute(opts ...funcRouteOption) *Route {
-	r := &Route{}
-	for _, opt := range opts {
-		opt(r)
+func NewRoute(src, dst []string) *Route {
+	r := &Route{
+		src: src,
+		dst: dst,
 	}
+
 	return r
 }
 
@@ -37,7 +38,7 @@ func (r Route) String() string {
 	builder.WriteString(magic.SeparatorSpace)
 	builder.WriteString(magic.SeparatorBracketleft)
 	for index, name := range r.dst {
-		if index == r.dstIndex {
+		if index == r.index {
 			builder.WriteString(magic.SeparatorLess)
 			builder.WriteString(name)
 			builder.WriteString(magic.SeparatorGreater)
@@ -53,29 +54,29 @@ func (r Route) String() string {
 }
 
 func (r Route) Dispatching() bool {
-	return r.dstIndex > 0
+	return r.index > 0
 }
 
 func (r Route) Assembling() bool {
-	return r.dstIndex == 0
+	return r.index == 0
 }
 
 func (r Route) Forward() Route {
-	if r.dstIndex < len(r.dst)-1 {
-		r.dstIndex++
+	if r.index < len(r.dst)-1 {
+		r.index++
 	}
 	return r
 }
 
 func (r Route) Position() string {
-	return r.dst[r.dstIndex]
+	return r.dst[r.index]
 }
 
 func (r Route) Reverse() Route {
 	return Route{
-		src:      r.dst,
-		dst:      r.src,
-		dstIndex: 0,
+		src:   r.dst,
+		dst:   r.src,
+		index: 0,
 	}
 }
 
@@ -83,46 +84,46 @@ func (r Route) Error(err error) error {
 	return fmt.Errorf("route %v error: %w", r, err)
 }
 
-type funcRouteOption func(*Route)
-type routeOption struct{}
+// type funcRouteOption func(*Route)
+// type routeOption struct{}
 
-var RouteOption routeOption
+// var RouteOption routeOption
 
-func (routeOption) WithSrc(path string, deviceSep magic.SeparatorType, wordSep magic.SeparatorType) funcRouteOption {
-	return func(r *Route) {
-		r.WithSrc(path, deviceSep, wordSep)
-	}
-}
+// func (routeOption) Source(path string, chainSep magic.SeparatorType, wordSep magic.SeparatorType) funcRouteOption {
+// 	return func(r *Route) {
+// 		r.Source(path, chainSep, wordSep)
+// 	}
+// }
 
-func (r *Route) WithSrc(path string, deviceSep magic.SeparatorType, wordSep magic.SeparatorType) *Route {
-	names := strings.Split(path, deviceSep)
-	for _, name := range names {
-		r.src = append(r.src, magic.Standardize(name, wordSep))
-	}
-	return r
-}
+// func (r *Route) Source(path string, chainSep magic.SeparatorType, wordSep magic.SeparatorType) *Route {
+// 	names := strings.Split(path, chainSep)
+// 	for _, name := range names {
+// 		r.source = append(r.source, magic.Standardize(name, wordSep))
+// 	}
+// 	return r
+// }
 
-func (routeOption) WithDst(path string, deviceSep magic.SeparatorType, wordSep magic.SeparatorType) funcRouteOption {
-	return func(r *Route) {
-		r.WithDst(path, deviceSep, wordSep)
-	}
-}
+// func (routeOption) Destination(path string, chainSep magic.SeparatorType, wordSep magic.SeparatorType) funcRouteOption {
+// 	return func(r *Route) {
+// 		r.Destination(path, chainSep, wordSep)
+// 	}
+// }
 
-func (r *Route) WithDst(path string, deviceSep magic.SeparatorType, wordSep magic.SeparatorType) *Route {
-	names := strings.Split(path, deviceSep)
-	for _, name := range names {
-		r.dst = append(r.dst, magic.Standardize(name, wordSep))
-	}
-	return r
-}
+// func (r *Route) Destination(path string, chainSep magic.SeparatorType, wordSep magic.SeparatorType) *Route {
+// 	names := strings.Split(path, chainSep)
+// 	for _, name := range names {
+// 		r.destination = append(r.destination, magic.Standardize(name, wordSep))
+// 	}
+// 	return r
+// }
 
-func (routeOption) WithDstIndex(dstIndex int) funcRouteOption {
-	return func(r *Route) {
-		r.WithDstIndex(dstIndex)
-	}
-}
+// func (routeOption) Index(dstIndex int) funcRouteOption {
+// 	return func(r *Route) {
+// 		r.Index(dstIndex)
+// 	}
+// }
 
-func (r *Route) WithDstIndex(index int) *Route {
-	r.dstIndex = index
-	return r
-}
+// func (r *Route) Index(index int) *Route {
+// 	r.index = index
+// 	return r
+// }

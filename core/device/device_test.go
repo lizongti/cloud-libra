@@ -18,7 +18,7 @@ var e1 = encoding.NewJSON()
 var e2 = encoding.NewBase64()
 
 type Try struct {
-	component.ComponentBase
+	*component.ServiceBase
 	logChan chan<- string
 }
 
@@ -88,13 +88,9 @@ func TestService1(t *testing.T) {
 		Base:    device.NewBase(),
 		logChan: logChan,
 	}
-	component := &Try{
+	service := device.NewRouter(device.RouterOption.WithService(&Try{
 		logChan: logChan,
-	}
-	service := device.NewService(
-		device.ServiceOption.WithEncoding(e2),
-		device.ServiceOption.WithComponent(component),
-	)
+	}))
 	router := device.NewRouter(
 		device.RouterOption.WithName(version),
 		device.RouterOption.WithDevice(service),
@@ -107,12 +103,9 @@ func TestService1(t *testing.T) {
 	t.Logf("\n%s", device.Tree(bus))
 
 	ctx := context.Background()
-	r := route.NewRoute().WithSrc(
-		"/anonymous", magic.SeparatorSlash, magic.SeparatorUnderscore,
-	).WithDst(
-		"/1.0.0/try/echo", magic.SeparatorSlash, magic.SeparatorUnderscore,
-	)
-
+	src := magic.ChainSplashUnderScore("/anonymous")
+	dst := magic.ChainSplashUnderScore("/1.0.0/try/echo")
+	r := route.NewRoute(src, dst)
 	reqData, err := encoding.Marshal(e1, &Ping{
 		Text: "libra: Hello, world!",
 	})
@@ -162,13 +155,9 @@ func TestService2(t *testing.T) {
 		Base:    device.NewBase(),
 		logChan: logChan,
 	}
-	component := &Try{
+	service := device.NewRouter(device.RouterOption.WithService(&Try{
 		logChan: logChan,
-	}
-	service := device.NewService(
-		device.ServiceOption.WithEncoding(e2),
-		device.ServiceOption.WithComponent(component),
-	)
+	}))
 	router := device.NewRouter(
 		device.RouterOption.WithName(version),
 		device.RouterOption.WithDevice(service),
@@ -181,11 +170,9 @@ func TestService2(t *testing.T) {
 	t.Logf("\n%s", device.Tree(bus))
 
 	ctx := context.Background()
-	r := route.NewRoute().WithSrc(
-		"/anonymous", magic.SeparatorSlash, magic.SeparatorUnderscore,
-	).WithDst(
-		"/1.0.0/try/echo_bytes", magic.SeparatorSlash, magic.SeparatorUnderscore,
-	)
+	src := magic.ChainSplashUnderScore("/anonymous")
+	dst := magic.ChainSplashUnderScore("/1.0.0/try/echo_bytes")
+	r := route.NewRoute(src, dst)
 
 	reqData, err := encoding.Marshal(e2, []byte("libra: Hello, world!"))
 	if err != nil {
@@ -194,7 +181,7 @@ func TestService2(t *testing.T) {
 	msg := &message.Message{
 		ID:       msgID,
 		Route:    *r,
-		Encoding: encoding.Empty(),
+		Encoding: e2,
 		Data:     reqData,
 	}
 
