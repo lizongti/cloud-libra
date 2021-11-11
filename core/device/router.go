@@ -46,11 +46,11 @@ func (r *Router) localProcess(ctx context.Context, msg *message.Message) error {
 	return device.Process(ctx, msg)
 }
 
-func (r *Router) extractService(service component.Service) {
+func (r *Router) extract(c component.Component) {
 	if r.name == "" {
-		r.name = magic.TypeName(service)
+		r.name = magic.TypeName(c)
 	}
-	t := reflect.TypeOf(service)
+	t := reflect.TypeOf(c)
 
 	for index := 0; index < t.NumMethod(); index++ {
 		method := t.Method(index)
@@ -73,12 +73,11 @@ func (r *Router) extractService(service component.Service) {
 			continue
 		}
 
-		receiver := reflect.ValueOf(service)
+		receiver := reflect.ValueOf(c)
 		h := &Handler{
-			Base:       NewBase(),
-			receiver:   receiver,
-			method:     method,
-			dispatcher: service.Dispatcher(),
+			Base:     NewBase(),
+			receiver: receiver,
+			method:   method,
 		}
 		h.Access(r)
 		r.Extend(h)
@@ -104,15 +103,15 @@ func (r *Router) WithDevice(devices ...Device) *Router {
 	return r
 }
 
-func (routerOption) WithService(services ...component.Service) funcRouterOption {
+func (routerOption) WithService(components ...component.Component) funcRouterOption {
 	return func(r *Router) {
-		r.WithService(services...)
+		r.WithService(components...)
 	}
 }
 
-func (r *Router) WithService(services ...component.Service) {
-	for _, service := range services {
-		r.extractService(service)
+func (r *Router) WithService(components ...component.Component) {
+	for _, component := range components {
+		r.extract(component)
 	}
 }
 

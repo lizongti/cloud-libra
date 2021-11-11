@@ -6,15 +6,13 @@ import (
 
 	"github.com/aceaura/libra/core/encoding"
 	"github.com/aceaura/libra/core/message"
-	"github.com/aceaura/libra/core/scheduler"
 	"github.com/aceaura/libra/magic"
 )
 
 type Handler struct {
 	*Base
-	receiver   reflect.Value
-	method     reflect.Method
-	dispatcher scheduler.Dispatcher
+	receiver reflect.Value
+	method   reflect.Method
 }
 
 func (h *Handler) String() string {
@@ -33,19 +31,13 @@ func (h *Handler) localProcess(ctx context.Context, reqMsg *message.Message) err
 		return nil
 	}
 
-	stage := func(t *scheduler.Task) error {
-		ctx := t.Context()
-		respMsg, err := h.do(ctx, reqMsg)
-		if err != nil {
-			return err
-		}
-		if respMsg != nil {
-			return h.Process(ctx, respMsg)
-		}
-		return nil
+	respMsg, err := h.do(ctx, reqMsg)
+	if err != nil {
+		return err
 	}
-
-	scheduler.NewTask().WithContext(ctx).WithStage(stage).Publish(h.dispatcher.Dispatch(ctx, reqMsg))
+	if respMsg != nil {
+		return h.Process(ctx, respMsg)
+	}
 
 	return nil
 }
