@@ -17,8 +17,8 @@ func TestParallel(t *testing.T) {
 		timeout           = 2
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().WithReportChan(reportChan).WithParallel(parallel).WithBacklog(backlog)
-	if err := s.WithBackground().Serve(); err != nil {
+	s := scheduler.NewScheduler().ReportChan(reportChan).Parallel(parallel).Backlog(backlog)
+	if err := s.Background().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	for index := 0; index < taskCount; index++ {
@@ -60,12 +60,12 @@ func TestParallelChan(t *testing.T) {
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
 	var parallelChan = make(chan int)
 	s := scheduler.NewScheduler(
-		scheduler.SchedulerOption.WithBacklog(backlog),
-		scheduler.SchedulerOption.WithParallel(parallel),
-		scheduler.SchedulerOption.WithReportChan(reportChan),
-		scheduler.SchedulerOption.WithParallelChan(parallelChan),
+		scheduler.SchedulerOption.Backlog(backlog),
+		scheduler.SchedulerOption.Parallel(parallel),
+		scheduler.SchedulerOption.ReportChan(reportChan),
+		scheduler.SchedulerOption.ParallelChan(parallelChan),
 	)
-	if err := s.WithBackground().Serve(); err != nil {
+	if err := s.Background().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	for index := 0; index < taskCount; index++ {
@@ -118,12 +118,12 @@ func TestTPS(t *testing.T) {
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
 	var parallelChan = make(chan int)
 	s := scheduler.NewScheduler(
-		scheduler.SchedulerOption.WithBacklog(backlog),
-		scheduler.SchedulerOption.WithParallel(parallel),
-		scheduler.SchedulerOption.WithReportChan(reportChan),
-		scheduler.SchedulerOption.WithParallelChan(parallelChan),
+		scheduler.SchedulerOption.Backlog(backlog),
+		scheduler.SchedulerOption.Parallel(parallel),
+		scheduler.SchedulerOption.ReportChan(reportChan),
+		scheduler.SchedulerOption.ParallelChan(parallelChan),
 	)
-	if err := s.WithBackground().Serve(); err != nil {
+	if err := s.Background().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	for index := 0; index < taskCount; index++ {

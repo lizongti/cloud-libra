@@ -13,8 +13,8 @@ func TestTaskState(t *testing.T) {
 		timeout           = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().WithReportChan(reportChan)
-	if err := s.WithBackground().Serve(); err != nil {
+	s := scheduler.NewScheduler().ReportChan(reportChan)
+	if err := s.Background().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	scheduler.NewTask().Name("test_task_state").Publish(s)
@@ -50,8 +50,8 @@ func TestTaskStage(t *testing.T) {
 		timeout           = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().WithReportChan(reportChan)
-	if err := s.WithBackground().Serve(); err != nil {
+	s := scheduler.NewScheduler().ReportChan(reportChan)
+	if err := s.Background().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	var stages = make([]func(*scheduler.Task) error, 0, stageCount)
@@ -89,8 +89,8 @@ func TestTaskParams(t *testing.T) {
 		timeout           = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().WithReportChan(reportChan)
-	if err := s.WithBackground().Serve(); err != nil {
+	s := scheduler.NewScheduler().ReportChan(reportChan)
+	if err := s.Background().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	var stages = make([]func(*scheduler.Task) error, 0, stageCount)
@@ -136,8 +136,8 @@ func TestTaskTimeout(t *testing.T) {
 		sleep             = 2
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().WithReportChan(reportChan)
-	if err := s.WithBackground().Serve(); err != nil {
+	s := scheduler.NewScheduler().ReportChan(reportChan)
+	if err := s.Background().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	scheduler.NewTask().Stage(func(*scheduler.Task) error {
@@ -165,8 +165,8 @@ func TestTaskReportTime(t *testing.T) {
 		sleep             = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().WithReportChan(reportChan)
-	if err := s.WithBackground().Serve(); err != nil {
+	s := scheduler.NewScheduler().ReportChan(reportChan)
+	if err := s.Background().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	var stages = make([]func(*scheduler.Task) error, 0, stageCount)
