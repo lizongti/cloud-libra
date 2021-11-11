@@ -19,7 +19,7 @@ type Route struct {
 	Func func(http.ResponseWriter, *http.Request)
 }
 
-func NewServer(opt ...ServerOptionApplier) *Server {
+func NewServer(opt ...ApplyServerOption) *Server {
 	opts := defaultServerOptions
 	for _, o := range opt {
 		o.apply(&opts)
@@ -33,7 +33,7 @@ func NewServer(opt ...ServerOptionApplier) *Server {
 	return s
 }
 
-func Serve(addr string, opt ...ServerOptionApplier) error {
+func Serve(addr string, opt ...ApplyServerOption) error {
 	return NewServer(opt...).Serve(addr)
 }
 
@@ -93,7 +93,7 @@ var defaultServerOptions = serverOptions{
 	routes:     nil,
 }
 
-type ServerOptionApplier interface {
+type ApplyServerOption interface {
 	apply(*serverOptions)
 }
 

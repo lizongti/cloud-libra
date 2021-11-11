@@ -191,7 +191,7 @@ var defaultClientOptions = clientOptions{
 	context:          nil,
 }
 
-type ClientOptionApllier interface {
+type ApplyClientOption interface {
 	apply(*clientOptions)
 }
 

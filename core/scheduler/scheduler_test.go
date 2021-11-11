@@ -23,8 +23,8 @@ func TestParallel(t *testing.T) {
 	}
 	for index := 0; index < taskCount; index++ {
 		scheduler.NewTask(
-			scheduler.TaskOption.WithName(fmt.Sprintf("test_parallel[%d]", index)),
-			scheduler.TaskOption.WithStage(func(task *scheduler.Task) error {
+			scheduler.TaskOption.Name(fmt.Sprintf("test_parallel[%d]", index)),
+			scheduler.TaskOption.Stage(func(task *scheduler.Task) error {
 				time.Sleep(time.Second * 1)
 				return nil
 			}),
@@ -70,8 +70,8 @@ func TestParallelChan(t *testing.T) {
 	}
 	for index := 0; index < taskCount; index++ {
 		scheduler.NewTask(
-			scheduler.TaskOption.WithName(fmt.Sprintf("test_parallel_chan[%d]", index)),
-			scheduler.TaskOption.WithStage(func(task *scheduler.Task) error {
+			scheduler.TaskOption.Name(fmt.Sprintf("test_parallel_chan[%d]", index)),
+			scheduler.TaskOption.Stage(func(task *scheduler.Task) error {
 				time.Sleep(time.Second * 1)
 				return nil
 			}),
@@ -128,8 +128,8 @@ func TestTPS(t *testing.T) {
 	}
 	for index := 0; index < taskCount; index++ {
 		scheduler.NewTask(
-			scheduler.TaskOption.WithName(fmt.Sprintf("test_parallel_tps[%d]", index)),
-			scheduler.TaskOption.WithStage(func(task *scheduler.Task) error {
+			scheduler.TaskOption.Name(fmt.Sprintf("test_parallel_tps[%d]", index)),
+			scheduler.TaskOption.Stage(func(task *scheduler.Task) error {
 				time.Sleep(time.Second * 1)
 				return nil
 			}),

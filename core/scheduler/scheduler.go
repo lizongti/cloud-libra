@@ -1,10 +1,7 @@
 package scheduler
 
 import (
-	"context"
 	"fmt"
-
-	"github.com/aceaura/libra/core/message"
 )
 
 type Scheduler struct {
@@ -72,10 +69,6 @@ func (s *Scheduler) Close() error {
 	close(s.dieChan)
 	<-s.exitChan
 	return nil
-}
-
-func (s *Scheduler) Dispatch(context.Context, *message.Message) *Scheduler {
-	return s
 }
 
 func (s *Scheduler) serve() (err error) {
@@ -156,12 +149,10 @@ func (s *Scheduler) close(p *pipeline) {
 	<-p.exitChan
 }
 
-func (s *Scheduler) needReport() bool {
-	return s != emptyScheduler && s.reportChan != nil
-}
-
 func (s *Scheduler) report(r *Report) {
-	s.reportChan <- r
+	if s != emptyScheduler && s.reportChan != nil {
+		s.reportChan <- r
+	}
 }
 
 type funcSchedulerOption func(*Scheduler)
