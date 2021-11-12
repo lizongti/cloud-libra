@@ -266,7 +266,7 @@ func (taskOption) Name(name string) funcTaskOption {
 	}
 }
 
-func (t *Task) Name(name string) *Task {
+func (t *Task) WithName(name string) *Task {
 	TaskOption.Name(name).apply(&t.opts)
 	return t
 }
@@ -278,7 +278,7 @@ func (taskOption) Stage(stages ...func(*Task) error) funcTaskOption {
 	}
 }
 
-func (t *Task) Stage(stages ...func(*Task) error) *Task {
+func (t *Task) WithStage(stages ...func(*Task) error) *Task {
 	TaskOption.Stage(stages...).apply(&t.opts)
 	return t
 }
@@ -289,7 +289,7 @@ func (taskOption) Params(params map[interface{}]interface{}) funcTaskOption {
 	}
 }
 
-func (t *Task) Params(params map[interface{}]interface{}) *Task {
+func (t *Task) WithParams(params map[interface{}]interface{}) *Task {
 	TaskOption.Params(params).apply(&t.opts)
 	return t
 }
@@ -300,7 +300,7 @@ func (taskOption) ParentContext(context context.Context) funcTaskOption {
 	}
 }
 
-func (t *Task) ParentContext(context context.Context) *Task {
+func (t *Task) WithParentContext(context context.Context) *Task {
 	TaskOption.ParentContext(context).apply(&t.opts)
 	return t
 }
@@ -311,7 +311,7 @@ func (taskOption) Timeout(timeout time.Duration) funcTaskOption {
 	}
 }
 
-func (t *Task) Timeout(timeout time.Duration) *Task {
+func (t *Task) WithTimeout(timeout time.Duration) *Task {
 	TaskOption.Timeout(timeout).apply(&t.opts)
 	return t
 }

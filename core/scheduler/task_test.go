@@ -13,11 +13,11 @@ func TestTaskState(t *testing.T) {
 		timeout           = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().ReportChan(reportChan)
-	if err := s.Background().Serve(); err != nil {
+	s := scheduler.NewScheduler().WithReportChan(reportChan)
+	if err := s.WithBackground().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
-	scheduler.NewTask().Name("test_task_state").Publish(s)
+	scheduler.NewTask().WithName("test_task_state").Publish(s)
 	var states = []scheduler.TaskStateType{
 		scheduler.TaskStateCreated,
 		scheduler.TaskStatePending,
@@ -50,8 +50,8 @@ func TestTaskStage(t *testing.T) {
 		timeout           = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().ReportChan(reportChan)
-	if err := s.Background().Serve(); err != nil {
+	s := scheduler.NewScheduler().WithReportChan(reportChan)
+	if err := s.WithBackground().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	var stages = make([]func(*scheduler.Task) error, 0, stageCount)
@@ -61,7 +61,7 @@ func TestTaskStage(t *testing.T) {
 		})
 	}
 
-	scheduler.NewTask().Stage(stages...).Name("test_task_stage").Publish(s)
+	scheduler.NewTask().WithStage(stages...).WithName("test_task_stage").Publish(s)
 	var progress = -1
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
 	for {
@@ -89,8 +89,8 @@ func TestTaskParams(t *testing.T) {
 		timeout           = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().ReportChan(reportChan)
-	if err := s.Background().Serve(); err != nil {
+	s := scheduler.NewScheduler().WithReportChan(reportChan)
+	if err := s.WithBackground().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	var stages = make([]func(*scheduler.Task) error, 0, stageCount)
@@ -111,9 +111,9 @@ func TestTaskParams(t *testing.T) {
 		})
 	}
 
-	scheduler.NewTask().Stage(stages...).Params(map[interface{}]interface{}{
+	scheduler.NewTask().WithStage(stages...).WithParams(map[interface{}]interface{}{
 		"progress": 0,
-	}).Name("test_task_params").Publish(s)
+	}).WithName("test_task_params").Publish(s)
 
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
 	for {
@@ -136,14 +136,14 @@ func TestTaskTimeout(t *testing.T) {
 		sleep             = 2
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().ReportChan(reportChan)
-	if err := s.Background().Serve(); err != nil {
+	s := scheduler.NewScheduler().WithReportChan(reportChan)
+	if err := s.WithBackground().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
-	scheduler.NewTask().Stage(func(*scheduler.Task) error {
+	scheduler.NewTask().WithStage(func(*scheduler.Task) error {
 		time.Sleep(time.Duration(sleep) * time.Second)
 		return nil
-	}).Name("test_task_timeout").Timeout(time.Duration(taskTimeout) * time.Second).Publish(s)
+	}).WithName("test_task_timeout").WithTimeout(time.Duration(taskTimeout) * time.Second).Publish(s)
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
 	for {
 		select {
@@ -165,8 +165,8 @@ func TestTaskReportTime(t *testing.T) {
 		sleep             = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().ReportChan(reportChan)
-	if err := s.Background().Serve(); err != nil {
+	s := scheduler.NewScheduler().WithReportChan(reportChan)
+	if err := s.WithBackground().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	var stages = make([]func(*scheduler.Task) error, 0, stageCount)
@@ -177,7 +177,7 @@ func TestTaskReportTime(t *testing.T) {
 		})
 	}
 
-	scheduler.NewTask().Stage(stages...).Name("test_task_report_time").Publish(s)
+	scheduler.NewTask().WithStage(stages...).WithName("test_task_report_time").Publish(s)
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
 	for {
 		select {
