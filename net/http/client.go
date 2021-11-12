@@ -211,7 +211,7 @@ func (clientOption) Protocol(protocol string) funcClientOption {
 	}
 }
 
-func (c *Client) Protocol(protocol string) *Client {
+func (c *Client) WithProtocol(protocol string) *Client {
 	ClientOption.Protocol(protocol).apply(&c.opts)
 	return c
 }
@@ -222,7 +222,7 @@ func (clientOption) Timeout(timeout time.Duration) funcClientOption {
 	}
 }
 
-func (c *Client) Timeout(timeout time.Duration) *Client {
+func (c *Client) WithTimeout(timeout time.Duration) *Client {
 	ClientOption.Timeout(timeout).apply(&c.opts)
 	return c
 }
@@ -233,7 +233,7 @@ func (clientOption) Retry(retry int) funcClientOption {
 	}
 }
 
-func (c *Client) Retry(retry int) *Client {
+func (c *Client) WithRetry(retry int) *Client {
 	ClientOption.Retry(retry).apply(&c.opts)
 	return c
 }
@@ -244,7 +244,7 @@ func (clientOption) Proxy(proxy string) funcClientOption {
 	}
 }
 
-func (c *Client) Proxy(proxy string) *Client {
+func (c *Client) WithProxy(proxy string) *Client {
 	ClientOption.Proxy(proxy).apply(&c.opts)
 	return c
 }
@@ -255,7 +255,7 @@ func (clientOption) ContentType(contentType string) funcClientOption {
 	}
 }
 
-func (c *Client) ContentType(contentType string) *Client {
+func (c *Client) WithContentType(contentType string) *Client {
 	ClientOption.ContentType(contentType).apply(&c.opts)
 	return c
 }
@@ -266,7 +266,7 @@ func (clientOption) Form(form url.Values) funcClientOption {
 	}
 }
 
-func (c *Client) Form(form url.Values) *Client {
+func (c *Client) WithForm(form url.Values) *Client {
 	ClientOption.Form(form).apply(&c.opts)
 	return c
 }
@@ -277,7 +277,7 @@ func (clientOption) RequestBody(requestBodyFunc func() (io.Reader, error)) funcC
 	}
 }
 
-func (c *Client) RequestBody(requestBodyFunc func() (io.Reader, error)) *Client {
+func (c *Client) WithRequestBody(requestBodyFunc func() (io.Reader, error)) *Client {
 	ClientOption.RequestBody(requestBodyFunc).apply(&c.opts)
 	return c
 }
@@ -288,7 +288,7 @@ func (clientOption) ResponseBodyFunc(responseBodyFunc func(io.Reader) error) fun
 	}
 }
 
-func (c *Client) ResponseBodyFunc(responseBodyFunc func(io.Reader) error) *Client {
+func (c *Client) WithResponseBodyFunc(responseBodyFunc func(io.Reader) error) *Client {
 	ClientOption.ResponseBodyFunc(responseBodyFunc).apply(&c.opts)
 	return c
 }
@@ -299,7 +299,7 @@ func (clientOption) Safety() funcClientOption {
 	}
 }
 
-func (c *Client) Safety() *Client {
+func (c *Client) WithSafety() *Client {
 	ClientOption.Safety().apply(&c.opts)
 	return c
 }
@@ -310,7 +310,7 @@ func (clientOption) Context(context context.Context) funcClientOption {
 	}
 }
 
-func (c *Client) Context(context context.Context) *Client {
+func (c *Client) WithContext(context context.Context) *Client {
 	ClientOption.Context(context).apply(&c.opts)
 	return c
 }

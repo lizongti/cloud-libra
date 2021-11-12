@@ -107,14 +107,14 @@ type serverOption int
 
 var ServerOption serverOption
 
-func (serverOption) Routes(routes ...Route) funcServerOption {
+func (serverOption) Route(routes ...Route) funcServerOption {
 	return func(so *serverOptions) {
 		so.routes = append(so.routes, routes...)
 	}
 }
 
-func (s *Server) Routes(routes ...Route) *Server {
-	ServerOption.Routes(routes...).apply(&s.opts)
+func (s *Server) WithRoute(routes ...Route) *Server {
+	ServerOption.Route(routes...).apply(&s.opts)
 	return s
 }
 
@@ -124,7 +124,7 @@ func (serverOption) Proxy() funcServerOption {
 	}
 }
 
-func (s *Server) Proxy() *Server {
+func (s *Server) WithProxy() *Server {
 	ServerOption.Proxy().apply(&s.opts)
 	return s
 }
@@ -135,7 +135,7 @@ func (serverOption) Background() funcServerOption {
 	}
 }
 
-func (s *Server) Background() *Server {
+func (s *Server) WithBackground() *Server {
 	ServerOption.Background().apply(&s.opts)
 	return s
 }
@@ -146,7 +146,7 @@ func (serverOption) Safety() funcServerOption {
 	}
 }
 
-func (s *Server) Safety() *Server {
+func (s *Server) WithSafety() *Server {
 	ServerOption.Safety().apply(&s.opts)
 	return s
 }
@@ -157,7 +157,7 @@ func (serverOption) ErrorFunc(errorFunc func(error)) funcServerOption {
 	}
 }
 
-func (s *Server) ErrorFunc(errorFunc func(error)) *Server {
+func (s *Server) WithErrorFunc(errorFunc func(error)) *Server {
 	ServerOption.ErrorFunc(errorFunc).apply(&s.opts)
 	return s
 }

@@ -124,7 +124,7 @@ func TestClientParam(t *testing.T) {
 }
 
 func TestClientForm(t *testing.T) {
-	resp, body, err := http.NewClient().Form(url.Values{
+	resp, body, err := http.NewClient().WithForm(url.Values{
 		"platform": []string{"pc"},
 		"sa":       []string{"pcindex_entry"},
 	}).Get("https://top.baidu.com/board")
@@ -141,7 +141,7 @@ func TestClientForm(t *testing.T) {
 }
 
 func TestClientProtocol(t *testing.T) {
-	resp, body, err := http.NewClient().Protocol("https").Get(
+	resp, body, err := http.NewClient().WithProtocol("https").Get(
 		"top.baidu.com/board?platform=pc&sa=pcindex_entry")
 	if err != nil {
 		t.Fatalf("unexpected error getting from client: %v", err)
@@ -156,7 +156,7 @@ func TestClientProtocol(t *testing.T) {
 }
 
 func TestClientTimeout(t *testing.T) {
-	_, body, err := http.NewClient().Timeout(
+	_, body, err := http.NewClient().WithTimeout(
 		time.Duration(1) * time.Microsecond).Get(
 		"https://top.baidu.com/board?platform=pc&sa=pcindex_entry")
 	if strings.Index(err.Error(), "context deadline exceeded") < 0 {
@@ -238,7 +238,7 @@ func TestClientRequestBody(t *testing.T) {
 	}
 	http.Serve("localhost:1989",
 		http.ServerOption.Background(),
-		http.ServerOption.Routes(route))
+		http.ServerOption.Route(route))
 
 	resp, body, err := http.NewClient(
 		http.ClientOption.RequestBody(reqBodyFunc),
@@ -279,7 +279,7 @@ func TestClientRetry(t *testing.T) {
 
 	http.Serve("localhost:1989",
 		http.ServerOption.Background(),
-		http.ServerOption.Routes(route),
+		http.ServerOption.Route(route),
 	)
 	text := "this is a body text"
 	reqBodyFunc := func() (io.Reader, error) {
@@ -303,7 +303,7 @@ func TestClientRetry(t *testing.T) {
 }
 
 func TestProxy(t *testing.T) {
-	http.NewServer().Proxy().Background().Serve("localhost:1990")
+	http.NewServer().WithProxy().WithBackground().Serve("localhost:1990")
 	resp, body, err := http.Get("www.baidu.com", http.ClientOption.Proxy("http://localhost:1990"))
 	if err != nil {
 		t.Fatalf("unexpected error getting from client: %v", err)
@@ -327,7 +327,7 @@ func TestContext(t *testing.T) {
 	}}
 	http.Serve("localhost:1989",
 		http.ServerOption.Background(),
-		http.ServerOption.Routes(route),
+		http.ServerOption.Route(route),
 	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*clientTimout)
