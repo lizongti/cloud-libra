@@ -54,15 +54,6 @@ func (r *Router) Process(ctx context.Context, msg *message.Message) error {
 	return r.localProcess(ctx, msg)
 }
 
-func (r *Router) busProcess(ctx context.Context, msg *message.Message) error {
-	if msg.Route.Assembling() {
-		msg.Route = msg.Route.Forward()
-		return r.localProcess(ctx, msg)
-	}
-
-	return msg.Route.Error(ErrRouteDeadEnd)
-}
-
 func (r *Router) localProcess(ctx context.Context, msg *message.Message) error {
 	device := r.Locate(msg.Route.Position())
 	if device == nil {

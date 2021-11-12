@@ -68,20 +68,20 @@ func (h *Handler) do(ctx context.Context, reqMsg *message.Message) (*message.Mes
 	}
 
 	resp := out[0].Interface()
-	if resp == nil {
-		return nil, nil
-	}
 
 	respMsg := &message.Message{
 		ID:       reqMsg.ID,
 		Route:    reqMsg.Route.Reverse(),
 		Encoding: reqMsg.Encoding.Reverse(),
 	}
-	respData, err := reqMsg.Encoding.Marshal(resp)
-	if err != nil {
-		return nil, err
+	if resp != nil {
+		respData, err := reqMsg.Encoding.Marshal(resp)
+		if err != nil {
+			return nil, err
+		}
+		respMsg.Data = respData
 	}
-	respMsg.Data = respData
+
 	return respMsg, nil
 }
 
