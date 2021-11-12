@@ -13,7 +13,7 @@ func TestRoute(t *testing.T) {
 	dst := magic.ChainPeriodUnderscore("bus.test_route.dst")
 	route := route.NewRoute(src, dst)
 	t.Logf("%v", route)
-	if fmt.Sprint(route) != "[Bus:TestRoute:Src] -> [Bus:<TestRoute>:Dst]" {
+	if fmt.Sprint(route) != "[Bus:TestRoute:Src] -> [<Bus>:TestRoute:Dst]" {
 		t.Fatal("route string is not as expected")
 	}
 }

@@ -11,15 +11,15 @@ type hole struct {
 }
 
 func Hole() Device {
-	return newHole()
+	return NewHole()
 }
 
-func newHole() *hole {
+func NewHole() *hole {
 	return &hole{
 		Base: NewBase(),
 	}
 }
 
-func (b *hole) Process(context.Context, *message.Message) error {
+func (*hole) Process(context.Context, *message.Message) error {
 	return nil
 }

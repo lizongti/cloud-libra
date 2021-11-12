@@ -22,7 +22,6 @@ type (
 	Response       = http.Response
 	ResponseWriter = http.ResponseWriter
 )
-
 type Client struct {
 	opts clientOptions
 }

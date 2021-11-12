@@ -84,8 +84,7 @@ func TestService1(t *testing.T) {
 	logChan := make(chan string, logChanSize)
 	client := &Client1{device.NewBase(), logChan}
 	try := &Try{logChan}
-	handlers := device.ExtractHandlers(try)
-	service := device.NewRouter().WithName(magic.TypeName(try)).WithDevice(handlers...)
+	service := device.NewRouter().WithName(magic.TypeName(try)).WithService(try)
 	router := device.NewRouter().WithName(version).WithDevice(service)
 	bus := device.NewRouter().WithBus().WithName("Bus").WithDevice(client, router)
 
@@ -94,7 +93,7 @@ func TestService1(t *testing.T) {
 	ctx := context.Background()
 	src := magic.ChainSplashUnderScore("/anonymous")
 	dst := magic.ChainSplashUnderScore("/1.0.0/try/echo")
-	r := route.NewRoute(src, dst)
+	r := route.New(src, dst)
 	reqData, err := encoding.Marshal(e1, &Ping{
 		Text: "libra: Hello, world!",
 	})
@@ -142,8 +141,7 @@ func TestService2(t *testing.T) {
 	logChan := make(chan string, logChanSize)
 	client := &Client2{device.NewBase(), logChan}
 	try := &Try{logChan}
-	handlers := device.ExtractHandlers(try)
-	service := device.NewRouter().WithName(magic.TypeName(try)).WithDevice(handlers...)
+	service := device.NewRouter().WithName(magic.TypeName(try)).WithService(try)
 	router := device.NewRouter().WithName(version).WithDevice(service)
 	bus := device.NewRouter().WithBus().WithName("Bus").WithDevice(client, router)
 
@@ -152,7 +150,7 @@ func TestService2(t *testing.T) {
 	ctx := context.Background()
 	src := magic.ChainSplashUnderScore("/anonymous")
 	dst := magic.ChainSplashUnderScore("/1.0.0/try/echo_bytes")
-	r := route.NewRoute(src, dst)
+	r := route.New(src, dst)
 
 	reqData, err := encoding.Marshal(e2, []byte("libra: Hello, world!"))
 	if err != nil {

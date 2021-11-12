@@ -27,6 +27,12 @@ func NewRouter(opt ...funcRouterOption) *Router {
 	return r
 }
 
+var bus *Router = NewRouter().WithBus().WithName("Bus")
+
+func Bus() *Router {
+	return bus
+}
+
 func (r *Router) String() string {
 	return r.opts.name
 }
@@ -105,6 +111,18 @@ func (routerOption) Device(devices ...Device) funcRouterOption {
 
 func (r *Router) WithDevice(devices ...Device) *Router {
 	RouterOption.Device(devices...).apply(&r.opts)
+	r.link()
+	return r
+}
+
+func (routerOption) Service(service ...interface{}) funcRouterOption {
+	return func(r *routerOptions) {
+		r.devices = append(r.devices, extractHandlers(service)...)
+	}
+}
+
+func (r *Router) WithService(services ...interface{}) *Router {
+	RouterOption.Service(services...).apply(&r.opts)
 	r.link()
 	return r
 }

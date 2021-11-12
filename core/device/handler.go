@@ -85,7 +85,7 @@ func (h *Handler) do(ctx context.Context, reqMsg *message.Message) (*message.Mes
 	return respMsg, nil
 }
 
-func ExtractHandlers(c interface{}) []Device {
+func extractHandlers(c interface{}) []Device {
 	t := reflect.TypeOf(c)
 	if t.Kind() != reflect.Ptr {
 		return nil
