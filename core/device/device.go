@@ -19,16 +19,16 @@ type Device interface {
 	Extend(Device)
 	Locate(name string) Device
 	Gateway() Device
-	Extensions() map[string][]Device
+	Devices() map[string][]Device
 	Process(context.Context, *message.Message) error
 }
 
 func Tree(device Device) string {
 	var add = func(d Device, t gotree.Tree) {}
 	add = func(d Device, t gotree.Tree) {
-		for _, e := range d.Extensions() {
-			for _, extension := range e {
-				add(extension, t.Add(extension.String()))
+		for _, deviceGroup := range d.Devices() {
+			for _, device := range deviceGroup {
+				add(device, t.Add(device.String()))
 			}
 		}
 	}

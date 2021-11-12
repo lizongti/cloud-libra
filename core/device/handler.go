@@ -84,3 +84,45 @@ func (h *Handler) do(ctx context.Context, reqMsg *message.Message) (*message.Mes
 	respMsg.Data = respData
 	return respMsg, nil
 }
+
+func ExtractHandlers(c interface{}) []Device {
+	t := reflect.TypeOf(c)
+	if t.Kind() != reflect.Ptr {
+		return nil
+	}
+	if t.Elem().Kind() != reflect.Struct {
+		return nil
+	}
+
+	var devices []Device
+	for index := 0; index < t.NumMethod(); index++ {
+		method := t.Method(index)
+		mt := method.Type
+
+		switch {
+		case mt.PkgPath() != "": // Check method is exported
+			continue
+		case mt.NumIn() != 3: // Check num in
+			continue
+		case mt.NumOut() != 2: // Check num in
+			continue
+		case !mt.In(1).Implements(magic.TypeOfContext): // Check context.Context
+			continue
+		case !mt.Out(1).Implements(magic.TypeOfError): // Check error
+			continue
+		case mt.In(2).Kind() != reflect.Ptr && mt.In(2) != magic.TypeOfBytes: // Check request:  pointer or bytes
+			continue
+		case mt.Out(0).Kind() != reflect.Ptr && mt.Out(0) != magic.TypeOfBytes: // Check response: pointer or bytes
+			continue
+		}
+
+		receiver := reflect.ValueOf(c)
+		handler := &Handler{
+			Base:     NewBase(),
+			receiver: receiver,
+			method:   method,
+		}
+		devices = append(devices, handler)
+	}
+	return devices
+}

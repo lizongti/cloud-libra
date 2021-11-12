@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aceaura/libra/core/component"
 	"github.com/aceaura/libra/core/device"
 	"github.com/aceaura/libra/core/encoding"
 	"github.com/aceaura/libra/core/message"
@@ -18,7 +17,6 @@ var e1 = encoding.NewJSON()
 var e2 = encoding.NewBase64()
 
 type Try struct {
-	*component.ServiceBase
 	logChan chan<- string
 }
 
@@ -84,21 +82,12 @@ func TestService1(t *testing.T) {
 		msgID       = 0
 	)
 	logChan := make(chan string, logChanSize)
-	client := &Client1{
-		Base:    device.NewBase(),
-		logChan: logChan,
-	}
-	service := device.NewRouter(device.RouterOption.WithService(&Try{
-		logChan: logChan,
-	}))
-	router := device.NewRouter(
-		device.RouterOption.WithName(version),
-		device.RouterOption.WithDevice(service),
-	)
-	bus := device.NewBus(
-		device.BusOption.WithDevice(client),
-		device.BusOption.WithDevice(router),
-	)
+	client := &Client1{device.NewBase(), logChan}
+	try := &Try{logChan}
+	handlers := device.ExtractHandlers(try)
+	service := device.NewRouter().WithName(magic.TypeName(try)).WithDevice(handlers...)
+	router := device.NewRouter().WithName(version).WithDevice(service)
+	bus := device.NewRouter().WithBus().WithName("Bus").WithDevice(client, router)
 
 	t.Logf("\n%s", device.Tree(bus))
 
@@ -151,21 +140,12 @@ func TestService2(t *testing.T) {
 		msgID       = 0
 	)
 	logChan := make(chan string, logChanSize)
-	client := &Client2{
-		Base:    device.NewBase(),
-		logChan: logChan,
-	}
-	service := device.NewRouter(device.RouterOption.WithService(&Try{
-		logChan: logChan,
-	}))
-	router := device.NewRouter(
-		device.RouterOption.WithName(version),
-		device.RouterOption.WithDevice(service),
-	)
-	bus := device.NewBus(
-		device.BusOption.WithDevice(client),
-		device.BusOption.WithDevice(router),
-	)
+	client := &Client2{device.NewBase(), logChan}
+	try := &Try{logChan}
+	handlers := device.ExtractHandlers(try)
+	service := device.NewRouter().WithName(magic.TypeName(try)).WithDevice(handlers...)
+	router := device.NewRouter().WithName(version).WithDevice(service)
+	bus := device.NewRouter().WithBus().WithName("Bus").WithDevice(client, router)
 
 	t.Logf("\n%s", device.Tree(bus))
 

@@ -10,9 +10,9 @@ import (
 )
 
 type Base struct {
-	extensions map[string][]Device
-	gateway    Device
-	rwMutex    sync.RWMutex
+	devices map[string][]Device
+	gateway Device
+	rwMutex sync.RWMutex
 }
 
 var _ Device = (*Base)(nil)
@@ -20,7 +20,7 @@ var empty Device = NewBase()
 
 func NewBase() *Base {
 	return &Base{
-		extensions: make(map[string][]Device),
+		devices: make(map[string][]Device),
 	}
 }
 
@@ -36,8 +36,8 @@ func (b *Base) Gateway() Device {
 	return b.gateway
 }
 
-func (b *Base) Extensions() map[string][]Device {
-	return b.extensions
+func (b *Base) Devices() map[string][]Device {
+	return b.devices
 }
 
 func (b *Base) Extend(device Device) {
@@ -46,19 +46,19 @@ func (b *Base) Extend(device Device) {
 
 	name := device.String()
 
-	for _, d := range b.extensions[name] {
+	for _, d := range b.devices[name] {
 		if d == device {
 			return
 		}
 	}
-	b.extensions[name] = append(b.extensions[name], device)
+	b.devices[name] = append(b.devices[name], device)
 }
 
 func (b *Base) Locate(name string) Device {
 	b.rwMutex.RLock()
 	defer b.rwMutex.RUnlock()
 
-	devices, ok := b.extensions[name]
+	devices, ok := b.devices[name]
 	if !ok {
 		return nil
 	}
