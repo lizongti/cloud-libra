@@ -17,6 +17,10 @@ type Processor interface {
 
 type funcProcessor func(context.Context, *message.Message) error
 
+func NewFuncProcessor(f funcProcessor) funcProcessor {
+	return f
+}
+
 func (fp funcProcessor) Process(ctx context.Context, msg *message.Message) error {
 	return fp(ctx, msg)
 }
@@ -62,4 +66,33 @@ func (c *Client) Request(ctx context.Context, m *message.Message, p Processor) e
 
 type clientOptions struct {
 	name string
+}
+
+var defaultClientOptions = clientOptions{
+	name: "",
+}
+
+type ApplyClientOption interface {
+	apply(*clientOptions)
+}
+
+type funcClientOption func(*clientOptions)
+
+func (fco funcClientOption) apply(co *clientOptions) {
+	fco(co)
+}
+
+type clientOption int
+
+var ClientOption clientOption
+
+func (clientOption) Name(name string) funcClientOption {
+	return func(c *clientOptions) {
+		c.name = name
+	}
+}
+
+func (c *Client) WithName(name string) *Client {
+	ClientOption.Name(name).apply(&c.opts)
+	return c
 }

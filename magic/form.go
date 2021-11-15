@@ -61,9 +61,23 @@ func camelize(s string) string {
 	return string(b)
 }
 
+// func ChainSplashUnderScore(s string) []string {
+// 	return Chain(s, ChainStyle{
+// 		ChainSeperator: SeparatorSlash,
+// 		WordSeparator:  SeparatorUnderscore,
+// 	})
+// }
+
 type ChainStyle struct {
 	ChainSeperator SeparatorType
 	WordSeparator  SeparatorType
+}
+
+func NewChainStyle(chainSeparator, wordSeparator string) *ChainStyle {
+	return &ChainStyle{
+		ChainSeperator: chainSeparator,
+		WordSeparator:  wordSeparator,
+	}
 }
 
 func Chain(s string, cs ChainStyle) []string {
@@ -74,16 +88,6 @@ func Chain(s string, cs ChainStyle) []string {
 	return chain
 }
 
-func ChainPeriodUnderscore(s string) []string {
-	return Chain(s, ChainStyle{
-		ChainSeperator: SeparatorPeriod,
-		WordSeparator:  SeparatorUnderscore,
-	})
-}
-
-func ChainSplashUnderScore(s string) []string {
-	return Chain(s, ChainStyle{
-		ChainSeperator: SeparatorSlash,
-		WordSeparator:  SeparatorUnderscore,
-	})
+func (cs ChainStyle) Chain(s string) []string {
+	return Chain(s, cs)
 }

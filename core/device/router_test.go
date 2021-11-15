@@ -74,13 +74,14 @@ func (s *Client2) Process(ctx context.Context, msg *message.Message) error {
 	return nil
 }
 
-func TestService1(t *testing.T) {
+func TestRouter1(t *testing.T) {
 	const (
 		timeout     = 10
 		version     = "1.0.0"
 		logChanSize = 2
 		msgID       = 0
 	)
+
 	logChan := make(chan string, logChanSize)
 	client := &Client1{device.NewBase(), logChan}
 	try := &Try{logChan}
@@ -91,9 +92,8 @@ func TestService1(t *testing.T) {
 	t.Logf("\n%s", device.Tree(bus))
 
 	ctx := context.Background()
-	src := magic.ChainSplashUnderScore("/anonymous")
-	dst := magic.ChainSplashUnderScore("/1.0.0/try/echo")
-	r := route.New(src, dst)
+	style := magic.NewChainStyle(magic.SeparatorSlash, magic.SeparatorUnderscore)
+	r := route.New(style.Chain("/anonymous"), style.Chain("/1.0.0/try/echo"))
 	reqData, err := encoding.Marshal(e1, &Ping{
 		Text: "libra: Hello, world!",
 	})
@@ -131,7 +131,7 @@ func TestService1(t *testing.T) {
 	}
 }
 
-func TestService2(t *testing.T) {
+func TestRouter2(t *testing.T) {
 	const (
 		timeout     = 10
 		version     = "1.0.0"
@@ -148,9 +148,8 @@ func TestService2(t *testing.T) {
 	t.Logf("\n%s", device.Tree(bus))
 
 	ctx := context.Background()
-	src := magic.ChainSplashUnderScore("/anonymous")
-	dst := magic.ChainSplashUnderScore("/1.0.0/try/echo_bytes")
-	r := route.New(src, dst)
+	style := magic.NewChainStyle(magic.SeparatorSlash, magic.SeparatorUnderscore)
+	r := route.New(style.Chain("/anonymous"), style.Chain("/1.0.0/try/echo_bytes"))
 
 	reqData, err := encoding.Marshal(e2, []byte("libra: Hello, world!"))
 	if err != nil {
@@ -164,6 +163,69 @@ func TestService2(t *testing.T) {
 	}
 
 	if err = client.Process(ctx, msg); err != nil {
+		t.Fatalf("unexpected error getting from device: %v", err)
+	}
+	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
+	var in string
+	var out string
+	for {
+		select {
+		case <-timeoutChan:
+			t.Fatal("timeout when getting report from task")
+		case msg := <-logChan:
+			if in == "" {
+				in = msg
+				break
+			}
+			out = msg
+			if in != out {
+				t.Fatal("expecting out msg equals to in msg")
+			}
+			return
+		}
+	}
+}
+
+func TestRouter3(t *testing.T) {
+	const (
+		timeout     = 10
+		version     = "1.0.0"
+		logChanSize = 2
+	)
+	logChan := make(chan string, logChanSize)
+	client := device.NewClient().WithName("Anonymous")
+	try := &Try{logChan}
+	service := device.NewRouter().WithName(magic.TypeName(try)).WithService(try)
+	router := device.NewRouter().WithName(version).WithDevice(service)
+	bus := device.NewRouter().WithBus().WithName("Bus").WithDevice(client, router)
+
+	t.Logf("\n%s", device.Tree(bus))
+
+	ctx := context.Background()
+	style := magic.NewChainStyle(magic.SeparatorSlash, magic.SeparatorUnderscore)
+	r := route.New(style.Chain("/anonymous"), style.Chain("/1.0.0/try/echo_bytes"))
+
+	reqData, err := encoding.Marshal(e2, []byte("libra: Hello, world!"))
+	if err != nil {
+		t.Fatalf("unexpected error getting from encoding: %v", err)
+	}
+	msg := &message.Message{
+		ID:       0,
+		Route:    *r,
+		Encoding: e2,
+		Data:     reqData,
+	}
+
+	processor := device.NewFuncProcessor(func(context.Context, *message.Message) error {
+		bytes := &encoding.Bytes{}
+		if err := e2.Unmarshal(msg.Data, bytes); err != nil {
+			return err
+		}
+		logChan <- fmt.Sprintf("%v", string(bytes.Data))
+		return nil
+	})
+
+	if err = client.Request(ctx, msg, processor); err != nil {
 		t.Fatalf("unexpected error getting from device: %v", err)
 	}
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)

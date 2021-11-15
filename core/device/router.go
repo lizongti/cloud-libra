@@ -106,9 +106,11 @@ func (r *Router) WithDevice(devices ...Device) *Router {
 	return r
 }
 
-func (routerOption) Service(service ...interface{}) funcRouterOption {
+func (routerOption) Service(services ...interface{}) funcRouterOption {
 	return func(r *routerOptions) {
-		r.devices = append(r.devices, extractHandlers(service)...)
+		for _, service := range services {
+			r.devices = append(r.devices, extractHandlers(service)...)
+		}
 	}
 }
 
