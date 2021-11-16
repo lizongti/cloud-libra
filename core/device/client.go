@@ -43,7 +43,7 @@ func (c *Client) String() string {
 }
 
 func (c *Client) Process(ctx context.Context, msg *message.Message) error {
-	if msg.Route.Assembling() {
+	if !msg.Route.Dispatching() {
 		return c.gateway.Process(ctx, msg)
 	}
 	return c.localProcess(ctx, msg)

@@ -7,22 +7,29 @@ import (
 	"github.com/aceaura/libra/magic"
 )
 
-type Route struct {
+type Route interface {
+	String() string
+	Position() string
+	Dispatching() bool
+	Forward() Route
+	Reverse() Route
+	Error(error) error
+}
+
+type ChainRoute struct {
 	src   []string
 	dst   []string
 	index int
 }
 
-func New(src, dst []string) *Route {
-	r := &Route{
+func NewChainRoute(src, dst []string) *ChainRoute {
+	return &ChainRoute{
 		src: src,
 		dst: dst,
 	}
-
-	return r
 }
 
-func (r Route) String() string {
+func (r ChainRoute) String() string {
 	var builder strings.Builder
 	builder.WriteString(magic.SeparatorBracketleft)
 	for index, name := range r.src {
@@ -53,33 +60,29 @@ func (r Route) String() string {
 	return builder.String()
 }
 
-func (r Route) Dispatching() bool {
+func (r ChainRoute) Dispatching() bool {
 	return r.index > 0
 }
 
-func (r Route) Assembling() bool {
-	return r.index == 0
-}
-
-func (r Route) Forward() Route {
+func (r ChainRoute) Forward() Route {
 	if r.index < len(r.dst)-1 {
 		r.index++
 	}
 	return r
 }
 
-func (r Route) Position() string {
+func (r ChainRoute) Position() string {
 	return r.dst[r.index]
 }
 
-func (r Route) Reverse() Route {
-	return Route{
+func (r ChainRoute) Reverse() Route {
+	return ChainRoute{
 		src:   r.dst,
 		dst:   r.src,
 		index: 0,
 	}
 }
 
-func (r Route) Error(err error) error {
+func (r ChainRoute) Error(err error) error {
 	return fmt.Errorf("route %v error: %w", r, err)
 }

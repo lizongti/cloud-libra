@@ -18,6 +18,10 @@ type Encoding interface {
 	Reverse() Encoding
 }
 
+func Empty() Encoding {
+	return empty
+}
+
 type Bytes struct {
 	Data []byte
 }

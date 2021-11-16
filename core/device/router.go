@@ -39,7 +39,7 @@ func (r *Router) String() string {
 
 func (r *Router) Process(ctx context.Context, msg *message.Message) error {
 	if r.opts.bus {
-		if msg.Route.Assembling() {
+		if !msg.Route.Dispatching() {
 			msg.Route = msg.Route.Forward()
 			return r.localProcess(ctx, msg)
 		}
@@ -47,7 +47,7 @@ func (r *Router) Process(ctx context.Context, msg *message.Message) error {
 		return msg.Route.Error(ErrRouteDeadEnd)
 	}
 
-	if msg.Route.Assembling() {
+	if !msg.Route.Dispatching() {
 		return r.gateway.Process(ctx, msg)
 	}
 	msg.Route = msg.Route.Forward()

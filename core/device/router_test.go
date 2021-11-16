@@ -46,7 +46,7 @@ type Client1 struct {
 }
 
 func (s *Client1) Process(ctx context.Context, msg *message.Message) error {
-	if msg.Route.Assembling() {
+	if !msg.Route.Dispatching() {
 		return s.Gateway().Process(ctx, msg)
 	}
 	resp := &Pong{}
@@ -63,7 +63,7 @@ type Client2 struct {
 }
 
 func (s *Client2) Process(ctx context.Context, msg *message.Message) error {
-	if msg.Route.Assembling() {
+	if !msg.Route.Dispatching() {
 		return s.Gateway().Process(ctx, msg)
 	}
 	bytes := &encoding.Bytes{}
@@ -93,7 +93,7 @@ func TestRouter1(t *testing.T) {
 
 	ctx := context.Background()
 	style := magic.NewChainStyle(magic.SeparatorSlash, magic.SeparatorUnderscore)
-	r := route.New(style.Chain("/anonymous"), style.Chain("/1.0.0/try/echo"))
+	r := route.NewChainRoute(style.Chain("/anonymous"), style.Chain("/1.0.0/try/echo"))
 	reqData, err := encoding.Marshal(e1, &Ping{
 		Text: "libra: Hello, world!",
 	})
@@ -102,7 +102,7 @@ func TestRouter1(t *testing.T) {
 	}
 	msg := &message.Message{
 		ID:       msgID,
-		Route:    *r,
+		Route:    r,
 		Encoding: e1,
 		Data:     reqData,
 	}
@@ -149,7 +149,7 @@ func TestRouter2(t *testing.T) {
 
 	ctx := context.Background()
 	style := magic.NewChainStyle(magic.SeparatorSlash, magic.SeparatorUnderscore)
-	r := route.New(style.Chain("/anonymous"), style.Chain("/1.0.0/try/echo_bytes"))
+	r := route.NewChainRoute(style.Chain("/anonymous"), style.Chain("/1.0.0/try/echo_bytes"))
 
 	reqData, err := encoding.Marshal(e2, []byte("libra: Hello, world!"))
 	if err != nil {
@@ -157,7 +157,7 @@ func TestRouter2(t *testing.T) {
 	}
 	msg := &message.Message{
 		ID:       msgID,
-		Route:    *r,
+		Route:    r,
 		Encoding: e2,
 		Data:     reqData,
 	}
@@ -203,7 +203,7 @@ func TestRouter3(t *testing.T) {
 
 	ctx := context.Background()
 	style := magic.NewChainStyle(magic.SeparatorSlash, magic.SeparatorUnderscore)
-	r := route.New(style.Chain("/anonymous"), style.Chain("/1.0.0/try/echo_bytes"))
+	r := route.NewChainRoute(style.Chain("/anonymous"), style.Chain("/1.0.0/try/echo_bytes"))
 
 	reqData, err := encoding.Marshal(e2, []byte("libra: Hello, world!"))
 	if err != nil {
@@ -211,7 +211,7 @@ func TestRouter3(t *testing.T) {
 	}
 	msg := &message.Message{
 		ID:       0,
-		Route:    *r,
+		Route:    r,
 		Encoding: e2,
 		Data:     reqData,
 	}

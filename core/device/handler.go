@@ -2,7 +2,6 @@ package device
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 
 	"github.com/aceaura/libra/core/encoding"
@@ -21,7 +20,7 @@ func (h *Handler) String() string {
 }
 
 func (h *Handler) Process(ctx context.Context, msg *message.Message) error {
-	if msg.Route.Assembling() {
+	if !msg.Route.Dispatching() {
 		return h.gateway.Process(ctx, msg)
 	}
 	return h.localProcess(ctx, msg)
@@ -88,7 +87,6 @@ func (h *Handler) do(ctx context.Context, reqMsg *message.Message) (*message.Mes
 
 func extractHandlers(c interface{}) []Device {
 	t := reflect.TypeOf(c)
-	fmt.Println(t.Kind())
 	if t.Kind() != reflect.Ptr {
 		return nil
 	}
