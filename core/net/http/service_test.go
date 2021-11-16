@@ -7,10 +7,10 @@ import (
 
 	"github.com/aceaura/libra/core/device"
 	"github.com/aceaura/libra/core/encoding"
+	"github.com/aceaura/libra/core/magic"
 	"github.com/aceaura/libra/core/message"
+	"github.com/aceaura/libra/core/net/http"
 	"github.com/aceaura/libra/core/route"
-	"github.com/aceaura/libra/magic"
-	"github.com/aceaura/libra/net/http"
 )
 
 func TestService(t *testing.T) {

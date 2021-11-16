@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aceaura/libra/magic"
+	"github.com/aceaura/libra/core/magic"
 )
 
 type ServiceRequest struct {

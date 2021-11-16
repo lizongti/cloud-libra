@@ -3,7 +3,7 @@ package encoding
 import (
 	"errors"
 
-	"github.com/aceaura/libra/magic"
+	"github.com/aceaura/libra/core/magic"
 	"github.com/golang/protobuf/proto"
 )
 

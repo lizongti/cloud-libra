@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 
-	"github.com/aceaura/libra/magic"
+	"github.com/aceaura/libra/core/magic"
 )
 
 var (

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/aceaura/libra/magic"
+	"github.com/aceaura/libra/core/magic"
 )
 
 var (

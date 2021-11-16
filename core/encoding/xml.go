@@ -3,7 +3,7 @@ package encoding
 import (
 	"encoding/xml"
 
-	"github.com/aceaura/libra/magic"
+	"github.com/aceaura/libra/core/magic"
 )
 
 type XML struct{}

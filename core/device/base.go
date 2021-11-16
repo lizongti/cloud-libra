@@ -5,8 +5,8 @@ import (
 	"math/rand"
 	"sync"
 
+	"github.com/aceaura/libra/core/magic"
 	"github.com/aceaura/libra/core/message"
-	"github.com/aceaura/libra/magic"
 )
 
 type Base struct {

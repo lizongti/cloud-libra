@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aceaura/libra/core/magic"
 	"github.com/aceaura/libra/core/route"
-	"github.com/aceaura/libra/magic"
 )
 
 func TestRoute(t *testing.T) {

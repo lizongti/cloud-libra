@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/aceaura/libra/core/encoding"
-	"github.com/aceaura/libra/magic"
+	"github.com/aceaura/libra/core/magic"
 )
 
 func TestChain(t *testing.T) {

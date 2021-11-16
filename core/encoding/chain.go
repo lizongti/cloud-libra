@@ -3,7 +3,7 @@ package encoding
 import (
 	"strings"
 
-	"github.com/aceaura/libra/magic"
+	"github.com/aceaura/libra/core/magic"
 )
 
 type ChainEncoding struct {
