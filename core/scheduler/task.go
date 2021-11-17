@@ -119,7 +119,7 @@ func (t *Task) Value(key interface{}) interface{} {
 
 func (t *Task) Publish(s *Scheduler) {
 	t.report = func(r *Report) {
-		go s.report(r)
+		s.report(r)
 	}
 	t.switchState(TaskStatePending)
 	s.schedule(t)

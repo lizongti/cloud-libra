@@ -230,10 +230,12 @@ func (c *Collector) scheduleRequest(name string) {
 		return nil
 	}
 
-	scheduler.NewTask(
+	task := scheduler.NewTask(
 		scheduler.TaskOption.Name(name),
 		scheduler.TaskOption.Stage(stage),
-	).Publish(c.scheduler)
+	)
+
+	go task.Publish(c.scheduler)
 }
 
 type collectorOptions struct {
