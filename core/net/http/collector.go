@@ -45,7 +45,7 @@ func NewCollector(opt ...ApplyCollectorOption) *Collector {
 
 	reqChan := make(chan *ServiceRequest, opts.reqBacklog)
 	respChan := make(chan *ServiceResponse, opts.respBacklog)
-	reportChan := make(chan *scheduler.Report)
+	reportChan := make(chan *scheduler.Report, opts.reportBacklog)
 	parallelChan := make(chan int)
 	s := scheduler.New(
 		scheduler.SchedulerOption.Backlog(opts.reqBacklog),
@@ -247,6 +247,7 @@ type collectorOptions struct {
 	tpsLimit         int
 	reqBacklog       int
 	respBacklog      int
+	reportBacklog    int
 }
 
 var defaultCollectorOptions = collectorOptions{
@@ -260,6 +261,7 @@ var defaultCollectorOptions = collectorOptions{
 	tpsLimit:         -1,
 	reqBacklog:       0,
 	respBacklog:      0,
+	reportBacklog:    0,
 }
 
 type ApplyCollectorOption interface {
@@ -383,5 +385,16 @@ func (collectorOption) ResponseBacklog(respBacklog int) funcCollectorOption {
 
 func (c *Collector) WithResponseBacklog(respBacklog int) *Collector {
 	CollectorOption.ResponseBacklog(respBacklog).apply(&c.opts)
+	return c
+}
+
+func (collectorOption) ReportBacklog(reportBacklog int) funcCollectorOption {
+	return func(c *collectorOptions) {
+		c.reportBacklog = reportBacklog
+	}
+}
+
+func (c *Collector) WithReportBacklog(reportBacklog int) *Collector {
+	CollectorOption.ReportBacklog(reportBacklog).apply(&c.opts)
 	return c
 }

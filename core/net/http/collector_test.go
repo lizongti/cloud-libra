@@ -30,15 +30,15 @@ func TestCollector(t *testing.T) {
 	}
 
 	timer := time.NewTicker(interval).C
+	req := &http.ServiceRequest{
+		URL:     url,
+		Timeout: 10 * time.Second,
+		Retry:   3,
+	}
 
 	for {
 		select {
 		case <-timer:
-			req := &http.ServiceRequest{
-				URL:     url,
-				Timeout: 10 * time.Second,
-				Retry:   3,
-			}
 			c.RequestChan() <- req
 		case resp := <-c.ResponseChan():
 			if len(resp.Body) == 0 {
