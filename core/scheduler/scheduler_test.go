@@ -17,7 +17,7 @@ func TestParallel(t *testing.T) {
 		timeout           = 2
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().WithReportChan(reportChan).WithParallel(parallel).WithBacklog(backlog)
+	s := scheduler.New().WithReportChan(reportChan).WithParallel(parallel).WithBacklog(backlog)
 	if err := s.WithBackground().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
@@ -59,7 +59,7 @@ func TestParallelChan(t *testing.T) {
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
 	var parallelChan = make(chan int)
-	s := scheduler.NewScheduler(
+	s := scheduler.New(
 		scheduler.SchedulerOption.Backlog(backlog),
 		scheduler.SchedulerOption.Parallel(parallel),
 		scheduler.SchedulerOption.ReportChan(reportChan),
@@ -117,7 +117,7 @@ func TestTPS(t *testing.T) {
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
 	var parallelChan = make(chan int)
-	s := scheduler.NewScheduler(
+	s := scheduler.New(
 		scheduler.SchedulerOption.Backlog(backlog),
 		scheduler.SchedulerOption.Parallel(parallel),
 		scheduler.SchedulerOption.ReportChan(reportChan),

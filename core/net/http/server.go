@@ -54,13 +54,6 @@ func (s *Server) Close() error {
 }
 
 func (s *Server) serve(addr string) (err error) {
-	if s.opts.errorFunc != nil {
-		defer func() {
-			s.opts.errorFunc(err)
-			err = nil
-		}()
-	}
-
 	if s.opts.safety {
 		defer func() {
 			if e := recover(); e != nil {
@@ -81,7 +74,6 @@ type serverOptions struct {
 	proxy      bool
 	background bool
 	safety     bool
-	errorFunc  func(error)
 	routes     []Route
 }
 
@@ -89,7 +81,6 @@ var defaultServerOptions = serverOptions{
 	proxy:      false,
 	background: false,
 	safety:     false,
-	errorFunc:  nil,
 	routes:     nil,
 }
 
@@ -148,16 +139,5 @@ func (serverOption) Safety() funcServerOption {
 
 func (s *Server) WithSafety() *Server {
 	ServerOption.Safety().apply(&s.opts)
-	return s
-}
-
-func (serverOption) ErrorFunc(errorFunc func(error)) funcServerOption {
-	return func(so *serverOptions) {
-		so.errorFunc = errorFunc
-	}
-}
-
-func (s *Server) WithErrorFunc(errorFunc func(error)) *Server {
-	ServerOption.ErrorFunc(errorFunc).apply(&s.opts)
 	return s
 }

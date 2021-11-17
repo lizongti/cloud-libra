@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aceaura/libra/core/device"
 	"github.com/aceaura/libra/core/magic"
 )
 
@@ -26,6 +27,10 @@ type ServiceResponse struct {
 }
 
 type Service struct{}
+
+func init() {
+	device.Bus().WithService(&Service{})
+}
 
 func (d *Service) HTTP(ctx context.Context, req *ServiceRequest) (resp *ServiceResponse, err error) {
 	return d.do(ctx, req, magic.HTTP)

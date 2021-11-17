@@ -58,7 +58,7 @@ func TestService(t *testing.T) {
 		t.Log(string(body))
 		return nil
 	})
-	if err = client.Request(ctx, msg, processor); err != nil {
+	if err = client.Invoke(ctx, msg, processor); err != nil {
 		t.Fatalf("unexpected error getting from device: %v", err)
 	}
 }

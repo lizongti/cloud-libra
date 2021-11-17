@@ -58,7 +58,7 @@ func (c *Client) localProcess(ctx context.Context, m *message.Message) error {
 	return v.(Processor).Process(ctx, m)
 }
 
-func (c *Client) Request(ctx context.Context, m *message.Message, p Processor) error {
+func (c *Client) Invoke(ctx context.Context, m *message.Message, p Processor) error {
 	m.ID = atomic.AddUint64(&c.msgID, 1)
 	c.processors.Store(m.ID, p)
 	return c.Process(ctx, m)

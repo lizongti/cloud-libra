@@ -37,3 +37,16 @@ func Tree(device Device) string {
 	add(device, tree)
 	return tree.Print()
 }
+
+func Addr(device Device) []string {
+	reverseAddr := []string{}
+	for device != nil {
+		reverseAddr = append(reverseAddr, device.String())
+		device = device.Gateway()
+	}
+	addr := make([]string, 0, len(reverseAddr))
+	for index := len(reverseAddr) - 1; index >= 0; index-- {
+		addr = append(addr, reverseAddr[index])
+	}
+	return addr
+}

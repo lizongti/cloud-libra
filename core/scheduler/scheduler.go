@@ -19,7 +19,7 @@ type pipeline struct {
 	exitChan chan struct{}
 }
 
-var defaultScheduler = NewScheduler()
+var defaultScheduler = New()
 var emptyScheduler *Scheduler
 
 func init() {
@@ -34,7 +34,7 @@ func Empty() *Scheduler {
 	return emptyScheduler
 }
 
-func NewScheduler(opt ...ApplySchedulerOption) *Scheduler {
+func New(opt ...ApplySchedulerOption) *Scheduler {
 	opts := defaultSchedulerOptions
 
 	for _, o := range opt {
@@ -71,13 +71,6 @@ func (s *Scheduler) Close() error {
 }
 
 func (s *Scheduler) serve() (err error) {
-	if s.opts.errorFunc != nil {
-		defer func() {
-			s.opts.errorFunc(err)
-			err = nil
-		}()
-	}
-
 	if s.opts.safety {
 		defer func() {
 			if e := recover(); e != nil {
@@ -160,11 +153,17 @@ type schedulerOptions struct {
 	parallelChan <-chan int
 	background   bool
 	safety       bool
-	errorFunc    func(error)
 	reportChan   chan<- *Report
 }
 
-var defaultSchedulerOptions = schedulerOptions{}
+var defaultSchedulerOptions = schedulerOptions{
+	backlog:      0,
+	parallel:     0,
+	parallelChan: nil,
+	background:   false,
+	safety:       false,
+	reportChan:   nil,
+}
 
 type ApplySchedulerOption interface {
 	apply(*schedulerOptions)
@@ -221,17 +220,6 @@ func (schedulerOption) Safety() funcSchedulerOption {
 
 func (s *Scheduler) WithSafety() *Scheduler {
 	SchedulerOption.Safety().apply(&s.opts)
-	return s
-}
-
-func (schedulerOption) ErrorFunc(errorFunc func(error)) funcSchedulerOption {
-	return func(s *schedulerOptions) {
-		s.errorFunc = errorFunc
-	}
-}
-
-func (s *Scheduler) WithErrorFunc(errorFunc func(error)) *Scheduler {
-	SchedulerOption.ErrorFunc(errorFunc).apply(&s.opts)
 	return s
 }
 

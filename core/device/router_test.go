@@ -225,7 +225,7 @@ func TestRouter3(t *testing.T) {
 		return nil
 	})
 
-	if err = client.Request(ctx, msg, processor); err != nil {
+	if err = client.Invoke(ctx, msg, processor); err != nil {
 		t.Fatalf("unexpected error getting from device: %v", err)
 	}
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
