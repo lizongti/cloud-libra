@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aceaura/libra/core/device"
 	"github.com/aceaura/libra/core/net/http"
 )
 
@@ -17,14 +18,15 @@ func TestCollector(t *testing.T) {
 		http.CollectorOption.Background(),
 		http.CollectorOption.Safety(),
 		http.CollectorOption.Context(context.Background()),
-		http.CollectorOption.Name("test_collector"),
+		http.CollectorOption.Name("HttpCollector"),
 		http.CollectorOption.RequestBacklog(1000),
 		http.CollectorOption.ResponseBacklog(1000),
-		http.CollectorOption.TPSLimit(1000),
-		http.CollectorOption.ParallelIncrease(1),
+		http.CollectorOption.TPSLimit(20),
+		http.CollectorOption.ParallelInit(10),
 		http.CollectorOption.ParallelTick(100*time.Millisecond),
 		http.CollectorOption.ParallelIncrease(1),
 	)
+	device.Bus().WithDevice(c)
 	if err := c.Serve(); err != nil {
 		t.Fatalf("unexpected error getting from device: %v", err)
 	}
@@ -36,6 +38,7 @@ func TestCollector(t *testing.T) {
 		Retry:   3,
 	}
 
+	var count = 0
 	for {
 		select {
 		case <-timer:
@@ -43,6 +46,13 @@ func TestCollector(t *testing.T) {
 		case resp := <-c.ResponseChan():
 			if len(resp.Body) == 0 {
 				t.Fatal("expected a body with content")
+			}
+			count++
+			if count%100 == 0 {
+				t.Logf("finish count:%d", count)
+			}
+			if count == 500 {
+				return
 			}
 		}
 	}

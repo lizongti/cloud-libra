@@ -162,7 +162,7 @@ func (c *Collector) updateTPSFinished(r *scheduler.Report) {
 }
 
 func (c *Collector) updateTPSMax() {
-	tps := int(float64(c.tpsFinished) * float64(c.opts.parallelTick) / float64(time.Second))
+	tps := int(float64(c.tpsFinished) * float64(time.Second) / float64(c.opts.parallelTick))
 	c.tpsMax = int(math.Max(float64(tps), float64(c.tpsMax)))
 	c.tpsFinished = 0
 }
@@ -176,7 +176,7 @@ func (c *Collector) updateParallel() {
 }
 
 func (c *Collector) invoke(ctx context.Context, req *ServiceRequest, deviceName string) (*ServiceResponse, error) {
-	e := encoding.Empty()
+	e := encoding.NewJSON()
 	data, err := e.Marshal(req)
 	if err != nil {
 		return nil, err
@@ -248,6 +248,7 @@ type collectorOptions struct {
 	reqBacklog       int
 	respBacklog      int
 	reportBacklog    int
+	taskBacklog      int
 }
 
 var defaultCollectorOptions = collectorOptions{
@@ -262,6 +263,7 @@ var defaultCollectorOptions = collectorOptions{
 	reqBacklog:       0,
 	respBacklog:      0,
 	reportBacklog:    0,
+	taskBacklog:      0,
 }
 
 type ApplyCollectorOption interface {
@@ -396,5 +398,16 @@ func (collectorOption) ReportBacklog(reportBacklog int) funcCollectorOption {
 
 func (c *Collector) WithReportBacklog(reportBacklog int) *Collector {
 	CollectorOption.ReportBacklog(reportBacklog).apply(&c.opts)
+	return c
+}
+
+func (collectorOption) TaskBacklog(taskBacklog int) funcCollectorOption {
+	return func(c *collectorOptions) {
+		c.taskBacklog = taskBacklog
+	}
+}
+
+func (c *Collector) WithTaskBacklog(taskBacklog int) *Collector {
+	CollectorOption.TaskBacklog(taskBacklog).apply(&c.opts)
 	return c
 }

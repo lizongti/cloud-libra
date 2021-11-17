@@ -18,7 +18,7 @@ func NewChainEncoding(encoder, decoder []string) *ChainEncoding {
 	}
 }
 
-var empty *ChainEncoding = NewChainEncoding(nil, nil)
+var empty *ChainEncoding = NewChainEncoding([]string{"Lazy"}, []string{"Lazy"})
 
 func (c ChainEncoding) String() string {
 	var builder strings.Builder
@@ -79,7 +79,6 @@ func (c ChainEncoding) Marshal(v interface{}) ([]byte, error) {
 				return nil, err
 			}
 		}
-
 	}
 	return data, nil
 }
