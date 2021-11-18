@@ -71,8 +71,8 @@ func Do(method string, url string, opts ...funcClientOption) (*http.Response, []
 func (c *Client) Do(method string, url string) (resp *http.Response, body []byte, err error) {
 	if c.opts.safety {
 		defer func() {
-			if e := recover(); e != nil {
-				err = fmt.Errorf("%v", e)
+			if v := recover(); v != nil {
+				err = fmt.Errorf("%v", v)
 			}
 		}()
 	}

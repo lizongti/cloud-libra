@@ -22,6 +22,8 @@ type ServiceRequest struct {
 }
 
 type ServiceResponse struct {
+	Err        error
+	Request    *ServiceRequest
 	StatusCode int
 	Body       string
 }
@@ -40,7 +42,9 @@ func (d *Service) HTTPS(ctx context.Context, req *ServiceRequest) (resp *Service
 	return d.do(ctx, req, magic.HTTPS)
 }
 
-func (*Service) do(ctx context.Context, req *ServiceRequest, protocol string) (*ServiceResponse, error) {
+func (*Service) do(ctx context.Context, req *ServiceRequest, protocol string) (resp *ServiceResponse, err error) {
+	resp = new(ServiceResponse)
+
 	c := NewClient().WithProtocol(protocol).WithContext(ctx)
 	if req.Timeout != 0 {
 		c.WithTimeout(req.Timeout)
@@ -66,7 +70,7 @@ func (*Service) do(ctx context.Context, req *ServiceRequest, protocol string) (*
 	if err != nil {
 		return nil, err
 	}
-	var resp = new(ServiceResponse)
+
 	if httpResp != nil {
 		resp.StatusCode = httpResp.StatusCode
 	}

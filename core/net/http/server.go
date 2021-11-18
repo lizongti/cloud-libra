@@ -56,8 +56,8 @@ func (s *Server) Close() error {
 func (s *Server) serve(addr string) (err error) {
 	if s.opts.safety {
 		defer func() {
-			if e := recover(); e != nil {
-				err = fmt.Errorf("%v", e)
+			if v := recover(); v != nil {
+				err = fmt.Errorf("%v", v)
 				if s.opts.errorChan != nil {
 					s.opts.errorChan <- err
 				}

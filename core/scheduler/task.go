@@ -3,8 +3,6 @@ package scheduler
 import (
 	"context"
 	"fmt"
-	"log"
-	"runtime"
 	"sync"
 	"time"
 
@@ -49,6 +47,7 @@ type Task struct {
 	stageStarted time.Time
 	context      context.Context
 	report       func(r *Report)
+	err          error
 }
 
 type Report struct {
@@ -60,6 +59,7 @@ type Report struct {
 	TaskDuration  time.Duration
 	StateDuration time.Duration
 	StageDuration time.Duration
+	Err           error
 }
 
 func NewTask(opt ...ApplyTaskOption) *Task {
@@ -127,12 +127,10 @@ func (t *Task) Publish(s *Scheduler) {
 
 func (t *Task) execute() {
 	defer func() {
-		if err := recover(); err != nil {
+		if v := recover(); v != nil {
+			err := fmt.Errorf("%v", v)
+			t.err = err
 			t.switchState(TaskStateFailed)
-			const size = 64 << 10
-			buf := make([]byte, size)
-			buf = buf[:runtime.Stack(buf, false)]
-			log.Printf("scheduler: panic executing task [%s]: %v\n%s", t.opts.name, err, buf)
 		}
 	}()
 
@@ -197,6 +195,7 @@ func (t *Task) switchState(state TaskStateType) {
 		TaskDuration:  now.Sub(t.taskStarted),
 		StageDuration: 0,
 		StateDuration: now.Sub(t.stateStarted),
+		Err:           t.err,
 	})
 
 	if t.state == TaskStateRunning {
@@ -221,6 +220,7 @@ func (t *Task) switchStage() {
 		TaskDuration:  now.Sub(t.taskStarted),
 		StageDuration: now.Sub(t.stageStarted),
 		StateDuration: now.Sub(t.stateStarted),
+		Err:           t.err,
 	})
 
 	t.stageStarted = time.Now()

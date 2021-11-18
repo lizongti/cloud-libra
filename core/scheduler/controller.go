@@ -36,8 +36,8 @@ func (c *TPSController) Serve(reportChan <-chan *Report, parallelChan chan<- int
 func (c *TPSController) serve(reportChan <-chan *Report, parallelChan chan<- int) (err error) {
 	if c.opts.safety {
 		defer func() {
-			if e := recover(); e != nil {
-				err = fmt.Errorf("%v", e)
+			if v := recover(); v != nil {
+				err = fmt.Errorf("%v", v)
 				if c.opts.errorChan != nil {
 					c.opts.errorChan <- err
 				}

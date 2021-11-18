@@ -108,8 +108,8 @@ func (c *Collector) ResponseChan() <-chan *ServiceResponse {
 
 func (c *Collector) serve() (err error) {
 	defer func() {
-		if e := recover(); e != nil {
-			err = fmt.Errorf("%v", e)
+		if v := recover(); v != nil {
+			err = fmt.Errorf("%v", v)
 			if c.opts.errorChan != nil {
 				c.opts.errorChan <- err
 			}
@@ -131,41 +131,48 @@ func (c *Collector) serve() (err error) {
 	}
 }
 
-func (c *Collector) invoke(ctx context.Context, req *ServiceRequest, deviceName string) (*ServiceResponse, error) {
+func (c *Collector) invoke(ctx context.Context, deviceName string, req *ServiceRequest) (resp *ServiceResponse) {
+	resp = new(ServiceResponse)
+	defer func() {
+		resp.Request = req
+	}()
+
+	defer func() {
+		if v := recover(); v != nil {
+			err := fmt.Errorf("%v", v)
+			resp.Err = err
+		}
+	}()
+
 	e := encoding.NewJSON()
 	data, err := e.Marshal(req)
 	if err != nil {
-		return nil, err
+		resp.Err = err
+		return resp
 	}
 
 	routeStyle := magic.NewChainStyle(magic.SeparatorSlash, magic.SeparatorUnderscore)
-
 	r := route.NewChainRoute(device.Addr(c), routeStyle.Chain("/http"))
-
 	msg := &message.Message{
 		Route:    r,
 		Encoding: e,
 		Data:     data,
 	}
-	resp := new(ServiceResponse)
 	processor := device.NewFuncProcessor(func(ctx context.Context, msg *message.Message) error {
 		return msg.Encoding.Unmarshal(msg.Data, resp)
 	})
 	if err := c.Client.Invoke(ctx, msg, processor); err != nil {
-		return nil, err
+		resp.Err = err
+		return resp
 	}
-	return resp, nil
+	return resp
 }
 
 func (c *Collector) createTask(req *ServiceRequest) *scheduler.Task {
 	return scheduler.NewTask(
 		scheduler.TaskOption.Name(fmt.Sprintf("%s[%d]", c.String(), c.reqIndex)),
 		scheduler.TaskOption.Stage(func(task *scheduler.Task) error {
-			resp, err := c.invoke(c.opts.context, req, c.String())
-			if err != nil {
-				return err
-			}
-			c.respChan <- resp
+			c.respChan <- c.invoke(c.opts.context, c.String(), req)
 			return nil
 		}),
 	)
