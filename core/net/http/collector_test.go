@@ -11,7 +11,7 @@ import (
 
 func TestCollector(t *testing.T) {
 	const (
-		url      = "https://top.baidu.com/board?platform=pc&sa=pcindex_entry"
+		url      = "https://www.baidu.com"
 		interval = 10 * time.Millisecond
 	)
 	c := http.NewCollector(
