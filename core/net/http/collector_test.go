@@ -21,6 +21,7 @@ func TestCollector(t *testing.T) {
 		http.CollectorOption.Name("HttpCollector"),
 		http.CollectorOption.RequestBacklog(1000),
 		http.CollectorOption.ResponseBacklog(1000),
+		http.CollectorOption.ReportBacklog(1),
 		http.CollectorOption.TPSLimit(20),
 		http.CollectorOption.ParallelInit(10),
 		http.CollectorOption.ParallelTick(100*time.Millisecond),

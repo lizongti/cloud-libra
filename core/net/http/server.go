@@ -58,6 +58,9 @@ func (s *Server) serve(addr string) (err error) {
 		defer func() {
 			if e := recover(); e != nil {
 				err = fmt.Errorf("%v", e)
+				if s.opts.errorChan != nil {
+					s.opts.errorChan <- err
+				}
 			}
 		}()
 	}
@@ -71,16 +74,18 @@ func (s *Server) serve(addr string) (err error) {
 }
 
 type serverOptions struct {
-	proxy      bool
-	background bool
 	safety     bool
+	background bool
+	errorChan  chan<- error
+	proxy      bool
 	routes     []Route
 }
 
 var defaultServerOptions = serverOptions{
-	proxy:      false,
-	background: false,
 	safety:     false,
+	background: false,
+	errorChan:  nil,
+	proxy:      false,
 	routes:     nil,
 }
 
@@ -98,9 +103,42 @@ type serverOption int
 
 var ServerOption serverOption
 
+func (serverOption) Safety() funcServerOption {
+	return func(s *serverOptions) {
+		s.safety = true
+	}
+}
+
+func (s *Server) WithSafety() *Server {
+	ServerOption.Safety().apply(&s.opts)
+	return s
+}
+
+func (serverOption) Background() funcServerOption {
+	return func(s *serverOptions) {
+		s.background = true
+	}
+}
+
+func (s *Server) WithBackground() *Server {
+	ServerOption.Background().apply(&s.opts)
+	return s
+}
+
+func (serverOption) ErrorChan(errorChan chan<- error) funcServerOption {
+	return func(s *serverOptions) {
+		s.errorChan = errorChan
+	}
+}
+
+func (s *Server) WithErrorChan(errorChan chan<- error) *Server {
+	ServerOption.ErrorChan(errorChan).apply(&s.opts)
+	return s
+}
+
 func (serverOption) Route(routes ...Route) funcServerOption {
-	return func(so *serverOptions) {
-		so.routes = append(so.routes, routes...)
+	return func(s *serverOptions) {
+		s.routes = append(s.routes, routes...)
 	}
 }
 
@@ -110,34 +148,12 @@ func (s *Server) WithRoute(routes ...Route) *Server {
 }
 
 func (serverOption) Proxy() funcServerOption {
-	return func(so *serverOptions) {
-		so.proxy = true
+	return func(s *serverOptions) {
+		s.proxy = true
 	}
 }
 
 func (s *Server) WithProxy() *Server {
 	ServerOption.Proxy().apply(&s.opts)
-	return s
-}
-
-func (serverOption) Background() funcServerOption {
-	return func(so *serverOptions) {
-		so.background = true
-	}
-}
-
-func (s *Server) WithBackground() *Server {
-	ServerOption.Background().apply(&s.opts)
-	return s
-}
-
-func (serverOption) Safety() funcServerOption {
-	return func(so *serverOptions) {
-		so.safety = true
-	}
-}
-
-func (s *Server) WithSafety() *Server {
-	ServerOption.Safety().apply(&s.opts)
 	return s
 }

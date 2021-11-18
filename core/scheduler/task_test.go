@@ -13,7 +13,7 @@ func TestTaskState(t *testing.T) {
 		timeout           = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.New().WithReportChan(reportChan)
+	s := scheduler.NewScheduler().WithReportChan(reportChan)
 	if err := s.WithBackground().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
@@ -50,7 +50,7 @@ func TestTaskStage(t *testing.T) {
 		timeout           = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.New().WithReportChan(reportChan)
+	s := scheduler.NewScheduler().WithReportChan(reportChan)
 	if err := s.WithBackground().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
@@ -89,7 +89,7 @@ func TestTaskParams(t *testing.T) {
 		timeout           = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.New().WithReportChan(reportChan)
+	s := scheduler.NewScheduler().WithReportChan(reportChan)
 	if err := s.WithBackground().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
@@ -136,7 +136,7 @@ func TestTaskTimeout(t *testing.T) {
 		sleep             = 2
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.New().WithReportChan(reportChan)
+	s := scheduler.NewScheduler().WithReportChan(reportChan)
 	if err := s.WithBackground().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
@@ -165,7 +165,7 @@ func TestTaskReportTime(t *testing.T) {
 		sleep             = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.New().WithReportChan(reportChan)
+	s := scheduler.NewScheduler().WithReportChan(reportChan)
 	if err := s.WithBackground().Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}

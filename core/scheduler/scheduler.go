@@ -19,7 +19,7 @@ type pipeline struct {
 	exitChan chan struct{}
 }
 
-var defaultScheduler = New()
+var defaultScheduler = NewScheduler()
 var emptyScheduler *Scheduler
 
 func init() {
@@ -34,7 +34,7 @@ func Empty() *Scheduler {
 	return emptyScheduler
 }
 
-func New(opt ...ApplySchedulerOption) *Scheduler {
+func NewScheduler(opt ...ApplySchedulerOption) *Scheduler {
 	opts := defaultSchedulerOptions
 
 	for _, o := range opt {
@@ -52,7 +52,7 @@ func New(opt ...ApplySchedulerOption) *Scheduler {
 }
 
 func (s *Scheduler) Serve() error {
-	s.taskChan = make(chan *Task, s.opts.backlog)
+	s.taskChan = make(chan *Task, s.opts.taskBacklog)
 
 	if s.opts.background {
 		go s.serve()
@@ -75,6 +75,9 @@ func (s *Scheduler) serve() (err error) {
 		defer func() {
 			if e := recover(); e != nil {
 				err = fmt.Errorf("%v", e)
+			}
+			if s.opts.errorChan != nil {
+				s.opts.errorChan <- err
 			}
 		}()
 	}
@@ -148,20 +151,23 @@ func (s *Scheduler) report(r *Report) {
 }
 
 type schedulerOptions struct {
-	backlog      int
+	safety       bool
+	background   bool
+	errorChan    chan<- error
+	taskBacklog  int
 	parallel     int
 	parallelChan <-chan int
-	background   bool
-	safety       bool
-	reportChan   chan<- *Report
+
+	reportChan chan<- *Report
 }
 
 var defaultSchedulerOptions = schedulerOptions{
-	backlog:      0,
+	safety:       false,
+	background:   false,
+	errorChan:    nil,
+	taskBacklog:  0,
 	parallel:     1,
 	parallelChan: nil,
-	background:   false,
-	safety:       false,
 	reportChan:   nil,
 }
 
@@ -179,29 +185,14 @@ type schedulerOption int
 
 var SchedulerOption schedulerOption
 
-func (schedulerOption) Backlog(backlog int) funcSchedulerOption {
+func (schedulerOption) Safety() funcSchedulerOption {
 	return func(s *schedulerOptions) {
-		if backlog > 0 {
-			s.backlog = backlog
-		}
+		s.safety = true
 	}
 }
 
-func (s *Scheduler) WithBacklog(backlog int) *Scheduler {
-	SchedulerOption.Backlog(backlog).apply(&s.opts)
-	return s
-}
-
-func (schedulerOption) Parallel(parallel int) funcSchedulerOption {
-	return func(s *schedulerOptions) {
-		if parallel > 0 {
-			s.parallel = parallel
-		}
-	}
-}
-
-func (s *Scheduler) WithParallel(parallel int) *Scheduler {
-	SchedulerOption.Parallel(parallel).apply(&s.opts)
+func (s *Scheduler) WithSafety() *Scheduler {
+	SchedulerOption.Safety().apply(&s.opts)
 	return s
 }
 
@@ -216,14 +207,40 @@ func (s *Scheduler) WithBackground() *Scheduler {
 	return s
 }
 
-func (schedulerOption) Safety() funcSchedulerOption {
+func (schedulerOption) ErrorChan(errorChan chan<- error) funcSchedulerOption {
 	return func(s *schedulerOptions) {
-		s.safety = true
+		s.errorChan = errorChan
 	}
 }
 
-func (s *Scheduler) WithSafety() *Scheduler {
-	SchedulerOption.Safety().apply(&s.opts)
+func (s *Scheduler) WithErrorChan(errorChan chan<- error) *Scheduler {
+	SchedulerOption.ErrorChan(errorChan).apply(&s.opts)
+	return s
+}
+
+func (schedulerOption) TaskBacklog(taskBacklog int) funcSchedulerOption {
+	return func(s *schedulerOptions) {
+		if taskBacklog > 0 {
+			s.taskBacklog = taskBacklog
+		}
+	}
+}
+
+func (s *Scheduler) WithTaskBacklog(backlog int) *Scheduler {
+	SchedulerOption.TaskBacklog(backlog).apply(&s.opts)
+	return s
+}
+
+func (schedulerOption) Parallel(parallel int) funcSchedulerOption {
+	return func(s *schedulerOptions) {
+		if parallel > 0 {
+			s.parallel = parallel
+		}
+	}
+}
+
+func (s *Scheduler) WithParallel(parallel int) *Scheduler {
+	SchedulerOption.Parallel(parallel).apply(&s.opts)
 	return s
 }
 

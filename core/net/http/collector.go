@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/aceaura/libra/core/device"
@@ -13,7 +12,6 @@ import (
 	"github.com/aceaura/libra/core/message"
 	"github.com/aceaura/libra/core/route"
 	"github.com/aceaura/libra/core/scheduler"
-	"github.com/mohae/deepcopy"
 )
 
 var (
@@ -24,17 +22,15 @@ type Collector struct {
 	*device.Client
 	opts         collectorOptions
 	scheduler    *scheduler.Scheduler
-	reqMap       map[string]*ServiceRequest
-	stateMap     map[scheduler.TaskStateType]int
+	controller   *scheduler.TPSController
+	reqIndex     int
 	reqChan      chan *ServiceRequest
 	respChan     chan *ServiceResponse
+	errorChan    chan error
 	reportChan   chan *scheduler.Report
 	parallelChan chan int
 	dieChan      chan struct{}
 	exitChan     chan struct{}
-	tpsMax       int
-	tpsFinished  int
-	reqIndex     int
 }
 
 func NewCollector(opt ...ApplyCollectorOption) *Collector {
@@ -43,27 +39,16 @@ func NewCollector(opt ...ApplyCollectorOption) *Collector {
 		o.apply(&opts)
 	}
 
-	reqChan := make(chan *ServiceRequest, opts.reqBacklog)
-	respChan := make(chan *ServiceResponse, opts.respBacklog)
 	reportChan := make(chan *scheduler.Report, opts.reportBacklog)
-	parallelChan := make(chan int)
-	s := scheduler.New(
-		scheduler.SchedulerOption.Backlog(opts.reqBacklog),
-		scheduler.SchedulerOption.Parallel(opts.parallelInit),
-		scheduler.SchedulerOption.ReportChan(reportChan),
-		scheduler.SchedulerOption.ParallelChan(parallelChan),
-		scheduler.SchedulerOption.Background(),
-		scheduler.SchedulerOption.Safety(),
-	)
+	parallelChan := make(chan int, opts.parallelBacklog)
 
 	return &Collector{
 		Client:       device.NewClient(),
 		opts:         opts,
-		scheduler:    s,
-		reqMap:       make(map[string]*ServiceRequest),
-		reqChan:      reqChan,
-		respChan:     respChan,
-		stateMap:     make(map[scheduler.TaskStateType]int),
+		reqIndex:     0,
+		reqChan:      make(chan *ServiceRequest, opts.reqBacklog),
+		respChan:     make(chan *ServiceResponse, opts.respBacklog),
+		errorChan:    make(chan error),
 		reportChan:   reportChan,
 		parallelChan: parallelChan,
 		dieChan:      make(chan struct{}),
@@ -81,7 +66,29 @@ func (c *Collector) Close() {
 }
 
 func (c *Collector) Serve() error {
+	c.scheduler = scheduler.NewScheduler(
+		scheduler.SchedulerOption.Safety(),
+		scheduler.SchedulerOption.Background(),
+		scheduler.SchedulerOption.ErrorChan(c.errorChan),
+		scheduler.SchedulerOption.TaskBacklog(c.opts.taskBacklog),
+		scheduler.SchedulerOption.Parallel(c.opts.parallelInit),
+		scheduler.SchedulerOption.ReportChan(c.reportChan),
+		scheduler.SchedulerOption.ParallelChan(c.parallelChan),
+	)
+
+	c.controller = scheduler.NewTPSController(
+		scheduler.ControllerOption.Safety(),
+		scheduler.ControllerOption.Background(),
+		scheduler.ControllerOption.ErrorChan(c.errorChan),
+		scheduler.ControllerOption.ParallelTick(c.opts.parallelTick),
+		scheduler.ControllerOption.ParallelIncrease(c.opts.parallelIncrease),
+		scheduler.ControllerOption.TPSLimit(c.opts.tpsLimit),
+	)
+
 	if err := c.scheduler.Serve(); err != nil {
+		return err
+	}
+	if err := c.controller.Serve(c.reportChan, c.parallelChan); err != nil {
 		return err
 	}
 	if c.opts.background {
@@ -100,77 +107,26 @@ func (c *Collector) ResponseChan() <-chan *ServiceResponse {
 }
 
 func (c *Collector) serve() (err error) {
-	if c.opts.safety {
-		defer func() {
-			if e := recover(); e != nil {
-				err = fmt.Errorf("%v", e)
-			}
-		}()
-	}
-
 	defer func() {
-		c.scheduler.Close()
-		close(c.exitChan)
+		if e := recover(); e != nil {
+			err = fmt.Errorf("%v", e)
+			if c.opts.errorChan != nil {
+				c.opts.errorChan <- err
+			}
+		}
 	}()
 
-	var (
-		dying      = false
-		tickerChan = time.NewTicker(c.opts.parallelTick).C
-	)
+	defer close(c.exitChan)
+	defer c.scheduler.Close()
+	defer c.controller.Close()
 
 	for {
 		select {
-		case r := <-c.reportChan:
-			c.updateStateMap(r)
-			c.updateTPSFinished(r)
-
-			switch r.State {
-			case scheduler.TaskStateDone:
-				c.removeRequest(r.Name)
-			case scheduler.TaskStateFailed:
-				c.scheduleRequest(r.Name)
-			}
-
-			if dying && len(c.reqMap) == 0 {
-				return
-			}
-
 		case req := <-c.reqChan:
-			name := c.addRequest(req)
-			c.scheduleRequest(name)
-
-		case <-tickerChan:
-			c.updateTPSMax()
-			c.updateParallel()
-
+			task := c.createTask(req)
+			c.pushTask(task)
 		case <-c.dieChan:
-			dying = true
-		}
-	}
-}
-
-func (c *Collector) updateStateMap(r *scheduler.Report) {
-	if r.Progress == 0 {
-		c.stateMap[r.State]++
-	}
-}
-
-func (c *Collector) updateTPSFinished(r *scheduler.Report) {
-	if r.State == scheduler.TaskStateDone || r.State == scheduler.TaskStateFailed {
-		c.tpsFinished++
-	}
-}
-
-func (c *Collector) updateTPSMax() {
-	tps := int(float64(c.tpsFinished) * float64(time.Second) / float64(c.opts.parallelTick))
-	c.tpsMax = int(math.Max(float64(tps), float64(c.tpsMax)))
-	c.tpsFinished = 0
-}
-
-func (c *Collector) updateParallel() {
-	if c.stateMap[scheduler.TaskStatePending]-c.stateMap[scheduler.TaskStateRunning] > 0 {
-		if c.tpsMax < c.opts.tpsLimit || c.opts.tpsLimit < 0 {
-			c.parallelChan <- c.opts.parallelIncrease
+			return
 		}
 	}
 }
@@ -201,48 +157,30 @@ func (c *Collector) invoke(ctx context.Context, req *ServiceRequest, deviceName 
 	return resp, nil
 }
 
-func (c *Collector) addRequest(req *ServiceRequest) string {
-	name := fmt.Sprintf("%s[%d]", c.String(), c.reqIndex)
-	c.reqIndex++
-	c.reqMap[name] = req
-	return name
-}
-
-func (c *Collector) removeRequest(name string) {
-	delete(c.reqMap, name)
-}
-
-func (c *Collector) copyRequest(name string) *ServiceRequest {
-	if req, ok := c.reqMap[name]; ok {
-		return deepcopy.Copy(req).(*ServiceRequest)
-	}
-	return nil
-}
-
-func (c *Collector) scheduleRequest(name string) {
-	req := c.copyRequest(name)
-	stage := func(task *scheduler.Task) error {
-		resp, err := c.invoke(c.opts.context, req, c.String())
-		if err != nil {
-			return err
-		}
-		c.respChan <- resp
-		return nil
-	}
-
-	task := scheduler.NewTask(
-		scheduler.TaskOption.Name(name),
-		scheduler.TaskOption.Stage(stage),
+func (c *Collector) createTask(req *ServiceRequest) *scheduler.Task {
+	return scheduler.NewTask(
+		scheduler.TaskOption.Name(fmt.Sprintf("%s[%d]", c.String(), c.reqIndex)),
+		scheduler.TaskOption.Stage(func(task *scheduler.Task) error {
+			resp, err := c.invoke(c.opts.context, req, c.String())
+			if err != nil {
+				return err
+			}
+			c.respChan <- resp
+			return nil
+		}),
 	)
+}
 
-	go task.Publish(c.scheduler)
+func (c *Collector) pushTask(task *scheduler.Task) {
+	task.Publish(c.scheduler)
 }
 
 type collectorOptions struct {
 	name             string
 	context          context.Context
-	background       bool
 	safety           bool
+	background       bool
+	errorChan        chan<- error
 	parallelInit     int
 	parallelTick     time.Duration
 	parallelIncrease int
@@ -251,21 +189,22 @@ type collectorOptions struct {
 	respBacklog      int
 	reportBacklog    int
 	taskBacklog      int
+	parallelBacklog  int
 }
 
 var defaultCollectorOptions = collectorOptions{
-	name:             "",
-	context:          context.Background(),
-	background:       false,
-	safety:           false,
-	parallelInit:     1,
-	parallelTick:     time.Second,
-	parallelIncrease: 1,
-	tpsLimit:         -1,
-	reqBacklog:       0,
-	respBacklog:      0,
-	reportBacklog:    0,
-	taskBacklog:      0,
+	name:            "",
+	context:         context.Background(),
+	safety:          false,
+	background:      false,
+	errorChan:       nil,
+	parallelInit:    1,
+	tpsLimit:        -1,
+	reqBacklog:      0,
+	respBacklog:     0,
+	reportBacklog:   0,
+	taskBacklog:     0,
+	parallelBacklog: 0,
 }
 
 type ApplyCollectorOption interface {
@@ -304,6 +243,17 @@ func (c *Collector) WithContext(context context.Context) *Collector {
 	return c
 }
 
+func (collectorOption) Safety() funcCollectorOption {
+	return func(c *collectorOptions) {
+		c.safety = true
+	}
+}
+
+func (c *Collector) WithSafety() *Collector {
+	CollectorOption.Safety().apply(&c.opts)
+	return c
+}
+
 func (collectorOption) Background() funcCollectorOption {
 	return func(c *collectorOptions) {
 		c.background = true
@@ -315,14 +265,14 @@ func (c *Collector) WithBackground(background bool) *Collector {
 	return c
 }
 
-func (collectorOption) Safety() funcCollectorOption {
+func (collectorOption) ErrorChan(errorChan chan<- error) funcCollectorOption {
 	return func(c *collectorOptions) {
-		c.safety = true
+		c.errorChan = errorChan
 	}
 }
 
-func (c *Collector) WithSafety() *Collector {
-	CollectorOption.Safety().apply(&c.opts)
+func (c *Collector) WithErrorChan(errorChan chan<- error) *Collector {
+	CollectorOption.ErrorChan(errorChan).apply(&c.opts)
 	return c
 }
 
@@ -425,5 +375,18 @@ func (collectorOption) TaskBacklog(taskBacklog int) funcCollectorOption {
 
 func (c *Collector) WithTaskBacklog(taskBacklog int) *Collector {
 	CollectorOption.TaskBacklog(taskBacklog).apply(&c.opts)
+	return c
+}
+
+func (collectorOption) ParallelBacklog(parallelBacklog int) funcCollectorOption {
+	return func(c *collectorOptions) {
+		if parallelBacklog > 1 {
+			c.parallelBacklog = parallelBacklog
+		}
+	}
+}
+
+func (c *Collector) WithParallelBacklog(parallelBacklog int) *Collector {
+	CollectorOption.ParallelBacklog(parallelBacklog).apply(&c.opts)
 	return c
 }

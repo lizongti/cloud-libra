@@ -189,17 +189,15 @@ func (t *Task) switchState(state TaskStateType) {
 	t.state = state
 	now := time.Now()
 
-	if t.report != nil {
-		t.report(&Report{
-			ID:            t.id,
-			Name:          t.opts.name,
-			State:         t.state,
-			Progress:      t.progress,
-			TaskDuration:  now.Sub(t.taskStarted),
-			StageDuration: 0,
-			StateDuration: now.Sub(t.stateStarted),
-		})
-	}
+	t.report(&Report{
+		ID:            t.id,
+		Name:          t.opts.name,
+		State:         t.state,
+		Progress:      t.progress,
+		TaskDuration:  now.Sub(t.taskStarted),
+		StageDuration: 0,
+		StateDuration: now.Sub(t.stateStarted),
+	})
 
 	if t.state == TaskStateRunning {
 		t.stageStarted = now
@@ -214,18 +212,16 @@ func (t *Task) switchStage() {
 	t.progress++
 	now := time.Now()
 
-	if t.report != nil {
-		t.report(&Report{
-			ID:            t.id,
-			Name:          t.opts.name,
-			State:         t.state,
-			Progress:      t.progress,
-			TotalProgress: len(t.opts.stages),
-			TaskDuration:  now.Sub(t.taskStarted),
-			StageDuration: now.Sub(t.stageStarted),
-			StateDuration: now.Sub(t.stateStarted),
-		})
-	}
+	t.report(&Report{
+		ID:            t.id,
+		Name:          t.opts.name,
+		State:         t.state,
+		Progress:      t.progress,
+		TotalProgress: len(t.opts.stages),
+		TaskDuration:  now.Sub(t.taskStarted),
+		StageDuration: now.Sub(t.stageStarted),
+		StateDuration: now.Sub(t.stateStarted),
+	})
 
 	t.stageStarted = time.Now()
 }
