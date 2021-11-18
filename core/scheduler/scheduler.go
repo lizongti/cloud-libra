@@ -157,7 +157,7 @@ type schedulerOptions struct {
 }
 
 var defaultSchedulerOptions = schedulerOptions{
-	backlog:      1,
+	backlog:      0,
 	parallel:     1,
 	parallelChan: nil,
 	background:   false,

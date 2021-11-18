@@ -120,10 +120,6 @@ func (c *Collector) serve() (err error) {
 
 	for {
 		select {
-		case req := <-c.reqChan:
-			name := c.addRequest(req)
-			c.scheduleRequest(name)
-
 		case r := <-c.reportChan:
 			c.updateStateMap(r)
 			c.updateTPSFinished(r)
@@ -138,6 +134,10 @@ func (c *Collector) serve() (err error) {
 			if dying && len(c.reqMap) == 0 {
 				return
 			}
+
+		case req := <-c.reqChan:
+			name := c.addRequest(req)
+			c.scheduleRequest(name)
 
 		case <-tickerChan:
 			c.updateTPSMax()
@@ -235,7 +235,7 @@ func (c *Collector) scheduleRequest(name string) {
 		scheduler.TaskOption.Stage(stage),
 	)
 
-	task.Publish(c.scheduler)
+	go task.Publish(c.scheduler)
 }
 
 type collectorOptions struct {
@@ -262,10 +262,10 @@ var defaultCollectorOptions = collectorOptions{
 	parallelTick:     time.Second,
 	parallelIncrease: 1,
 	tpsLimit:         -1,
-	reqBacklog:       1,
-	respBacklog:      1,
-	reportBacklog:    1,
-	taskBacklog:      1,
+	reqBacklog:       0,
+	respBacklog:      0,
+	reportBacklog:    0,
+	taskBacklog:      0,
 }
 
 type ApplyCollectorOption interface {
