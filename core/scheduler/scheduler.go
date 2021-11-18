@@ -157,8 +157,8 @@ type schedulerOptions struct {
 }
 
 var defaultSchedulerOptions = schedulerOptions{
-	backlog:      0,
-	parallel:     0,
+	backlog:      1,
+	parallel:     1,
 	parallelChan: nil,
 	background:   false,
 	safety:       false,
@@ -181,7 +181,9 @@ var SchedulerOption schedulerOption
 
 func (schedulerOption) Backlog(backlog int) funcSchedulerOption {
 	return func(s *schedulerOptions) {
-		s.backlog = backlog
+		if backlog > 0 {
+			s.backlog = backlog
+		}
 	}
 }
 
@@ -192,7 +194,9 @@ func (s *Scheduler) WithBacklog(backlog int) *Scheduler {
 
 func (schedulerOption) Parallel(parallel int) funcSchedulerOption {
 	return func(s *schedulerOptions) {
-		s.parallel = parallel
+		if parallel > 0 {
+			s.parallel = parallel
+		}
 	}
 }
 

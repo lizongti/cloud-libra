@@ -235,7 +235,7 @@ func (c *Collector) scheduleRequest(name string) {
 		scheduler.TaskOption.Stage(stage),
 	)
 
-	go task.Publish(c.scheduler)
+	task.Publish(c.scheduler)
 }
 
 type collectorOptions struct {
@@ -262,10 +262,10 @@ var defaultCollectorOptions = collectorOptions{
 	parallelTick:     time.Second,
 	parallelIncrease: 1,
 	tpsLimit:         -1,
-	reqBacklog:       0,
-	respBacklog:      0,
-	reportBacklog:    0,
-	taskBacklog:      0,
+	reqBacklog:       1,
+	respBacklog:      1,
+	reportBacklog:    1,
+	taskBacklog:      1,
 }
 
 type ApplyCollectorOption interface {
@@ -328,7 +328,9 @@ func (c *Collector) WithSafety() *Collector {
 
 func (collectorOption) ParallelInit(parallelInit int) funcCollectorOption {
 	return func(c *collectorOptions) {
-		c.parallelInit = parallelInit
+		if parallelInit > 0 {
+			c.parallelInit = parallelInit
+		}
 	}
 }
 
@@ -350,7 +352,9 @@ func (c *Collector) WithParallelTick(parallelTick time.Duration) *Collector {
 
 func (collectorOption) ParallelIncrease(parallelIncrease int) funcCollectorOption {
 	return func(c *collectorOptions) {
-		c.parallelIncrease = parallelIncrease
+		if parallelIncrease >= 0 {
+			c.parallelIncrease = parallelIncrease
+		}
 	}
 }
 
@@ -361,7 +365,9 @@ func (c *Collector) WithParallelIncrease(parallelIncrease int) *Collector {
 
 func (collectorOption) TPSLimit(tpsLimit int) funcCollectorOption {
 	return func(c *collectorOptions) {
-		c.tpsLimit = tpsLimit
+		if tpsLimit > 0 {
+			c.tpsLimit = tpsLimit
+		}
 	}
 }
 
@@ -372,7 +378,9 @@ func (c *Collector) WithTPSLimit(tpsLimit int) *Collector {
 
 func (collectorOption) RequestBacklog(reqChanBacklog int) funcCollectorOption {
 	return func(c *collectorOptions) {
-		c.reqBacklog = reqChanBacklog
+		if reqChanBacklog > 1 {
+			c.reqBacklog = reqChanBacklog
+		}
 	}
 }
 
@@ -383,7 +391,9 @@ func (c *Collector) WithRequestBacklog(reqBacklog int) *Collector {
 
 func (collectorOption) ResponseBacklog(respBacklog int) funcCollectorOption {
 	return func(c *collectorOptions) {
-		c.respBacklog = respBacklog
+		if respBacklog > 1 {
+			c.respBacklog = respBacklog
+		}
 	}
 }
 
@@ -394,7 +404,9 @@ func (c *Collector) WithResponseBacklog(respBacklog int) *Collector {
 
 func (collectorOption) ReportBacklog(reportBacklog int) funcCollectorOption {
 	return func(c *collectorOptions) {
-		c.reportBacklog = reportBacklog
+		if reportBacklog > 1 {
+			c.reportBacklog = reportBacklog
+		}
 	}
 }
 
@@ -405,7 +417,9 @@ func (c *Collector) WithReportBacklog(reportBacklog int) *Collector {
 
 func (collectorOption) TaskBacklog(taskBacklog int) funcCollectorOption {
 	return func(c *collectorOptions) {
-		c.taskBacklog = taskBacklog
+		if taskBacklog > 1 {
+			c.taskBacklog = taskBacklog
+		}
 	}
 }
 
