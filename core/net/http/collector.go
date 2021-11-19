@@ -39,20 +39,13 @@ func NewCollector(opt ...ApplyCollectorOption) *Collector {
 		o.apply(&opts)
 	}
 
-	reportChan := make(chan *scheduler.Report, opts.reportBacklog)
-	parallelChan := make(chan int, opts.parallelBacklog)
-
 	return &Collector{
-		Client:       device.NewClient(),
-		opts:         opts,
-		reqIndex:     0,
-		reqChan:      make(chan *ServiceRequest, opts.reqBacklog),
-		respChan:     make(chan *ServiceResponse, opts.respBacklog),
-		errorChan:    make(chan error),
-		reportChan:   reportChan,
-		parallelChan: parallelChan,
-		dieChan:      make(chan struct{}),
-		exitChan:     make(chan struct{}),
+		Client:    device.NewClient(),
+		opts:      opts,
+		reqIndex:  0,
+		errorChan: make(chan error),
+		dieChan:   make(chan struct{}),
+		exitChan:  make(chan struct{}),
 	}
 }
 
@@ -66,6 +59,11 @@ func (c *Collector) Close() {
 }
 
 func (c *Collector) Serve() error {
+	c.reportChan = make(chan *scheduler.Report, c.opts.reportBacklog)
+	c.parallelChan = make(chan int, c.opts.parallelBacklog)
+	c.reqChan = make(chan *ServiceRequest, c.opts.reqBacklog)
+	c.respChan = make(chan *ServiceResponse, c.opts.respBacklog)
+
 	c.scheduler = scheduler.NewScheduler(
 		scheduler.SchedulerOption.Safety(),
 		scheduler.SchedulerOption.Background(),
