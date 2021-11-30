@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/aceaura/libra/core/device"
-	"github.com/aceaura/libra/core/net/http"
+	"github.com/aceaura/libra/net/http"
 )
 
 func TestCollector(t *testing.T) {
