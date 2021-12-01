@@ -158,8 +158,7 @@ type schedulerOptions struct {
 	taskBacklog  int
 	parallel     int
 	parallelChan <-chan int
-
-	reportChan chan<- *Report
+	reportChan   chan<- *Report
 }
 
 var defaultSchedulerOptions = schedulerOptions{

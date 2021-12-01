@@ -34,12 +34,12 @@ func init() {
 	device.Bus().WithService(&Service{})
 }
 
-func (d *Service) HTTP(ctx context.Context, req *ServiceRequest) (resp *ServiceResponse, err error) {
-	return d.do(ctx, req, magic.HTTP)
+func (s *Service) HTTP(ctx context.Context, req *ServiceRequest) (resp *ServiceResponse, err error) {
+	return s.do(ctx, req, magic.HTTP)
 }
 
-func (d *Service) HTTPS(ctx context.Context, req *ServiceRequest) (resp *ServiceResponse, err error) {
-	return d.do(ctx, req, magic.HTTPS)
+func (s *Service) HTTPS(ctx context.Context, req *ServiceRequest) (resp *ServiceResponse, err error) {
+	return s.do(ctx, req, magic.HTTPS)
 }
 
 func (*Service) do(ctx context.Context, req *ServiceRequest, protocol string) (resp *ServiceResponse, err error) {
