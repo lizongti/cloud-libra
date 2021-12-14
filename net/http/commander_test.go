@@ -14,18 +14,18 @@ func TestCollector(t *testing.T) {
 		url      = "https://www.baidu.com"
 		interval = 10 * time.Millisecond
 	)
-	c := http.NewCollector(
-		http.CollectorOption.Background(),
-		http.CollectorOption.Safety(),
-		http.CollectorOption.Context(context.Background()),
-		http.CollectorOption.Name("HttpCollector"),
-		http.CollectorOption.RequestBacklog(1000),
-		http.CollectorOption.ResponseBacklog(1000),
-		http.CollectorOption.ReportBacklog(1),
-		http.CollectorOption.TPSLimit(20),
-		http.CollectorOption.ParallelInit(10),
-		http.CollectorOption.ParallelTick(100*time.Millisecond),
-		http.CollectorOption.ParallelIncrease(1),
+	c := http.NewCommander(
+		http.CommanderOption.Background(),
+		http.CommanderOption.Safety(),
+		http.CommanderOption.Context(context.Background()),
+		http.CommanderOption.Name("HttpCollector"),
+		http.CommanderOption.RequestBacklog(1000),
+		http.CommanderOption.ResponseBacklog(1000),
+		http.CommanderOption.ReportBacklog(1),
+		http.CommanderOption.TPSLimit(20),
+		http.CommanderOption.ParallelInit(10),
+		http.CommanderOption.ParallelTick(100*time.Millisecond),
+		http.CommanderOption.ParallelIncrease(1),
 	)
 	device.Bus().WithDevice(c)
 	if err := c.Serve(); err != nil {

@@ -18,9 +18,9 @@ var (
 	ErrRequestNotFound = errors.New("request not found by name")
 )
 
-type Collector struct {
+type Commander struct {
 	*device.Client
-	opts         collectorOptions
+	opts         commanderOptions
 	scheduler    *scheduler.Scheduler
 	controller   *scheduler.TPSController
 	reqIndex     int
@@ -33,13 +33,13 @@ type Collector struct {
 	exitChan     chan struct{}
 }
 
-func NewCollector(opt ...ApplyCollectorOption) *Collector {
-	opts := defaultCollectorOptions
+func NewCommander(opt ...ApplyCommanderOption) *Commander {
+	opts := defaultCommanderOptions
 	for _, o := range opt {
 		o.apply(&opts)
 	}
 
-	return &Collector{
+	return &Commander{
 		Client:    device.NewClient(),
 		opts:      opts,
 		reqIndex:  0,
@@ -49,16 +49,16 @@ func NewCollector(opt ...ApplyCollectorOption) *Collector {
 	}
 }
 
-func (c *Collector) String() string {
+func (c *Commander) String() string {
 	return c.opts.name
 }
 
-func (c *Collector) Close() {
+func (c *Commander) Close() {
 	close(c.dieChan)
 	<-c.exitChan
 }
 
-func (c *Collector) Serve() error {
+func (c *Commander) Serve() error {
 	c.reportChan = make(chan *scheduler.Report, c.opts.reportBacklog)
 	c.parallelChan = make(chan int, c.opts.parallelBacklog)
 	c.reqChan = make(chan *ServiceRequest, c.opts.reqBacklog)
@@ -96,15 +96,15 @@ func (c *Collector) Serve() error {
 	return c.serve()
 }
 
-func (c *Collector) RequestChan() chan<- *ServiceRequest {
+func (c *Commander) RequestChan() chan<- *ServiceRequest {
 	return c.reqChan
 }
 
-func (c *Collector) ResponseChan() <-chan *ServiceResponse {
+func (c *Commander) ResponseChan() <-chan *ServiceResponse {
 	return c.respChan
 }
 
-func (c *Collector) serve() (err error) {
+func (c *Commander) serve() (err error) {
 	defer func() {
 		if v := recover(); v != nil {
 			err = fmt.Errorf("%v", v)
@@ -129,7 +129,7 @@ func (c *Collector) serve() (err error) {
 	}
 }
 
-func (c *Collector) invoke(ctx context.Context, deviceName string, req *ServiceRequest) (resp *ServiceResponse) {
+func (c *Commander) invoke(ctx context.Context, deviceName string, req *ServiceRequest) (resp *ServiceResponse) {
 	resp = new(ServiceResponse)
 	defer func() {
 		resp.Request = req
@@ -166,7 +166,7 @@ func (c *Collector) invoke(ctx context.Context, deviceName string, req *ServiceR
 	return resp
 }
 
-func (c *Collector) createTask(req *ServiceRequest) *scheduler.Task {
+func (c *Commander) createTask(req *ServiceRequest) *scheduler.Task {
 	return scheduler.NewTask(
 		scheduler.TaskOption.Name(fmt.Sprintf("%s[%d]", c.String(), c.reqIndex)),
 		scheduler.TaskOption.Stage(func(task *scheduler.Task) error {
@@ -176,11 +176,11 @@ func (c *Collector) createTask(req *ServiceRequest) *scheduler.Task {
 	)
 }
 
-func (c *Collector) pushTask(task *scheduler.Task) {
+func (c *Commander) pushTask(task *scheduler.Task) {
 	task.Publish(c.scheduler)
 }
 
-type collectorOptions struct {
+type commanderOptions struct {
 	name             string
 	context          context.Context
 	safety           bool
@@ -197,7 +197,7 @@ type collectorOptions struct {
 	parallelBacklog  int
 }
 
-var defaultCollectorOptions = collectorOptions{
+var defaultCommanderOptions = commanderOptions{
 	name:            "",
 	context:         context.Background(),
 	safety:          false,
@@ -212,186 +212,186 @@ var defaultCollectorOptions = collectorOptions{
 	parallelBacklog: 0,
 }
 
-type ApplyCollectorOption interface {
-	apply(*collectorOptions)
+type ApplyCommanderOption interface {
+	apply(*commanderOptions)
 }
 
-type funcCollectorOption func(*collectorOptions)
+type funcCommanderOption func(*commanderOptions)
 
-func (fco funcCollectorOption) apply(co *collectorOptions) {
+func (fco funcCommanderOption) apply(co *commanderOptions) {
 	fco(co)
 }
 
-type collectorOption int
+type commanderOption int
 
-var CollectorOption collectorOption
+var CommanderOption commanderOption
 
-func (collectorOption) Name(name string) funcCollectorOption {
-	return func(c *collectorOptions) {
+func (commanderOption) Name(name string) funcCommanderOption {
+	return func(c *commanderOptions) {
 		c.name = name
 	}
 }
 
-func (c *Collector) WithName(name string) *Collector {
-	CollectorOption.Name(name).apply(&c.opts)
+func (c *Commander) WithName(name string) *Commander {
+	CommanderOption.Name(name).apply(&c.opts)
 	return c
 }
 
-func (collectorOption) Context(context context.Context) funcCollectorOption {
-	return func(c *collectorOptions) {
+func (commanderOption) Context(context context.Context) funcCommanderOption {
+	return func(c *commanderOptions) {
 		c.context = context
 	}
 }
 
-func (c *Collector) WithContext(context context.Context) *Collector {
-	CollectorOption.Context(context).apply(&c.opts)
+func (c *Commander) WithContext(context context.Context) *Commander {
+	CommanderOption.Context(context).apply(&c.opts)
 	return c
 }
 
-func (collectorOption) Safety() funcCollectorOption {
-	return func(c *collectorOptions) {
+func (commanderOption) Safety() funcCommanderOption {
+	return func(c *commanderOptions) {
 		c.safety = true
 	}
 }
 
-func (c *Collector) WithSafety() *Collector {
-	CollectorOption.Safety().apply(&c.opts)
+func (c *Commander) WithSafety() *Commander {
+	CommanderOption.Safety().apply(&c.opts)
 	return c
 }
 
-func (collectorOption) Background() funcCollectorOption {
-	return func(c *collectorOptions) {
+func (commanderOption) Background() funcCommanderOption {
+	return func(c *commanderOptions) {
 		c.background = true
 	}
 }
 
-func (c *Collector) WithBackground(background bool) *Collector {
-	CollectorOption.Background().apply(&c.opts)
+func (c *Commander) WithBackground(background bool) *Commander {
+	CommanderOption.Background().apply(&c.opts)
 	return c
 }
 
-func (collectorOption) ErrorChan(errorChan chan<- error) funcCollectorOption {
-	return func(c *collectorOptions) {
+func (commanderOption) ErrorChan(errorChan chan<- error) funcCommanderOption {
+	return func(c *commanderOptions) {
 		c.errorChan = errorChan
 	}
 }
 
-func (c *Collector) WithErrorChan(errorChan chan<- error) *Collector {
-	CollectorOption.ErrorChan(errorChan).apply(&c.opts)
+func (c *Commander) WithErrorChan(errorChan chan<- error) *Commander {
+	CommanderOption.ErrorChan(errorChan).apply(&c.opts)
 	return c
 }
 
-func (collectorOption) ParallelInit(parallelInit int) funcCollectorOption {
-	return func(c *collectorOptions) {
+func (commanderOption) ParallelInit(parallelInit int) funcCommanderOption {
+	return func(c *commanderOptions) {
 		if parallelInit > 0 {
 			c.parallelInit = parallelInit
 		}
 	}
 }
 
-func (c *Collector) WithParallelInit(parallelInit int) *Collector {
-	CollectorOption.ParallelInit(parallelInit).apply(&c.opts)
+func (c *Commander) WithParallelInit(parallelInit int) *Commander {
+	CommanderOption.ParallelInit(parallelInit).apply(&c.opts)
 	return c
 }
 
-func (collectorOption) ParallelTick(parallelTick time.Duration) funcCollectorOption {
-	return func(c *collectorOptions) {
+func (commanderOption) ParallelTick(parallelTick time.Duration) funcCommanderOption {
+	return func(c *commanderOptions) {
 		c.parallelTick = parallelTick
 	}
 }
 
-func (c *Collector) WithParallelTick(parallelTick time.Duration) *Collector {
-	CollectorOption.ParallelTick(parallelTick).apply(&c.opts)
+func (c *Commander) WithParallelTick(parallelTick time.Duration) *Commander {
+	CommanderOption.ParallelTick(parallelTick).apply(&c.opts)
 	return c
 }
 
-func (collectorOption) ParallelIncrease(parallelIncrease int) funcCollectorOption {
-	return func(c *collectorOptions) {
+func (commanderOption) ParallelIncrease(parallelIncrease int) funcCommanderOption {
+	return func(c *commanderOptions) {
 		if parallelIncrease >= 0 {
 			c.parallelIncrease = parallelIncrease
 		}
 	}
 }
 
-func (c *Collector) WithParallelIncrease(parallelIncrease int) *Collector {
-	CollectorOption.ParallelIncrease(parallelIncrease).apply(&c.opts)
+func (c *Commander) WithParallelIncrease(parallelIncrease int) *Commander {
+	CommanderOption.ParallelIncrease(parallelIncrease).apply(&c.opts)
 	return c
 }
 
-func (collectorOption) TPSLimit(tpsLimit int) funcCollectorOption {
-	return func(c *collectorOptions) {
+func (commanderOption) TPSLimit(tpsLimit int) funcCommanderOption {
+	return func(c *commanderOptions) {
 		if tpsLimit > 0 {
 			c.tpsLimit = tpsLimit
 		}
 	}
 }
 
-func (c *Collector) WithTPSLimit(tpsLimit int) *Collector {
-	CollectorOption.TPSLimit(tpsLimit).apply(&c.opts)
+func (c *Commander) WithTPSLimit(tpsLimit int) *Commander {
+	CommanderOption.TPSLimit(tpsLimit).apply(&c.opts)
 	return c
 }
 
-func (collectorOption) RequestBacklog(reqChanBacklog int) funcCollectorOption {
-	return func(c *collectorOptions) {
+func (commanderOption) RequestBacklog(reqChanBacklog int) funcCommanderOption {
+	return func(c *commanderOptions) {
 		if reqChanBacklog > 1 {
 			c.reqBacklog = reqChanBacklog
 		}
 	}
 }
 
-func (c *Collector) WithRequestBacklog(reqBacklog int) *Collector {
-	CollectorOption.RequestBacklog(reqBacklog).apply(&c.opts)
+func (c *Commander) WithRequestBacklog(reqBacklog int) *Commander {
+	CommanderOption.RequestBacklog(reqBacklog).apply(&c.opts)
 	return c
 }
 
-func (collectorOption) ResponseBacklog(respBacklog int) funcCollectorOption {
-	return func(c *collectorOptions) {
+func (commanderOption) ResponseBacklog(respBacklog int) funcCommanderOption {
+	return func(c *commanderOptions) {
 		if respBacklog > 1 {
 			c.respBacklog = respBacklog
 		}
 	}
 }
 
-func (c *Collector) WithResponseBacklog(respBacklog int) *Collector {
-	CollectorOption.ResponseBacklog(respBacklog).apply(&c.opts)
+func (c *Commander) WithResponseBacklog(respBacklog int) *Commander {
+	CommanderOption.ResponseBacklog(respBacklog).apply(&c.opts)
 	return c
 }
 
-func (collectorOption) ReportBacklog(reportBacklog int) funcCollectorOption {
-	return func(c *collectorOptions) {
+func (commanderOption) ReportBacklog(reportBacklog int) funcCommanderOption {
+	return func(c *commanderOptions) {
 		if reportBacklog > 1 {
 			c.reportBacklog = reportBacklog
 		}
 	}
 }
 
-func (c *Collector) WithReportBacklog(reportBacklog int) *Collector {
-	CollectorOption.ReportBacklog(reportBacklog).apply(&c.opts)
+func (c *Commander) WithReportBacklog(reportBacklog int) *Commander {
+	CommanderOption.ReportBacklog(reportBacklog).apply(&c.opts)
 	return c
 }
 
-func (collectorOption) TaskBacklog(taskBacklog int) funcCollectorOption {
-	return func(c *collectorOptions) {
+func (commanderOption) TaskBacklog(taskBacklog int) funcCommanderOption {
+	return func(c *commanderOptions) {
 		if taskBacklog > 1 {
 			c.taskBacklog = taskBacklog
 		}
 	}
 }
 
-func (c *Collector) WithTaskBacklog(taskBacklog int) *Collector {
-	CollectorOption.TaskBacklog(taskBacklog).apply(&c.opts)
+func (c *Commander) WithTaskBacklog(taskBacklog int) *Commander {
+	CommanderOption.TaskBacklog(taskBacklog).apply(&c.opts)
 	return c
 }
 
-func (collectorOption) ParallelBacklog(parallelBacklog int) funcCollectorOption {
-	return func(c *collectorOptions) {
+func (commanderOption) ParallelBacklog(parallelBacklog int) funcCommanderOption {
+	return func(c *commanderOptions) {
 		if parallelBacklog > 1 {
 			c.parallelBacklog = parallelBacklog
 		}
 	}
 }
 
-func (c *Collector) WithParallelBacklog(parallelBacklog int) *Collector {
-	CollectorOption.ParallelBacklog(parallelBacklog).apply(&c.opts)
+func (c *Commander) WithParallelBacklog(parallelBacklog int) *Commander {
+	CommanderOption.ParallelBacklog(parallelBacklog).apply(&c.opts)
 	return c
 }
