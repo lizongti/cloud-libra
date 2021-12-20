@@ -10,6 +10,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4 // indirect
 	github.com/gofrs/uuid v4.1.0+incompatible
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9 // indirect
