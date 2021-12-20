@@ -31,6 +31,13 @@ var coroutineStateName = map[CoroutineStateType]string{
 	CoroutineStateDead:      "dead",
 }
 
+func (t CoroutineStateType) String() string {
+	if s, ok := coroutineStateName[t]; ok {
+		return s
+	}
+	return fmt.Sprintf("coroutineStateName=%d?", int(t))
+}
+
 type (
 	// ID is the unique identifier for coroutine
 	ID = string
@@ -237,14 +244,14 @@ func (c *Coroutine) resume(inData []interface{}) []interface{} {
 	select {
 	case outData = <-c.outCh:
 		break
-	case <-time.After(time.Duration(c.opts.timeout) * time.Second):
+	case <-time.After(c.opts.timeout):
 		panic(fmt.Errorf("ID %s suspended for too long", c.id))
 	}
 
 	select {
 	case c.inCh <- inData:
 		break
-	case <-time.After(time.Duration(c.opts.timeout) * time.Second):
+	case <-time.After(c.opts.timeout):
 		panic(fmt.Errorf("ID %s suspended for too long", c.id))
 	}
 
@@ -257,7 +264,7 @@ func (c *Coroutine) yield(outData []interface{}) []interface{} {
 	select {
 	case c.outCh <- outData:
 		break
-	case <-time.After(time.Duration(c.opts.timeout) * time.Second):
+	case <-time.After(c.opts.timeout):
 		c.writeSyncStatus(CoroutineStateDead)
 		panic(fmt.Errorf("ID %s suspended for too long", c.id))
 	}
@@ -265,7 +272,7 @@ func (c *Coroutine) yield(outData []interface{}) []interface{} {
 	select {
 	case inData = <-c.inCh:
 		break
-	case <-time.After(time.Duration(c.opts.timeout) * time.Second):
+	case <-time.After(c.opts.timeout):
 		c.writeSyncStatus(CoroutineStateDead)
 		panic(fmt.Errorf("ID %s suspended for too long", c.id))
 	}
