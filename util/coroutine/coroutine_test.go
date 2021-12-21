@@ -1,110 +1,97 @@
 package coroutine_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/aceaura/libra/util/coroutine"
-
-	"strings"
 )
 
-func interfaceSliceToStringSlice(data []interface{}) []string {
-	strs := make([]string, 0)
-	for _, i := range data {
-		strs = append(strs, i.(string))
-	}
-	return strs
-}
-
 func TestCreate(t *testing.T) {
-	c := coroutine.Create(func(c *coroutine.Coroutine, args ...interface{}) error {
-		strs := interfaceSliceToStringSlice(args)
-		out := strings.Join(strs, " ") // coroutine resume 1
-		if out != "ID resume 1" {
-			t.Error("ID flow error, should be ID resume 1")
+	c, _ := coroutine.Create(func(c *coroutine.Coroutine, args ...interface{}) error {
+		if !reflect.DeepEqual(args, []interface{}{"Resume", "1"}) {
+			t.Error("flow error, expected `Resume 1`")
 		}
-		t.Log(out)
 
-		inData := c.Yield("ID", "yield", "2")
-		strs = interfaceSliceToStringSlice(inData)
-		out = strings.Join(strs, " ") // coroutine resume 3
-		if out != "ID resume 3" {
-			t.Error("ID flow error, should be ID resume 3")
+		inData, err := c.Yield("Yield", "2")
+		if err != nil {
+			t.Fatal(err)
 		}
-		t.Log(out)
 
-		_ = c.Yield("ID", "yield", "4")
+		if !reflect.DeepEqual(inData, []interface{}{"Resume", "3"}) {
+			t.Error("flow error, expected `Resume 3`")
+		}
+
+		_, err = c.Yield("Yield", "4")
+		if err != nil {
+			t.Fatal(err)
+		}
 		return nil
 	})
 
-	_, ok := coroutine.TryResume(c.ID(), "ID", "resume", "0")
-	if !ok {
-		t.Log("Try resume test result Correct")
+	_, err := c.TryResume("Resume", "0")
+	if err != coroutine.ErrCoroutineIsSuspended {
+		t.Fatal(err)
 	}
 
-	_, ok = coroutine.Resume(c.ID(), "ID", "resume", "1")
-	if !ok {
-		t.Log("Dead ID")
+	_, err = c.Resume("Resume", "1")
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	outData, ok := coroutine.Resume(c.ID(), "ID", "resume", "3")
-	if !ok {
-		t.Log("Dead ID")
+	outData, err := c.Resume("Resume", "3")
+	if err != nil {
+		t.Fatal(err)
 	}
-	strs := interfaceSliceToStringSlice(outData)
-	out := strings.Join(strs, " ") // coroutine yield 2
-	if out != "ID yield 2" {
-		t.Error("ID flow error, should be ID yield 2")
+
+	if !reflect.DeepEqual(outData, []interface{}{"Yield", "2"}) {
+		t.Error("flow error, expected `Yield 2`")
 	}
-	t.Log(out)
 }
 
 func TestStart(t *testing.T) {
 	c := coroutine.Wrap(func(c *coroutine.Coroutine, args ...interface{}) error {
-		strs := interfaceSliceToStringSlice(args)
-		out := strings.Join(strs, " ") // ID call 1
-		if out != "ID call 1" {
-			t.Error("ID flow error, should be ID call 1")
+		if !reflect.DeepEqual(args, []interface{}{"Call", "1"}) {
+			t.Error("flow error, expected `Call 1`")
 		}
-		t.Log(out)
 
-		inData := coroutine.Yield(c.ID(), "ID", "yield", "2")
-		strs = interfaceSliceToStringSlice(inData)
-		out = strings.Join(strs, " ") // ID resume 3
-		if out != "ID resume 3" {
-			t.Error("ID flow error, should be ID resume 3")
+		inData, err := coroutine.Yield(c.ID(), "Yield", "2")
+		if err != nil {
+			return err
 		}
-		t.Log(out)
 
-		_ = coroutine.Yield(c.ID(), "ID", "yield", "4")
+		if !reflect.DeepEqual(inData, []interface{}{"Resume", "3"}) {
+			t.Fatal("ID flow error, expected `Resume 3`")
+		}
+
+		_, err = coroutine.Yield(c.ID(), "Yield", "4")
+		if err != nil {
+			return err
+		}
 		return nil
 	})
 
 	go func() {
-		if err := coroutine.Call(c.ID(), "ID", "call", "1"); err != nil {
+		if err := coroutine.Call(c.ID(), "Call", "1"); err != nil {
 			t.Error(err)
 		}
 	}()
 
-	outData, ok := coroutine.Resume(c.ID(), "ID", "resume", "3")
-	if !ok {
-		t.Log("Dead ID")
+	outData, err := coroutine.Resume(c.ID(), "Resume", "3")
+	if err != nil {
+		t.Fatal(err)
 	}
-	strs := interfaceSliceToStringSlice(outData)
-	out := strings.Join(strs, " ") // ID yield 2
-	if out != "ID yield 2" {
-		t.Error("ID flow error, should be ID yield 2")
-	}
-	t.Log(out)
 
-	outData, ok = coroutine.Resume(c.ID(), "ID", "resume", "5")
-	if !ok {
-		t.Log("Dead ID")
+	if !reflect.DeepEqual(outData, []interface{}{"Yield", "2"}) {
+		t.Fatal("flow error, expected `Yield 2`")
 	}
-	strs = interfaceSliceToStringSlice(outData)
-	out = strings.Join(strs, " ") // ID yield 4
-	if out != "ID yield 4" {
-		t.Error("ID flow error, should be ID yield 4")
+
+	outData, err = coroutine.Resume(c.ID(), "Resume", "5")
+	if err != nil {
+		t.Fatal(err)
 	}
-	t.Log(out)
+
+	if !reflect.DeepEqual(outData, []interface{}{"Yield", "4"}) {
+		t.Fatal("flow error, expected `Yield 4`")
+	}
 }

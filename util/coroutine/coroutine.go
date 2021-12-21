@@ -1,6 +1,7 @@
 package coroutine
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -8,19 +9,25 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	ErrCoroutineIsDead      = errors.New("coroutine is dead")
+	ErrCoroutineIsSuspended = errors.New("coroutine is suspended")
+	ErrCoroutineTimeout     = errors.New("coroutine is timeout")
+)
+
 type CoroutineStateType int
 
 const (
-	// CoroutineStateCreated means ID is created and not started.
+	// CoroutineStateCreated means coroutine is created and not started.
 	CoroutineStateCreated = iota
 
-	// CoroutineStateSuspended means ID is started and yielded.
+	// CoroutineStateSuspended means coroutine is started and yielded.
 	CoroutineStateSuspended
 
-	// CoroutineStateRunning means ID is started and running.
+	// CoroutineStateRunning means coroutine is started and running.
 	CoroutineStateRunning
 
-	// CoroutineStateDead means ID not created or ended.
+	// CoroutineStateDead means coroutine not created or ended.
 	CoroutineStateDead
 )
 
@@ -79,7 +86,7 @@ func NewCoroutine(opt ...ApplyCoroutineOption) *Coroutine {
 	return c
 }
 
-// Start wraps and starts a ID up.
+// Start wraps and starts a coroutine up.
 // It is thread-safe, and it should be called before other funcs.
 func Start(f func(c *Coroutine) error) error {
 	return Call(Wrap(func(c *Coroutine, args ...interface{}) error {
@@ -87,37 +94,40 @@ func Start(f func(c *Coroutine) error) error {
 	}).ID())
 }
 
-// Create wraps and yields a ID with no args, waits for a resume.
+// Create wraps and yields a coroutine with no args, waits for a resume.
 // It is not thread-safe, and it should be called before other funcs.
-// Call `Resume` after `Create` to start up a ID.
-func Create(f func(c *Coroutine, inData ...interface{}) error) *Coroutine {
+// Call `Resume` after `Create` to start up a coroutine.
+func Create(f func(c *Coroutine, inData ...interface{}) error) (*Coroutine, chan error) {
 	c := Wrap(func(c *Coroutine, args ...interface{}) error {
-		return f(c, c.Yield()...)
-	})
-	go func() {
-		if err := c.Call(); err != nil {
-			panic(err)
+		outData, err := c.Yield()
+		if err != nil {
+			return err
 		}
+		return f(c, outData...)
+	})
+	errChan := make(chan error, 1)
+	go func() {
+		errChan <- c.Call()
 	}()
-	return c
+	return c, errChan
 }
 
-// Wrap wraps a ID and waits for a startup.
+// Wrap wraps a coroutine and waits for a startup.
 // It is thread-safe, and it should be called before other funcs.
-// Call `Call` after `Wrap` to start up a ID.
+// Call `Call` after `Wrap` to start up a coroutine.
 func Wrap(f func(c *Coroutine, args ...interface{}) error) *Coroutine {
 	c := NewCoroutine().WithFunc(f)
 	coroutines.Store(c.ID(), c)
 	return c
 }
 
-// Call launch a ID that is already wrapped.
+// Call launch a coroutine that is already wrapped.
 // It is not thread-safe, and it can only be called beside after Wrap.
-// Call `Call` After `Wrap` to start up a ID.
+// Call `Call` After `Wrap` to start up a coroutine.
 func Call(id ID, args ...interface{}) error {
 	v, ok := coroutines.Load(id)
 	if !ok {
-		panic(fmt.Errorf("ID %s is not found", id))
+		return ErrCoroutineIsDead
 	}
 	c := v.(*Coroutine)
 	return c.Call(args...)
@@ -125,12 +135,12 @@ func Call(id ID, args ...interface{}) error {
 
 // Resume continues a suspend ID, passing data in and out.
 // It is thread-safe, and it can only be called in other Goroutine.
-// Call `Resume` after `Create` to start up a ID.
-// Call `Resume` after `Yield` to continue a ID.
-func Resume(id ID, inData ...interface{}) ([]interface{}, bool) {
+// Call `Resume` after `Create` to start up a coroutine.
+// Call `Resume` after `Yield` to continue a coroutine.
+func Resume(id ID, inData ...interface{}) ([]interface{}, error) {
 	v, ok := coroutines.Load(id)
 	if !ok {
-		panic(fmt.Errorf("coroutine %s is missing or dead", id))
+		return nil, ErrCoroutineIsDead
 	}
 	c := v.(*Coroutine)
 	return c.Resume(inData...)
@@ -138,12 +148,12 @@ func Resume(id ID, inData ...interface{}) ([]interface{}, bool) {
 
 // TryResume likes Resume, but checks status instead of waiting for status.
 // It is thread-safe, and it can only be called in other Goroutine.
-// Call `TryResume` after `Create` to start up a ID.
-// Call `TryResume` after `Yield` to continue a ID.
-func TryResume(id ID, inData ...interface{}) ([]interface{}, bool) {
+// Call `TryResume` after `Create` to start up a coroutine.
+// Call `TryResume` after `Yield` to continue a coroutine.
+func TryResume(id ID, inData ...interface{}) ([]interface{}, error) {
 	v, ok := coroutines.Load(id)
 	if !ok {
-		panic(fmt.Errorf("coroutine %s is missing or dead", id))
+		return nil, ErrCoroutineIsDead
 	}
 	c := v.(*Coroutine)
 	return c.TryResume(inData...)
@@ -152,17 +162,17 @@ func TryResume(id ID, inData ...interface{}) ([]interface{}, bool) {
 // Yield suspends a running coroutine, passing data in and out.
 // It is not thread-safe, and it can only be called in entity.fn.
 // Call `Resume`, `TryResume` or `AsyncResume`
-// after `Yield` to continue a ID.
-func Yield(id ID, outData ...interface{}) []interface{} {
+// after `Yield` to continue a coroutine.
+func Yield(id ID, outData ...interface{}) ([]interface{}, error) {
 	v, ok := coroutines.Load(id)
 	if !ok {
-		panic(fmt.Errorf("coroutine %s is missing or dead", id))
+		return nil, ErrCoroutineIsDead
 	}
 	c := v.(*Coroutine)
 	return c.Yield(outData...)
 }
 
-// Status shows the status of a ID.
+// Status shows the status of a coroutine.
 // It is thread-safe, and it can be called in any Goroutine.
 // Call `Status` anywhere you need.
 func Status(id ID) CoroutineStateType {
@@ -195,31 +205,32 @@ func (c *Coroutine) Call(args ...interface{}) error {
 	}()
 }
 
-func (c *Coroutine) Resume(inData ...interface{}) ([]interface{}, bool) {
+func (c *Coroutine) Resume(inData ...interface{}) ([]interface{}, error) {
 	c.mutexResume.Lock()
 	defer c.mutexResume.Unlock()
 	if c.readSyncStatus() == CoroutineStateDead {
-		return nil, false
+		return nil, ErrCoroutineIsDead
 	}
-	outData := c.resume(inData)
-	return outData, true
+	return c.resume(inData)
 }
 
-func (c *Coroutine) TryResume(inData ...interface{}) ([]interface{}, bool) {
+func (c *Coroutine) TryResume(inData ...interface{}) ([]interface{}, error) {
 	c.mutexResume.Lock()
 	defer c.mutexResume.Unlock()
 	if c.readSyncStatus() != CoroutineStateSuspended {
-		return nil, false
+		return nil, ErrCoroutineIsSuspended
 	}
-	outData := c.resume(inData)
-	return outData, true
+	return c.resume(inData)
 }
 
-func (c *Coroutine) Yield(outData ...interface{}) []interface{} {
+func (c *Coroutine) Yield(outData ...interface{}) ([]interface{}, error) {
 	c.writeSyncStatus(CoroutineStateSuspended)
-	inData := c.yield(outData)
+	inData, err := c.yield(outData)
+	if err != nil {
+		return nil, err
+	}
 	c.writeSyncStatus(CoroutineStateRunning)
-	return inData
+	return inData, nil
 }
 
 func (c *Coroutine) Status() CoroutineStateType {
@@ -238,27 +249,27 @@ func (c *Coroutine) readSyncStatus() CoroutineStateType {
 	return c.status
 }
 
-func (c *Coroutine) resume(inData []interface{}) []interface{} {
+func (c *Coroutine) resume(inData []interface{}) ([]interface{}, error) {
 	var outData []interface{}
 
 	select {
 	case outData = <-c.outCh:
 		break
 	case <-time.After(c.opts.timeout):
-		panic(fmt.Errorf("ID %s suspended for too long", c.id))
+		return nil, ErrCoroutineTimeout
 	}
 
 	select {
 	case c.inCh <- inData:
 		break
 	case <-time.After(c.opts.timeout):
-		panic(fmt.Errorf("ID %s suspended for too long", c.id))
+		return nil, ErrCoroutineTimeout
 	}
 
-	return outData
+	return outData, nil
 }
 
-func (c *Coroutine) yield(outData []interface{}) []interface{} {
+func (c *Coroutine) yield(outData []interface{}) ([]interface{}, error) {
 	var inData []interface{}
 
 	select {
@@ -266,7 +277,7 @@ func (c *Coroutine) yield(outData []interface{}) []interface{} {
 		break
 	case <-time.After(c.opts.timeout):
 		c.writeSyncStatus(CoroutineStateDead)
-		panic(fmt.Errorf("ID %s suspended for too long", c.id))
+		return nil, ErrCoroutineTimeout
 	}
 
 	select {
@@ -274,10 +285,10 @@ func (c *Coroutine) yield(outData []interface{}) []interface{} {
 		break
 	case <-time.After(c.opts.timeout):
 		c.writeSyncStatus(CoroutineStateDead)
-		panic(fmt.Errorf("ID %s suspended for too long", c.id))
+		return nil, ErrCoroutineTimeout
 	}
 
-	return inData
+	return inData, nil
 }
 
 type coroutineOptions struct {
