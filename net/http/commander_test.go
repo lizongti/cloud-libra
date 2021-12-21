@@ -9,7 +9,7 @@ import (
 	"github.com/aceaura/libra/net/http"
 )
 
-func TestCollector(t *testing.T) {
+func TestComannder(t *testing.T) {
 	const (
 		url      = "https://www.baidu.com"
 		interval = 10 * time.Millisecond
@@ -57,4 +57,43 @@ func TestCollector(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestInvoke(t *testing.T) {
+	const (
+		url      = "https://www.baidu.com"
+		interval = 10 * time.Millisecond
+	)
+	c := http.NewCommander(
+		http.CommanderOption.Background(),
+		http.CommanderOption.Safety(),
+		http.CommanderOption.Context(context.Background()),
+		http.CommanderOption.Name("HttpCollector"),
+		http.CommanderOption.RequestBacklog(1000),
+		http.CommanderOption.ResponseBacklog(1000),
+		http.CommanderOption.ReportBacklog(1),
+		http.CommanderOption.TPSLimit(20),
+		http.CommanderOption.ParallelInit(10),
+		http.CommanderOption.ParallelTick(100*time.Millisecond),
+		http.CommanderOption.ParallelIncrease(1),
+	)
+	device.Bus().WithDevice(c)
+	if err := c.Serve(); err != nil {
+		t.Fatalf("unexpected error getting from device: %v", err)
+	}
+
+	req := &http.ServiceRequest{
+		URL:     url,
+		Timeout: 10 * time.Second,
+		Retry:   3,
+	}
+
+	resp, err := c.Invoke(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Err != nil {
+		t.Fatal(err)
+	}
+	t.Log(resp.Body)
 }

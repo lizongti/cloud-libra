@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/aceaura/libra/util/coroutine"
+	"github.com/aceaura/libra/core/coroutine"
 )
 
 func TestCreate(t *testing.T) {
@@ -30,7 +30,7 @@ func TestCreate(t *testing.T) {
 	})
 
 	_, err := c.TryResume("Resume", "0")
-	if err != coroutine.ErrCoroutineIsSuspended {
+	if err != coroutine.ErrCoroutineNotSuspended {
 		t.Fatal(err)
 	}
 

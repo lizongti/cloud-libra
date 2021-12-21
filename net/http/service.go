@@ -7,11 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aceaura/libra/core/coroutine"
 	"github.com/aceaura/libra/core/device"
 	"github.com/aceaura/libra/core/magic"
 )
 
 type ServiceRequest struct {
+	CoroutineID coroutine.ID
 	URL         string
 	Timeout     time.Duration
 	Retry       int

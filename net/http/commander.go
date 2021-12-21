@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aceaura/libra/core/coroutine"
 	"github.com/aceaura/libra/core/device"
 	"github.com/aceaura/libra/core/encoding"
 	"github.com/aceaura/libra/core/magic"
@@ -15,7 +16,9 @@ import (
 )
 
 var (
-	ErrRequestNotFound = errors.New("request not found by name")
+	ErrRequestNotFound               = errors.New("request not found by name")
+	ErrCoroutineYieldOutputEmpty     = errors.New("coroutine yield output is empty ")
+	ErrCoroutineYieldOutputTypeError = errors.New("coroutine yield output type error")
 )
 
 type Commander struct {
@@ -104,6 +107,34 @@ func (c *Commander) ResponseChan() <-chan *ServiceResponse {
 	return c.respChan
 }
 
+func Invoke(c *Commander, req *ServiceRequest) (*ServiceResponse, error) {
+	return c.Invoke(req)
+}
+
+func (c *Commander) Invoke(req *ServiceRequest) (*ServiceResponse, error) {
+	var resp *ServiceResponse
+	if err := coroutine.Start(func(co *coroutine.Coroutine) error {
+		req.CoroutineID = co.ID()
+		c.RequestChan() <- req
+		output, err := co.Yield()
+		if err != nil {
+			return err
+		}
+		if len(output) == 0 {
+			return ErrCoroutineYieldOutputEmpty
+		}
+		var ok bool
+		resp, ok = output[0].(*ServiceResponse)
+		if !ok {
+			return ErrCoroutineYieldOutputTypeError
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (c *Commander) serve() (err error) {
 	defer func() {
 		if v := recover(); v != nil {
@@ -170,7 +201,12 @@ func (c *Commander) createTask(req *ServiceRequest) *scheduler.Task {
 	return scheduler.NewTask(
 		scheduler.TaskOption.Name(fmt.Sprintf("%s[%d]", c.String(), c.reqIndex)),
 		scheduler.TaskOption.Stage(func(task *scheduler.Task) error {
-			c.respChan <- c.invoke(c.opts.context, c.String(), req)
+			if req.CoroutineID != "" {
+				coroutine.TryResume(req.CoroutineID, c.invoke(c.opts.context, c.String(), req))
+			} else {
+				c.respChan <- c.invoke(c.opts.context, c.String(), req)
+			}
+
 			return nil
 		}),
 	)

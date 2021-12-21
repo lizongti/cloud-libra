@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	ErrCoroutineIsDead      = errors.New("coroutine is dead")
-	ErrCoroutineIsSuspended = errors.New("coroutine is suspended")
-	ErrCoroutineTimeout     = errors.New("coroutine is timeout")
+	ErrCoroutineIsDead       = errors.New("coroutine is dead")
+	ErrCoroutineNotSuspended = errors.New("coroutine is not suspended")
+	ErrCoroutineTimeout      = errors.New("coroutine is timeout")
 )
 
 type CoroutineStateType int
@@ -89,9 +89,9 @@ func NewCoroutine(opt ...ApplyCoroutineOption) *Coroutine {
 // Start wraps and starts a coroutine up.
 // It is thread-safe, and it should be called before other funcs.
 func Start(f func(c *Coroutine) error) error {
-	return Call(Wrap(func(c *Coroutine, args ...interface{}) error {
+	return Wrap(func(c *Coroutine, args ...interface{}) error {
 		return f(c)
-	}).ID())
+	}).Call()
 }
 
 // Create wraps and yields a coroutine with no args, waits for a resume.
@@ -218,7 +218,7 @@ func (c *Coroutine) TryResume(inData ...interface{}) ([]interface{}, error) {
 	c.mutexResume.Lock()
 	defer c.mutexResume.Unlock()
 	if c.readSyncStatus() != CoroutineStateSuspended {
-		return nil, ErrCoroutineIsSuspended
+		return nil, ErrCoroutineNotSuspended
 	}
 	return c.resume(inData)
 }
