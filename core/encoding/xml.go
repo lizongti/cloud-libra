@@ -20,6 +20,10 @@ func (xml XML) String() string {
 	return magic.TypeName(xml)
 }
 
+func (xml XML) Style() EncodingStyleType {
+	return EncodingStyleStruct
+}
+
 func (XML) Marshal(v interface{}) ([]byte, error) {
 	return xml.Marshal(v)
 }

@@ -21,8 +21,12 @@ func NewProtobuf() *Protobuf {
 	return new(Protobuf)
 }
 
-func (protobuf Protobuf) String() string {
-	return magic.TypeName(protobuf)
+func (p Protobuf) String() string {
+	return magic.TypeName(p)
+}
+
+func (p Protobuf) Style() EncodingStyleType {
+	return EncodingStyleStruct
 }
 
 func (Protobuf) Marshal(v interface{}) ([]byte, error) {

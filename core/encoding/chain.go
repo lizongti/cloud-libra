@@ -1,9 +1,14 @@
 package encoding
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/aceaura/libra/core/magic"
+)
+
+var (
+	ErrWrongEncodingStyle = errors.New("wrong encoding style is found in chain")
 )
 
 type ChainEncoding struct {
@@ -45,6 +50,10 @@ func (c ChainEncoding) String() string {
 	return builder.String()
 }
 
+func (c ChainEncoding) Style() EncodingStyleType {
+	return EncodingStyleMix
+}
+
 func (c ChainEncoding) Reverse() Encoding {
 	re := ChainEncoding{
 		encoder: make([]string, len(c.decoder)),
@@ -74,6 +83,9 @@ func (c ChainEncoding) Marshal(v interface{}) ([]byte, error) {
 				return nil, err
 			}
 		} else {
+			if encoding.Style() == EncodingStyleStruct {
+				return nil, ErrWrongEncodingStyle
+			}
 			data, err = encoding.Marshal(data)
 			if err != nil {
 				return nil, err
@@ -97,6 +109,9 @@ func (c ChainEncoding) Unmarshal(data []byte, v interface{}) error {
 			}
 			data = bytes.Data
 		} else {
+			if encoding.Style() == EncodingStyleStruct {
+				return ErrWrongEncodingStyle
+			}
 			err = encoding.Unmarshal(data, v)
 			if err != nil {
 				return err

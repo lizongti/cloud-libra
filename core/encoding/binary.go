@@ -7,6 +7,7 @@ import (
 	"github.com/aceaura/libra/core/magic"
 )
 
+// TO DO
 type Binary struct{}
 
 func init() {
@@ -19,6 +20,10 @@ func NewBinary() *Binary {
 
 func (b Binary) String() string {
 	return magic.TypeName(b)
+}
+
+func (Binary) Style() EncodingStyleType {
+	return EncodingStyleStruct
 }
 
 func (Binary) Marshal(v interface{}) ([]byte, error) {
@@ -52,6 +57,10 @@ func (le LittleEndian) String() string {
 	return magic.TypeName(le)
 }
 
+func (le LittleEndian) Style() EncodingStyleType {
+	return EncodingStyleStruct
+}
+
 func (LittleEndian) Marshal(v interface{}) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	if err := binary.Write(buf, binary.LittleEndian, v); err != nil {
@@ -81,6 +90,10 @@ func NewBigEndian() *BigEndian {
 
 func (be BigEndian) String() string {
 	return magic.TypeName(be)
+}
+
+func (be BigEndian) Style() EncodingStyleType {
+	return EncodingStyleStruct
 }
 
 func (BigEndian) Marshal(v interface{}) ([]byte, error) {

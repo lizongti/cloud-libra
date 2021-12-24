@@ -11,8 +11,30 @@ var (
 	ErrEncodingMissingEncoding = errors.New("encoding cannot find encoding by name")
 )
 
+type EncodingStyleType int
+
+const (
+	EncodingStyleStruct = iota
+	EncodingStyleBytes
+	EncodingStyleMix
+)
+
+var encodingStyleName = map[EncodingStyleType]string{
+	EncodingStyleStruct: "struct",
+	EncodingStyleBytes:  "bytes",
+	EncodingStyleMix:    "mix",
+}
+
+func (t EncodingStyleType) String() string {
+	if s, ok := encodingStyleName[t]; ok {
+		return s
+	}
+	return fmt.Sprintf("encodingStyleName=%d?", int(t))
+}
+
 type Encoding interface {
 	String() string
+	Style() EncodingStyleType
 	Marshal(interface{}) ([]byte, error)
 	Unmarshal([]byte, interface{}) error
 	Reverse() Encoding

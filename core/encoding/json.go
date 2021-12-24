@@ -25,6 +25,10 @@ func (json JSON) String() string {
 	return magic.TypeName(json)
 }
 
+func (json JSON) Style() EncodingStyleType {
+	return EncodingStyleStruct
+}
+
 func (JSON) Marshal(v interface{}) ([]byte, error) {
 	return json.Marshal(v)
 }
@@ -33,6 +37,6 @@ func (JSON) Unmarshal(data []byte, v interface{}) error {
 	return json.Unmarshal(data, v)
 }
 
-func (j JSON) Reverse() Encoding {
-	return j
+func (json JSON) Reverse() Encoding {
+	return json
 }

@@ -20,6 +20,10 @@ func (yaml YAML) String() string {
 	return magic.TypeName(yaml)
 }
 
+func (yaml YAML) Style() EncodingStyleType {
+	return EncodingStyleStruct
+}
+
 func (YAML) Marshal(v interface{}) ([]byte, error) {
 	return yaml.Marshal(v)
 }

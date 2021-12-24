@@ -20,8 +20,12 @@ func NewLazy() *Lazy {
 	return new(Lazy)
 }
 
-func (lazy Lazy) String() string {
-	return magic.TypeName(lazy)
+func (l Lazy) String() string {
+	return magic.TypeName(l)
+}
+
+func (Lazy) Style() EncodingStyleType {
+	return EncodingStyleBytes
 }
 
 func (Lazy) Marshal(v interface{}) ([]byte, error) {

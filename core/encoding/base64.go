@@ -26,6 +26,10 @@ func (b Base64) String() string {
 	return magic.TypeName(b)
 }
 
+func (Base64) Style() EncodingStyleType {
+	return EncodingStyleBytes
+}
+
 func (Base64) Marshal(v interface{}) ([]byte, error) {
 	switch v := v.(type) {
 	case []byte:
@@ -72,6 +76,10 @@ func NewBase64URL() *Base64URL {
 
 func (b Base64URL) String() string {
 	return magic.TypeName(b)
+}
+
+func (Base64URL) Style() EncodingStyleType {
+	return EncodingStyleBytes
 }
 
 func (Base64URL) Marshal(v interface{}) ([]byte, error) {
