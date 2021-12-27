@@ -1,39 +1,45 @@
 package tree
 
-import "github.com/spf13/cast"
+import (
+	"strconv"
+
+	"github.com/spf13/cast"
+)
 
 type MapTree struct {
 	data map[string]interface{}
 }
 
 func (mt *MapTree) Get(path []string) interface{} {
-	return mt.searchMap(mt.data, path)
+	return mt.search(mt.data, path)
 }
 
-func (mt *MapTree) searchMap(source map[string]interface{}, path []string) interface{} {
+func (mt *MapTree) search(source interface{}, path []string) interface{} {
 	if len(path) == 0 {
 		return source
 	}
 
-	next, ok := source[path[0]]
-	if ok {
-		// Fast path
-		if len(path) == 1 {
-			return next
-		}
-
-		// Nested case
-		switch next.(type) {
-		case map[interface{}]interface{}:
-			return mt.searchMap(cast.ToStringMap(next), path[1:])
-		case map[string]interface{}:
-			// Type assertion is safe here since it is only reached
-			// if the type of `next` is the same as the type being asserted
-			return mt.searchMap(next.(map[string]interface{}), path[1:])
-		default:
-			// got a value but nested key expected, return "nil" for not found
+	switch source := source.(type) {
+	case map[interface{}]interface{}:
+		next, ok := cast.ToStringMap(source)[path[0]]
+		if !ok {
 			return nil
 		}
+		return mt.search(next, path[1:])
+	case map[string]interface{}:
+		next, ok := source[path[0]]
+		if !ok {
+			return nil
+		}
+		return mt.search(next, path[1:])
+	case []interface{}:
+		index, err := strconv.Atoi(path[0])
+		if err != nil || len(source) <= index {
+			return nil
+		}
+		next := source[index]
+		return mt.search(next, path[1:])
+	default:
+		return nil
 	}
-	return nil
 }
