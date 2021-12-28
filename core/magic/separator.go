@@ -3,6 +3,7 @@ package magic
 type SeparatorType = string
 
 const (
+	SeparatorLazy         SeparatorType = "\u0000"
 	SeparatorNone         SeparatorType = ""
 	SeparatorSpace        SeparatorType = " "
 	SeparatorSlash        SeparatorType = "/"

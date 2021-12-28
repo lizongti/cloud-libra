@@ -35,12 +35,14 @@ func Standardize(s string, sep SeparatorType) string {
 	if s == "" {
 		return s
 	}
+	var words []string
+	var b = []byte{}
 	if sep == SeparatorNone {
-		return camelize(s)
+		words = []string{s}
+	} else {
+		words = strings.Split(s, sep)
 	}
 
-	b := []byte{}
-	words := strings.Split(s, sep)
 	for _, word := range words {
 		word = camelize(word)
 		abbr, ok := abbrMap[word]
@@ -60,13 +62,6 @@ func camelize(s string) string {
 	}
 	return string(b)
 }
-
-// func ChainSplashUnderScore(s string) []string {
-// 	return Chain(s, ChainStyle{
-// 		ChainSeperator: SeparatorSlash,
-// 		WordSeparator:  SeparatorUnderscore,
-// 	})
-// }
 
 type ChainStyle struct {
 	ChainSeperator SeparatorType

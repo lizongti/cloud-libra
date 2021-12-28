@@ -3,11 +3,17 @@ package tree
 import (
 	"strconv"
 
-	"github.com/spf13/cast"
+	"github.com/aceaura/libra/core/cast"
 )
 
 type MapTree struct {
 	data map[string]interface{}
+}
+
+func NewMapTree(data map[string]interface{}) *MapTree {
+	return &MapTree{
+		data: data,
+	}
 }
 
 func (mt *MapTree) Get(path []string) interface{} {
@@ -42,4 +48,8 @@ func (mt *MapTree) search(source interface{}, path []string) interface{} {
 	default:
 		return nil
 	}
+}
+
+func (mt *MapTree) Override(omt *MapTree) *MapTree {
+	return nil
 }
