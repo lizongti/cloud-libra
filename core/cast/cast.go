@@ -8,169 +8,169 @@ package cast
 
 import "time"
 
-// ToBool casts an interface to a bool type.
-func ToBool(i interface{}) bool {
-	v, _ := ToBoolE(i)
+// Bool casts an interface to a bool type.
+func Bool(i interface{}) bool {
+	v, _ := BoolE(i)
 	return v
 }
 
-// ToTime casts an interface to a time.Time type.
-func ToTime(i interface{}) time.Time {
-	v, _ := ToTimeE(i)
+// Time casts an interface to a time.Time type.
+func Time(i interface{}) time.Time {
+	v, _ := TimeE(i)
 	return v
 }
 
-func ToTimeInDefaultLocation(i interface{}, location *time.Location) time.Time {
-	v, _ := ToTimeInDefaultLocationE(i, location)
+func TimeInDefaultLocation(i interface{}, location *time.Location) time.Time {
+	v, _ := TimeInDefaultLocationE(i, location)
 	return v
 }
 
-// ToDuration casts an interface to a time.Duration type.
-func ToDuration(i interface{}) time.Duration {
-	v, _ := ToDurationE(i)
+// Duration casts an interface to a time.Duration type.
+func Duration(i interface{}) time.Duration {
+	v, _ := DurationE(i)
 	return v
 }
 
-// ToFloat64 casts an interface to a float64 type.
-func ToFloat64(i interface{}) float64 {
-	v, _ := ToFloat64E(i)
+// Float64 casts an interface to a float64 type.
+func Float64(i interface{}) float64 {
+	v, _ := Float64E(i)
 	return v
 }
 
-// ToFloat32 casts an interface to a float32 type.
-func ToFloat32(i interface{}) float32 {
-	v, _ := ToFloat32E(i)
+// Float32 casts an interface to a float32 type.
+func Float32(i interface{}) float32 {
+	v, _ := Float32E(i)
 	return v
 }
 
-// ToInt64 casts an interface to an int64 type.
-func ToInt64(i interface{}) int64 {
-	v, _ := ToInt64E(i)
+// Int64 casts an interface to an int64 type.
+func Int64(i interface{}) int64 {
+	v, _ := Int64E(i)
 	return v
 }
 
-// ToInt32 casts an interface to an int32 type.
-func ToInt32(i interface{}) int32 {
-	v, _ := ToInt32E(i)
+// Int32 casts an interface to an int32 type.
+func Int32(i interface{}) int32 {
+	v, _ := Int32E(i)
 	return v
 }
 
-// ToInt16 casts an interface to an int16 type.
-func ToInt16(i interface{}) int16 {
-	v, _ := ToInt16E(i)
+// Int16 casts an interface to an int16 type.
+func Int16(i interface{}) int16 {
+	v, _ := Int16E(i)
 	return v
 }
 
-// ToInt8 casts an interface to an int8 type.
-func ToInt8(i interface{}) int8 {
-	v, _ := ToInt8E(i)
+// Int8 casts an interface to an int8 type.
+func Int8(i interface{}) int8 {
+	v, _ := Int8E(i)
 	return v
 }
 
-// ToInt casts an interface to an int type.
-func ToInt(i interface{}) int {
-	v, _ := ToIntE(i)
+// Int casts an interface to an int type.
+func Int(i interface{}) int {
+	v, _ := IntE(i)
 	return v
 }
 
-// ToUint casts an interface to a uint type.
-func ToUint(i interface{}) uint {
-	v, _ := ToUintE(i)
+// Uint casts an interface to a uint type.
+func Uint(i interface{}) uint {
+	v, _ := UintE(i)
 	return v
 }
 
-// ToUint64 casts an interface to a uint64 type.
-func ToUint64(i interface{}) uint64 {
-	v, _ := ToUint64E(i)
+// Uint64 casts an interface to a uint64 type.
+func Uint64(i interface{}) uint64 {
+	v, _ := Uint64E(i)
 	return v
 }
 
-// ToUint32 casts an interface to a uint32 type.
-func ToUint32(i interface{}) uint32 {
-	v, _ := ToUint32E(i)
+// Uint32 casts an interface to a uint32 type.
+func Uint32(i interface{}) uint32 {
+	v, _ := Uint32E(i)
 	return v
 }
 
-// ToUint16 casts an interface to a uint16 type.
-func ToUint16(i interface{}) uint16 {
-	v, _ := ToUint16E(i)
+// Uint16 casts an interface to a uint16 type.
+func Uint16(i interface{}) uint16 {
+	v, _ := Uint16E(i)
 	return v
 }
 
-// ToUint8 casts an interface to a uint8 type.
-func ToUint8(i interface{}) uint8 {
-	v, _ := ToUint8E(i)
+// Uint8 casts an interface to a uint8 type.
+func Uint8(i interface{}) uint8 {
+	v, _ := Uint8E(i)
 	return v
 }
 
-// ToString casts an interface to a string type.
-func ToString(i interface{}) string {
-	v, _ := ToStringE(i)
+// String casts an interface to a string type.
+func String(i interface{}) string {
+	v, _ := StringE(i)
 	return v
 }
 
-// ToStringMapString casts an interface to a map[string]string type.
-func ToStringMapString(i interface{}) map[string]string {
-	v, _ := ToStringMapStringE(i)
+// StringMapString casts an interface to a map[string]string type.
+func StringMapString(i interface{}) map[string]string {
+	v, _ := StringMapStringE(i)
 	return v
 }
 
-// ToStringMapStringSlice casts an interface to a map[string][]string type.
-func ToStringMapStringSlice(i interface{}) map[string][]string {
-	v, _ := ToStringMapStringSliceE(i)
+// StringMapStringSlice casts an interface to a map[string][]string type.
+func StringMapStringSlice(i interface{}) map[string][]string {
+	v, _ := StringMapStringSliceE(i)
 	return v
 }
 
-// ToStringMapBool casts an interface to a map[string]bool type.
-func ToStringMapBool(i interface{}) map[string]bool {
-	v, _ := ToStringMapBoolE(i)
+// StringMapBool casts an interface to a map[string]bool type.
+func StringMapBool(i interface{}) map[string]bool {
+	v, _ := StringMapBoolE(i)
 	return v
 }
 
-// ToStringMapInt casts an interface to a map[string]int type.
-func ToStringMapInt(i interface{}) map[string]int {
-	v, _ := ToStringMapIntE(i)
+// StringMapInt casts an interface to a map[string]int type.
+func StringMapInt(i interface{}) map[string]int {
+	v, _ := StringMapIntE(i)
 	return v
 }
 
-// ToStringMapInt64 casts an interface to a map[string]int64 type.
-func ToStringMapInt64(i interface{}) map[string]int64 {
-	v, _ := ToStringMapInt64E(i)
+// StringMapInt64 casts an interface to a map[string]int64 type.
+func StringMapInt64(i interface{}) map[string]int64 {
+	v, _ := StringMapInt64E(i)
 	return v
 }
 
-// ToStringMap casts an interface to a map[string]interface{} type.
-func ToStringMap(i interface{}) map[string]interface{} {
-	v, _ := ToStringMapE(i)
+// StringMap casts an interface to a map[string]interface{} type.
+func StringMap(i interface{}) map[string]interface{} {
+	v, _ := StringMapE(i)
 	return v
 }
 
-// ToSlice casts an interface to a []interface{} type.
-func ToSlice(i interface{}) []interface{} {
-	v, _ := ToSliceE(i)
+// Slice casts an interface to a []interface{} type.
+func Slice(i interface{}) []interface{} {
+	v, _ := SliceE(i)
 	return v
 }
 
-// ToBoolSlice casts an interface to a []bool type.
-func ToBoolSlice(i interface{}) []bool {
-	v, _ := ToBoolSliceE(i)
+// BoolSlice casts an interface to a []bool type.
+func BoolSlice(i interface{}) []bool {
+	v, _ := BoolSliceE(i)
 	return v
 }
 
-// ToStringSlice casts an interface to a []string type.
-func ToStringSlice(i interface{}) []string {
-	v, _ := ToStringSliceE(i)
+// StringSlice casts an interface to a []string type.
+func StringSlice(i interface{}) []string {
+	v, _ := StringSliceE(i)
 	return v
 }
 
-// ToIntSlice casts an interface to a []int type.
-func ToIntSlice(i interface{}) []int {
-	v, _ := ToIntSliceE(i)
+// IntSlice casts an interface to a []int type.
+func IntSlice(i interface{}) []int {
+	v, _ := IntSliceE(i)
 	return v
 }
 
-// ToDurationSlice casts an interface to a []time.Duration type.
-func ToDurationSlice(i interface{}) []time.Duration {
-	v, _ := ToDurationSliceE(i)
+// DurationSlice casts an interface to a []time.Duration type.
+func DurationSlice(i interface{}) []time.Duration {
+	v, _ := DurationSliceE(i)
 	return v
 }

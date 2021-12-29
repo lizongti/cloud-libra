@@ -238,3 +238,6 @@ func (mt *MapTree) merge(source interface{}, target interface{}) interface{} {
 func (mt *MapTree) Dulplicate() *MapTree {
 	return NewMapTree(deepcopy.Copy(mt.data).(map[string]interface{}))
 }
+
+
+func (mt *MapTree) Hash()
