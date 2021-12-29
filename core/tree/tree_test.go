@@ -24,7 +24,7 @@ type Animal struct {
 	Count       int
 }
 
-func TestCase1(t *testing.T) {
+func TestMapTree(t *testing.T) {
 	var zoo = Zoo{
 		Name: "Beasts & Monsters",
 		Keepers: []Keeper{

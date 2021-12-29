@@ -17,7 +17,7 @@ func NewMapTree(data map[string]interface{}) *MapTree {
 	}
 }
 
-func (mt *MapTree) Data() map[string]interface{} {
+func (mt *MapTree) Data() interface{} {
 	return mt.data
 }
 
