@@ -1,12 +1,10 @@
 package tree
 
 import (
-	"errors"
+	"reflect"
 	"strconv"
-)
 
-var (
-	ErrEmptyPath = errors.New("path cannot be empty")
+	"github.com/aceaura/libra/core/deepcopy"
 )
 
 type MapTree struct {
@@ -200,19 +198,43 @@ func (mt *MapTree) remove(source interface{}, path []string) interface{} {
 	}
 }
 
-// Override override data from omt to mt as a new mapTree
-func (mt *MapTree) Override(omt *MapTree) *MapTree {
-	// src override dst
-	// srcData := deepcopy.Copy(omt.data)
-	// dstData := mt.data
+func (mt *MapTree) Merge(smt *MapTree) {
+	mt.data = mt.merge(smt.data, mt.data).(map[string]interface{})
+}
 
-	// for sk, sv := range srcData {
-	// 	dv, ok := dstData[sk]
-	// 	if !ok {
-	// 		dstData[sk] = sv
-	// 	}
-	// }
+func (mt *MapTree) merge(source interface{}, target interface{}) interface{} {
+	sourceType := reflect.TypeOf(source)
+	targetType := reflect.TypeOf(target)
+	if sourceType != targetType {
+		return source
+	}
+	switch source := source.(type) {
+	case map[string]interface{}:
+		target := target.(map[string]interface{})
+		for sk, sv := range source {
+			dv, ok := target[sk]
+			if !ok || dv == nil {
+				target[sk] = sv
+			} else {
+				target[sk] = mt.merge(sv, target[sk])
+			}
+		}
+		return target
+	case []interface{}:
+		target := target.([]interface{})
+		for index := 0; index < len(source); index++ {
+			if index >= len(target) {
+				target = append(target, source[index])
+			} else {
+				target[index] = mt.merge(source[index], target[index])
+			}
+		}
+		return target
+	default:
+		return source
+	}
+}
 
-	// return NewMapTree(data)
-	return nil
+func (mt *MapTree) Dulplicate() *MapTree {
+	return NewMapTree(deepcopy.Copy(mt.data).(map[string]interface{}))
 }

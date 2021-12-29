@@ -24,7 +24,7 @@ type Animal struct {
 	Count       int
 }
 
-func TestGetSet(t *testing.T) {
+func TestCase1(t *testing.T) {
 	var zoo = Zoo{
 		Name: "Beasts & Monsters",
 		Keepers: []Keeper{
@@ -85,12 +85,6 @@ func TestGetSet(t *testing.T) {
 		t.Fatalf("expected keeper name `Mike`, but got %s", mapTree.Get(style.Chain("keepers.3.name")))
 	}
 
-	zooJSON, err = json.Marshal(mapTree.Data())
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("%+v", string(zooJSON))
-
 	mapTree.Remove(style.Chain("animals.4.1.3"))
 	mapTree.Remove(style.Chain("Keepers.1.Name"))
 	mapTree.Remove(style.Chain("Keepers.1.Age"))
@@ -98,7 +92,6 @@ func TestGetSet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("%+v", string(zooJSON))
 	zoo = Zoo{}
 	err = json.Unmarshal(zooJSON, &zoo)
 	if err != nil {
@@ -115,13 +108,16 @@ func TestGetSet(t *testing.T) {
 		t.Fatalf("expected keeper name `Mike`, but got %s", zoo.Keepers[3].Name)
 	}
 
-	mapTree.Remove(style.Chain("Keepers.3.Name"))
-	mapTree.Remove(style.Chain("Keepers.3.Age"))
-	zooJSON, err = json.Marshal(mapTree.Data())
+	mapTree2 := mapTree.Dulplicate()
+
+	mapTree2.Remove(style.Chain("Keepers.3.Name"))
+	mapTree2.Remove(style.Chain("Keepers.3.Age"))
+	mapTree2.Set(style.Chain("Name"), "Universe World")
+	mapTree2.Set(style.Chain("Keepers.0.Age"), 100)
+	zooJSON, err = json.Marshal(mapTree2.Data())
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("%+v", string(zooJSON))
 	zoo = Zoo{}
 	err = json.Unmarshal(zooJSON, &zoo)
 	if err != nil {
@@ -130,5 +126,20 @@ func TestGetSet(t *testing.T) {
 	t.Logf("%+v", zoo)
 	if len(zoo.Keepers) != 1 {
 		t.Fatalf("expected 1 keeper, but got %d", len(zoo.Keepers))
+	}
+
+	mapTree.Merge(mapTree2)
+	zooJSON, err = json.Marshal(mapTree.Data())
+	if err != nil {
+		t.Fatal(err)
+	}
+	zoo = Zoo{}
+	err = json.Unmarshal(zooJSON, &zoo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%+v", zoo)
+	if zoo.Name != "Universe World" {
+		t.Fatalf("expected name `Universe World`, but got %s", zoo.Name)
 	}
 }
