@@ -31,6 +31,15 @@ func init() {
 	}
 }
 
+func camelize(s string) string {
+	s = strings.ToLower(s)
+	b := []byte(s)
+	if b[0] >= 'a' && b[0] <= 'z' {
+		b[0] -= 32
+	}
+	return string(b)
+}
+
 func Standardize(s string, sep SeparatorType) string {
 	if s == "" {
 		return s
@@ -54,15 +63,6 @@ func Standardize(s string, sep SeparatorType) string {
 	return string(b)
 }
 
-func camelize(s string) string {
-	s = strings.ToLower(s)
-	b := []byte(s)
-	if b[0] >= 'a' && b[0] <= 'z' {
-		b[0] -= 32
-	}
-	return string(b)
-}
-
 type ChainStyle struct {
 	ChainSeperator SeparatorType
 	WordSeparator  SeparatorType
@@ -76,13 +76,13 @@ func NewChainStyle(chainSeparator, wordSeparator string) *ChainStyle {
 }
 
 func Chain(s string, cs ChainStyle) []string {
+	return cs.Chain(s)
+}
+
+func (cs ChainStyle) Chain(s string) []string {
 	chain := strings.Split(s, cs.ChainSeperator)
 	for index := 0; index < len(chain); index++ {
 		chain[index] = Standardize(chain[index], cs.WordSeparator)
 	}
-	return chain
-}
-
-func (cs ChainStyle) Chain(s string) []string {
 	return Chain(s, cs)
 }

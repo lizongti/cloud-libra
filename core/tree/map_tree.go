@@ -1,10 +1,12 @@
 package tree
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 
 	"github.com/aceaura/libra/core/deepcopy"
+	"github.com/aceaura/libra/core/magic"
 )
 
 type MapTree struct {
@@ -239,5 +241,23 @@ func (mt *MapTree) Dulplicate() *MapTree {
 	return NewMapTree(deepcopy.Copy(mt.data).(map[string]interface{}))
 }
 
+func (mt *MapTree) Hash(cs *magic.ChainStyle) map[string]interface{} {
+	hashMap := make(map[string]interface{})
+	mt.hash(mt.data, hashMap, "", cs)
+	return hashMap
+}
 
-func (mt *MapTree) Hash()
+func (mt *MapTree) hash(m map[string]interface{}, source interface{}, prefix string, cs *magic.ChainStyle) {
+	switch source := source.(type) {
+	case map[string]interface{}:
+		for k, v := range source {
+			mt.hash(m, v, fmt.Sprintf("%s%s%s", prefix, cs.ChainSeperator, k), cs)
+		}
+	case []interface{}:
+		for i := 0; i < len(source); i++ {
+			mt.hash(m, source[i], fmt.Sprintf("%s%s%d", prefix, cs.ChainSeperator, i), cs)
+		}
+	default:
+		m[prefix] = source
+	}
+}
