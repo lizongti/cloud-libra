@@ -1,6 +1,7 @@
 package tree_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/aceaura/libra/core/encoding"
@@ -59,7 +60,8 @@ func TestMapTree(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	mapTree := tree.NewMapTree(data)
+	mapTree := tree.NewMapTree()
+	mapTree.SetData(data)
 
 	style := magic.NewChainStyle(magic.SeparatorPeriod, magic.SeparatorUnderscore)
 
@@ -141,5 +143,15 @@ func TestMapTree(t *testing.T) {
 	t.Logf("%+v", zoo)
 	if zoo.Name != "Universe World" {
 		t.Fatalf("expected name `Universe World`, but got %s", zoo.Name)
+	}
+
+	style2 := magic.NewChainStyle(magic.SeparatorPeriod, magic.SeparatorLazy)
+	hash := mapTree.MarshalHash(style2)
+	t.Log(hash)
+	mapTree3 := tree.NewMapTree()
+	mapTree3.UnmarshalHash(hash, style2)
+
+	if !reflect.DeepEqual(&mapTree3, &mapTree) {
+		t.Fatalf("expected `mapTree3` equals to `mapTree`, mapTree3: %+v, mapTree: %+v", mapTree3, mapTree)
 	}
 }

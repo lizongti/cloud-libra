@@ -13,10 +13,14 @@ type MapTree struct {
 	data map[string]interface{}
 }
 
-func NewMapTree(data map[string]interface{}) *MapTree {
+func NewMapTree() *MapTree {
 	return &MapTree{
-		data: data,
+		data: make(map[string]interface{}),
 	}
+}
+
+func (mt *MapTree) SetData(data map[string]interface{}) {
+	mt.data = data
 }
 
 func (mt *MapTree) Data() interface{} {
@@ -238,12 +242,14 @@ func (mt *MapTree) merge(source interface{}, target interface{}) interface{} {
 }
 
 func (mt *MapTree) Dulplicate() *MapTree {
-	return NewMapTree(deepcopy.Copy(mt.data).(map[string]interface{}))
+	mapTree := NewMapTree()
+	mapTree.SetData(deepcopy.Copy(mt.data).(map[string]interface{}))
+	return mapTree
 }
 
 func (mt *MapTree) MarshalHash(cs *magic.ChainStyle) map[string]interface{} {
 	hashMap := make(map[string]interface{})
-	mt.marshalHash(mt.data, hashMap, "", cs)
+	mt.marshalHash(hashMap, mt.data, "", cs)
 	return hashMap
 }
 
@@ -251,7 +257,12 @@ func (mt *MapTree) marshalHash(m map[string]interface{}, source interface{}, pre
 	switch source := source.(type) {
 	case map[string]interface{}:
 		for k, v := range source {
-			mt.marshalHash(m, v, fmt.Sprintf("%s%s%s", prefix, cs.ChainSeperator, k), cs)
+			if prefix == "" {
+				mt.marshalHash(m, v, k, cs)
+			} else {
+				// TODO: revert Standard
+				mt.marshalHash(m, v, fmt.Sprintf("%s%s%s", prefix, cs.ChainSeperator, k), cs)
+			}
 		}
 	case []interface{}:
 		for i := 0; i < len(source); i++ {
@@ -262,6 +273,8 @@ func (mt *MapTree) marshalHash(m map[string]interface{}, source interface{}, pre
 	}
 }
 
-func (mt *MapTree) UnmarshalHash(cs *magic.ChainStyle) {
-
+func (mt *MapTree) UnmarshalHash(hashMap map[string]interface{}, cs *magic.ChainStyle) {
+	for k, v := range hashMap {
+		mt.Set(cs.Chain(k), v)
+	}
 }
