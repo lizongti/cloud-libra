@@ -41,17 +41,18 @@ func camelize(s string) string {
 }
 
 func Standardize(s string, sep SeparatorType) string {
-	if s == "" {
+	if s == "" || sep == SeparatorLazy {
 		return s
 	}
+
 	var words []string
-	var b = []byte{}
 	if sep == SeparatorNone {
 		words = []string{s}
 	} else {
 		words = strings.Split(s, sep)
 	}
 
+	var b = []byte{}
 	for _, word := range words {
 		word = camelize(word)
 		abbr, ok := abbrMap[word]
@@ -84,5 +85,5 @@ func (cs ChainStyle) Chain(s string) []string {
 	for index := 0; index < len(chain); index++ {
 		chain[index] = Standardize(chain[index], cs.WordSeparator)
 	}
-	return Chain(s, cs)
+	return chain
 }

@@ -1,12 +1,11 @@
 package tree
 
 import (
-	"fmt"
 	"reflect"
 	"strconv"
 
+	"github.com/aceaura/libra/core/cast"
 	"github.com/aceaura/libra/core/deepcopy"
-	"github.com/aceaura/libra/core/magic"
 )
 
 type MapTree struct {
@@ -247,34 +246,28 @@ func (mt *MapTree) Dulplicate() *MapTree {
 	return mapTree
 }
 
-func (mt *MapTree) MarshalHash(cs *magic.ChainStyle) map[string]interface{} {
-	hashMap := make(map[string]interface{})
-	mt.marshalHash(hashMap, mt.data, "", cs)
-	return hashMap
+func (mt *MapTree) MarshalHash() [][]interface{} {
+	return mt.marshalHash(make([][]interface{}, 0), mt.data, []string{})
 }
 
-func (mt *MapTree) marshalHash(m map[string]interface{}, source interface{}, prefix string, cs *magic.ChainStyle) {
+func (mt *MapTree) marshalHash(pairs [][]interface{}, source interface{}, prefix []string) [][]interface{} {
 	switch source := source.(type) {
 	case map[string]interface{}:
 		for k, v := range source {
-			if prefix == "" {
-				mt.marshalHash(m, v, k, cs)
-			} else {
-				// TODO: revert Standard
-				mt.marshalHash(m, v, fmt.Sprintf("%s%s%s", prefix, cs.ChainSeperator, k), cs)
-			}
+			pairs = mt.marshalHash(pairs, v, append(prefix, k))
 		}
 	case []interface{}:
 		for i := 0; i < len(source); i++ {
-			mt.marshalHash(m, source[i], fmt.Sprintf("%s%s%d", prefix, cs.ChainSeperator, i), cs)
+			pairs = mt.marshalHash(pairs, source[i], append(prefix, strconv.Itoa(i)))
 		}
 	default:
-		m[prefix] = source
+		pairs = append(pairs, []interface{}{prefix, source})
 	}
+	return pairs
 }
 
-func (mt *MapTree) UnmarshalHash(hashMap map[string]interface{}, cs *magic.ChainStyle) {
-	for k, v := range hashMap {
-		mt.Set(cs.Chain(k), v)
+func (mt *MapTree) UnmarshalHash(pairs [][]interface{}) {
+	for _, pair := range pairs {
+		mt.Set(cast.StringSlice(pair[0]), pair[1])
 	}
 }

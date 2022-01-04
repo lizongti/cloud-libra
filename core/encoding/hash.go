@@ -25,13 +25,36 @@ func (h Hash) Style() EncodingStyleType {
 }
 
 func (Hash) Marshal(v interface{}) ([]byte, error) {
-	return json.Marshal(v)
+	switch v := v.(type) {
+	case HashMarshaller:
+		hash := v.MarshalHash()
+		return json.Marshal(hash)
+	}
+	return nil, nil
 }
 
 func (Hash) Unmarshal(data []byte, v interface{}) error {
-	return json.Unmarshal(data, v)
+	pairs := make([][]interface{}, 0)
+	if err := json.Unmarshal(data, &pairs); err != nil {
+		return err
+	}
+	switch v := v.(type) {
+	case HashUnmarshaller:
+		v.UnmarshalHash(pairs)
+		return nil
+	}
+	return nil
+
 }
 
 func (h Hash) Reverse() Encoding {
 	return h
+}
+
+type HashMarshaller interface {
+	MarshalHash() [][]interface{}
+}
+
+type HashUnmarshaller interface {
+	UnmarshalHash(pairs [][]interface{})
 }

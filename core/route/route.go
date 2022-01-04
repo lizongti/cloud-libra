@@ -31,19 +31,19 @@ func NewChainRoute(src, dst []string) *ChainRoute {
 
 func (r ChainRoute) String() string {
 	var builder strings.Builder
-	builder.WriteString(magic.SeparatorBracketleft)
+	builder.WriteString(magic.SeparatorBracketLeft)
 	for index, name := range r.src {
 		builder.WriteString(name)
 		if index != len(r.src)-1 {
 			builder.WriteString(magic.SeparatorColon)
 		}
 	}
-	builder.WriteString(magic.SeparatorBracketright)
+	builder.WriteString(magic.SeparatorBracketRight)
 	builder.WriteString(magic.SeparatorSpace)
 	builder.WriteString(magic.SeparatorMinus)
 	builder.WriteString(magic.SeparatorGreater)
 	builder.WriteString(magic.SeparatorSpace)
-	builder.WriteString(magic.SeparatorBracketleft)
+	builder.WriteString(magic.SeparatorBracketLeft)
 	for index, name := range r.dst {
 		if index == r.index {
 			builder.WriteString(magic.SeparatorLess)
@@ -56,7 +56,7 @@ func (r ChainRoute) String() string {
 			builder.WriteString(magic.SeparatorColon)
 		}
 	}
-	builder.WriteString(magic.SeparatorBracketright)
+	builder.WriteString(magic.SeparatorBracketRight)
 	return builder.String()
 }
 

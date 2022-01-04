@@ -27,26 +27,26 @@ var empty *ChainEncoding = NewChainEncoding([]string{"Lazy"}, []string{"Lazy"})
 
 func (c ChainEncoding) String() string {
 	var builder strings.Builder
-	builder.WriteString(magic.SeparatorBracketleft)
+	builder.WriteString(magic.SeparatorBracketLeft)
 	for index, name := range c.encoder {
 		builder.WriteString(name)
 		if index != len(c.encoder)-1 {
 			builder.WriteString(magic.SeparatorColon)
 		}
 	}
-	builder.WriteString(magic.SeparatorBracketright)
+	builder.WriteString(magic.SeparatorBracketRight)
 	builder.WriteString(magic.SeparatorSpace)
 	builder.WriteString(magic.SeparatorMinus)
 	builder.WriteString(magic.SeparatorGreater)
 	builder.WriteString(magic.SeparatorSpace)
-	builder.WriteString(magic.SeparatorBracketleft)
+	builder.WriteString(magic.SeparatorBracketLeft)
 	for index, name := range c.decoder {
 		builder.WriteString(name)
 		if index != len(c.decoder)-1 {
 			builder.WriteString(magic.SeparatorColon)
 		}
 	}
-	builder.WriteString(magic.SeparatorBracketright)
+	builder.WriteString(magic.SeparatorBracketRight)
 	return builder.String()
 }
 
