@@ -157,6 +157,7 @@ func TestMapTree(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// DeepEqual doesnot match
 	if fmt.Sprintf("%v", mapTree3) != fmt.Sprintf("%v", mapTree) {
 		t.Fatalf("expected `mapTree3` equals to `mapTree`, mapTree3: %+v, mapTree: %+v", mapTree3, mapTree)
 	}
