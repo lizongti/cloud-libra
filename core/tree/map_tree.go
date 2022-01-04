@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/aceaura/libra/core/cast"
-	"github.com/aceaura/libra/core/deepcopy"
+	"github.com/mohae/deepcopy"
+	"github.com/spf13/cast"
 )
 
 type MapTree struct {
@@ -268,6 +268,6 @@ func (mt *MapTree) marshalHash(pairs [][]interface{}, source interface{}, prefix
 
 func (mt *MapTree) UnmarshalHash(pairs [][]interface{}) {
 	for _, pair := range pairs {
-		mt.Set(cast.StringSlice(pair[0]), pair[1])
+		mt.Set(cast.ToStringSlice(pair[0]), pair[1])
 	}
 }
