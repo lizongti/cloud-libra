@@ -103,15 +103,15 @@ func (c ChainEncoding) Unmarshal(data []byte, v interface{}) error {
 			return err
 		}
 		if index < len(c.decoder)-1 {
+			if encoding.Style() == EncodingStyleStruct {
+				return ErrWrongEncodingStyle
+			}
 			err = encoding.Unmarshal(data, &bytes)
 			if err != nil {
 				return err
 			}
 			data = bytes.Data
 		} else {
-			if encoding.Style() == EncodingStyleStruct {
-				return ErrWrongEncodingStyle
-			}
 			err = encoding.Unmarshal(data, v)
 			if err != nil {
 				return err

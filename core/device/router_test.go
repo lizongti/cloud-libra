@@ -36,7 +36,6 @@ func (t *Try) Echo(_ context.Context, req *Ping) (resp *Pong, err error) {
 func (t *Try) EchoBytes(_ context.Context, req []byte) (resp []byte, err error) {
 	t.logChan <- fmt.Sprintf("%v", string(req))
 	resp = req
-	fmt.Println(string(req))
 	return resp, err
 }
 
