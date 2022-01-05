@@ -1,7 +1,9 @@
 package redis
 
 import (
-	"github.com/go-redis/redis/v8"
+	"time"
+
+	"github.com/gomodule/redigo/redis"
 )
 
 type Redis struct {
@@ -23,32 +25,67 @@ func NewRedis(opt ...ApplyRedisOption) *Redis {
 }
 
 func (r *Redis) Client() *Client {
-	options := &Options{
-		Addr:         r.opts.addr,
-		Password:     r.opts.password,
-		DB:           r.opts.db,
-		PoolSize:     r.opts.size,
-		MinIdleConns: r.opts.idle,
+	return &Client{
+		Pool: &redis.Pool{
+			MaxIdle:     r.opts.maxIdle,
+			MaxActive:   r.opts.maxActive,
+			IdleTimeout: r.opts.idleTimeout,
+			Dial: func() (redis.Conn, error) {
+				conn, err := redis.Dial("tcp", r.opts.addr, redis.DialPassword(r.opts.password),
+					redis.DialDatabase(r.opts.db),
+					redis.DialConnectTimeout(r.opts.connectTimeout),
+					redis.DialReadTimeout(r.opts.readTimeout),
+					redis.DialWriteTimeout(r.opts.writeTimeout),
+				)
+				if err != nil {
+					return nil, err
+				}
+				if _, err := conn.Do("SELECT", r.opts.db); err != nil {
+					return nil, err
+				}
+				return conn, nil
+			},
+		},
 	}
-	return redis.NewClient(options)
+}
+
+type Client struct {
+	*redis.Pool
+}
+
+func (c *Client) Do(commandName string, args ...interface{}) (interface{}, error) {
+	conn := c.Get()
+	defer conn.Close()
+	return conn.Do(commandName, args...)
 }
 
 type redisOptions struct {
 	addr     string
 	password string
 	db       int
-	retry    int
-	size     int
-	idle     int
+
+	maxActive int
+	maxIdle   int
+
+	keepAlive      time.Duration
+	connectTimeout time.Duration
+	readTimeout    time.Duration
+	writeTimeout   time.Duration
+	idleTimeout    time.Duration
 }
 
 var defaultRedisOptions = redisOptions{
 	addr:     "localhost:6379",
 	password: "",
 	db:       0,
-	retry:    0,
-	size:     0,
-	idle:     0,
+
+	maxActive: 0,
+	maxIdle:   0,
+
+	connectTimeout: 30 * time.Second,
+	readTimeout:    30 * time.Second,
+	writeTimeout:   30 * time.Second,
+	idleTimeout:    60 * time.Second,
 }
 
 type ApplyRedisOption interface {
@@ -98,35 +135,68 @@ func (r *Redis) WithDB(db int) *Redis {
 	return r
 }
 
-func (redisOption) Retry(retry int) funcRedisOption {
+func (redisOption) MaxActive(maxActive int) funcRedisOption {
 	return func(r *redisOptions) {
-		r.retry = retry
+		r.maxActive = maxActive
 	}
 }
 
-func (r *Redis) WithRetry(retry int) *Redis {
-	RedisOption.Retry(retry).apply(&r.opts)
+func (r *Redis) WithMaxActive(maxActive int) *Redis {
+	RedisOption.MaxActive(maxActive).apply(&r.opts)
 	return r
 }
 
-func (redisOption) Size(size int) funcRedisOption {
+func (redisOption) MaxIdle(maxIdle int) funcRedisOption {
 	return func(r *redisOptions) {
-		r.size = size
+		r.maxIdle = maxIdle
 	}
 }
 
-func (r *Redis) WithSize(size int) *Redis {
-	RedisOption.Size(size).apply(&r.opts)
+func (r *Redis) WithMaxIdle(maxIdle int) *Redis {
+	RedisOption.MaxIdle(maxIdle).apply(&r.opts)
 	return r
 }
 
-func (redisOption) Idle(idle int) funcRedisOption {
+func (redisOption) ConnectTimeout(connectTimeout time.Duration) funcRedisOption {
 	return func(r *redisOptions) {
-		r.idle = idle
+		r.connectTimeout = connectTimeout
 	}
 }
 
-func (r *Redis) WithIdle(idle int) *Redis {
-	RedisOption.Idle(idle).apply(&r.opts)
+func (r *Redis) WithConnectTimeout(connectTimeout time.Duration) *Redis {
+	RedisOption.ConnectTimeout(connectTimeout).apply(&r.opts)
+	return r
+}
+
+func (redisOption) ReadTimeout(readTimeout time.Duration) funcRedisOption {
+	return func(r *redisOptions) {
+		r.readTimeout = readTimeout
+	}
+}
+
+func (r *Redis) WithReadTimeout(readTimeout time.Duration) *Redis {
+	RedisOption.ReadTimeout(readTimeout).apply(&r.opts)
+	return r
+}
+
+func (redisOption) WriteTimeout(writeTimeout time.Duration) funcRedisOption {
+	return func(r *redisOptions) {
+		r.writeTimeout = writeTimeout
+	}
+}
+
+func (r *Redis) WithWriteTimeout(writeTimeout time.Duration) *Redis {
+	RedisOption.WriteTimeout(writeTimeout).apply(&r.opts)
+	return r
+}
+
+func (redisOption) IdleTimeout(idleTimeout time.Duration) funcRedisOption {
+	return func(r *redisOptions) {
+		r.idleTimeout = idleTimeout
+	}
+}
+
+func (r *Redis) WithIdleTimeout(idleTimeout time.Duration) *Redis {
+	RedisOption.IdleTimeout(idleTimeout).apply(&r.opts)
 	return r
 }
