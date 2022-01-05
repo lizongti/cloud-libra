@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gomodule/redigo/redis"
+	"github.com/spf13/cast"
 )
 
 type Redis struct {
@@ -53,10 +54,26 @@ type Client struct {
 	*redis.Pool
 }
 
-func (c *Client) Do(commandName string, args ...interface{}) (interface{}, error) {
+func (c *Client) Do(commandName string, args ...interface{}) ([]string, error) {
 	conn := c.Get()
 	defer conn.Close()
-	return conn.Do(commandName, args...)
+	reply, err := conn.Do(commandName, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.parseReply(reply), err
+}
+
+func (c *Client) parseReply(reply interface{}) []string {
+	result := make([]string, 0)
+	switch reply := reply.(type) {
+	case []interface{}:
+		result = cast.ToStringSlice(reply)
+	default:
+		result = append(result, cast.ToString(reply))
+	}
+	return result
 }
 
 type redisOptions struct {
