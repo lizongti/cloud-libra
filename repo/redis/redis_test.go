@@ -18,12 +18,12 @@ func TestClient(t *testing.T) {
 	c := redis.NewRedis().WithAddr(s.Addr()).Client()
 	originValue := "value"
 	var result []string
-	result, err = c.Do("SET", "test", originValue)
+	result, err = c.Command("SET", "test", originValue)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log(result)
-	result, err = c.Do("GET", "test")
+	result, err = c.Command("GET", "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,12 +31,12 @@ func TestClient(t *testing.T) {
 	if cast.ToString(result[0]) != originValue {
 		t.Errorf("Expect redis get result equals to %s", originValue)
 	}
-	result, err = c.Do("SET", "test2", 1)
+	result, err = c.Command("SET", "test2", 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log(result)
-	result, err = c.Do("GET", "test2")
+	result, err = c.Command("GET", "test2")
 	if err != nil {
 		t.Fatal(err)
 	}

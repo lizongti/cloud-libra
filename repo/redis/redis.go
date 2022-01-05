@@ -54,10 +54,14 @@ type Client struct {
 	*redis.Pool
 }
 
-func (c *Client) Do(commandName string, args ...interface{}) ([]string, error) {
+func (c *Client) Do(commandName string, args ...interface{}) (interface{}, error) {
 	conn := c.Get()
 	defer conn.Close()
-	reply, err := conn.Do(commandName, args...)
+	return conn.Do(commandName, args...)
+}
+
+func (c *Client) Command(commands ...interface{}) ([]string, error) {
+	reply, err := c.Do(commands[0].(string), commands[1:]...)
 	if err != nil {
 		return nil, err
 	}
