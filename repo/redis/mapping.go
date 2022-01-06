@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/aceaura/libra/core/cast"
 	"github.com/aceaura/libra/core/device"
@@ -43,46 +44,53 @@ func (m *Mapping) String() string {
 	return m.opts.name
 }
 
-func (m *Mapping) storeHash(hash *Hash) error {
-	var (
-		e = encoding.NewChainEncoding(magic.UnixChain("json.base64.lazy"), magic.UnixChain("lazy.base64.json"))
-		r = route.NewChainRoute(magic.GoogleChain("/client"), magic.GoogleChain("/redis"))
-	)
+func (m *Mapping) storeHash(hash *Hash) (err error) {
+	defer func() {
+		if v := recover(); v != nil {
+			err = fmt.Errorf("%v", v)
+		}
+	}()
+
 	cmd := make([]string, 0, len(hash.value)*2+2)
 	cmd = append(cmd, "HMSET", hash.key)
 	for k, v := range hash.value {
 		cmd = append(cmd, k, cast.ToString(v))
 	}
-	req := &ServiceRequest{
-		URL: m.opts.url,
-		Cmd: cmd,
-	}
-	data, err := e.Marshal(req)
+
+	result, err := m.invoke(cmd)
 	if err != nil {
 		return err
 	}
-	msg := &message.Message{
-		Route:    r,
-		Encoding: e,
-		Data:     data,
+
+	if len(result) != 1 {
+		return ErrResultLengthNotValid
 	}
-	processor := device.NewFuncProcessor(func(ctx context.Context, msg *message.Message) error {
+	if result[0] != magic.OK {
+		return ErrResultContentNotValid
+	}
+
+	return nil
+}
+
+// func (m *Mapping) store
+
+func (m *Mapping) invoke(cmd []string) (result []string, err error) {
+	if err := m.Client.Invoke(m.opts.context, &message.Message{
+		Route:    route.NewChainRoute(device.Addr(m), magic.GoogleChain("/redis")),
+		Encoding: encoding.NewJSON(),
+		Data: encoding.Encode(encoding.NewJSON(), &ServiceRequest{
+			URL: m.opts.url,
+			Cmd: cmd,
+		}),
+	}, device.NewFuncProcessor(func(ctx context.Context, msg *message.Message) error {
 		resp := new(ServiceResponse)
-		if err := msg.Encoding.Unmarshal(msg.Data, resp); err != nil {
-			return err
-		}
-		result := resp.Result
-		if len(result) != 1 {
-			return ErrResultLengthNotValid
-		}
-		if result[0] != magic.OK {
-			return ErrResultContentNotValid
-		}
+		encoding.Decode(msg.Encoding, msg.Data, resp)
+		result = resp.Result
 		return nil
-	})
-	if err = m.Client.Invoke(m.opts.context, msg, processor); err != nil {
-		return err
+	})); err != nil {
+		return nil, err
 	}
+	return result, nil
 }
 
 type mappingOptions struct {

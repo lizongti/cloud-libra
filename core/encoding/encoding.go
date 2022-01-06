@@ -115,18 +115,24 @@ func (es EncodingSet) locateEncoding(name string) (Encoding, error) {
 	return nil, ErrEncodingMissingEncoding
 }
 
-func Encode(e Encoding, v interface{}) ([]byte, error) {
-	return e.Marshal(v)
-}
-
-func Decode(e Encoding, data []byte, v interface{}) error {
-	return e.Unmarshal(data, v)
-}
-
 func Marshal(e Encoding, v interface{}) ([]byte, error) {
 	return e.Marshal(v)
 }
 
 func Unmarshal(e Encoding, data []byte, v interface{}) error {
 	return e.Unmarshal(data, v)
+}
+
+func Encode(e Encoding, v interface{}) []byte {
+	data, err := e.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return data
+}
+
+func Decode(e Encoding, data []byte, v interface{}) {
+	if err := e.Unmarshal(data, v); err != nil {
+		panic(err)
+	}
 }
