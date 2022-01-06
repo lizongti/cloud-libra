@@ -2,6 +2,7 @@ package redis_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/aceaura/libra/core/device"
@@ -21,22 +22,18 @@ func TestService(t *testing.T) {
 	defer s.Close()
 
 	var (
-		addr          = s.Addr()
-		db            = 0
-		ctx           = context.Background()
-		encodingStyle = magic.NewChainStyle(magic.SeparatorPeriod, magic.SeparatorUnderscore)
-		routeStyle    = magic.NewChainStyle(magic.SeparatorSlash, magic.SeparatorUnderscore)
-		e             = encoding.NewChainEncoding(encodingStyle.Chain("json.base64.lazy"), encodingStyle.Chain("lazy.base64.json"))
-		r             = route.NewChainRoute(routeStyle.Chain("/client"), routeStyle.Chain("/redis"))
+		url = fmt.Sprintf("redis://:@%s/%d", s.Addr(), 0)
+		ctx = context.Background()
+		e   = encoding.NewChainEncoding(magic.UnixChain("json.base64.lazy"), magic.UnixChain("lazy.base64.json"))
+		r   = route.NewChainRoute(magic.GoogleChain("/client"), magic.GoogleChain("/redis"))
 	)
 	client := device.NewClient().WithName("Client")
 	service := &redis.Service{}
 	bus := device.NewRouter().WithBus().WithName("Bus").WithService(service).WithDevice(client)
 	t.Logf("\n%s", device.Tree(bus))
 	req := &redis.ServiceRequest{
-		Addr: addr,
-		DB:   db,
-		Cmd:  []string{"SET", "test", "100"},
+		URL: url,
+		Cmd: []string{"SET", "test", "100"},
 	}
 	data, err := e.Marshal(req)
 	if err != nil {

@@ -91,8 +91,7 @@ func TestRouter1(t *testing.T) {
 	t.Logf("\n%s", device.Tree(bus))
 
 	ctx := context.Background()
-	style := magic.NewChainStyle(magic.SeparatorSlash, magic.SeparatorUnderscore)
-	r := route.NewChainRoute(style.Chain("/anonymous"), style.Chain("/1.0.0/try/echo"))
+	r := route.NewChainRoute(magic.GoogleChain("/anonymous"), magic.GoogleChain("/1.0.0/try/echo"))
 	reqData, err := encoding.Marshal(e1, &Ping{
 		Text: "libra: Hello, world!",
 	})
@@ -147,8 +146,7 @@ func TestRouter2(t *testing.T) {
 	t.Logf("\n%s", device.Tree(bus))
 
 	ctx := context.Background()
-	style := magic.NewChainStyle(magic.SeparatorSlash, magic.SeparatorUnderscore)
-	r := route.NewChainRoute(style.Chain("/anonymous"), style.Chain("/1.0.0/try/echo_bytes"))
+	r := route.NewChainRoute(magic.GoogleChain("/anonymous"), magic.GoogleChain("/1.0.0/try/echo-bytes"))
 
 	reqData, err := encoding.Marshal(e2, []byte("libra: Hello, world!"))
 	if err != nil {
@@ -201,8 +199,7 @@ func TestRouter3(t *testing.T) {
 	t.Logf("\n%s", device.Tree(bus))
 
 	ctx := context.Background()
-	style := magic.NewChainStyle(magic.SeparatorSlash, magic.SeparatorUnderscore)
-	r := route.NewChainRoute(style.Chain("/anonymous"), style.Chain("/1.0.0/try/echo_bytes"))
+	r := route.NewChainRoute(magic.GoogleChain("/anonymous"), magic.GoogleChain("/1.0.0/try/echo-bytes"))
 
 	reqData, err := encoding.Marshal(e2, []byte("libra: Hello, world!"))
 	if err != nil {

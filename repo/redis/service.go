@@ -2,15 +2,15 @@ package redis
 
 import (
 	"context"
+	"net/url"
 
 	"github.com/aceaura/libra/core/cast"
 	"github.com/aceaura/libra/core/device"
 )
 
 type ServiceRequest struct {
-	Addr string
-	DB   int
-	Cmd  []string
+	URL string
+	Cmd []string
 }
 
 type ServiceResponse struct {
@@ -26,8 +26,17 @@ func init() {
 }
 
 func (s *Service) Redis(ctx context.Context, req *ServiceRequest) (resp *ServiceResponse, err error) {
+	u, err := url.Parse(req.URL)
+	if err != nil {
+		return nil, err
+	}
+
+	addr := u.Host
+	db := cast.ToInt(u.Path[1:])
+	password, _ := u.User.Password()
+
 	resp = new(ServiceResponse)
-	c := NewClient().WithAddr(req.Addr).WithDB(req.DB).WithContext(ctx)
+	c := NewClient().WithAddr(addr).WithDB(db).WithContext(ctx).WithPassword(password)
 	result, err := c.Command(cast.ToSlice(req.Cmd)...)
 	if err != nil {
 		return nil, err

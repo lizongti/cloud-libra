@@ -183,8 +183,7 @@ func (c *Commander) invoke(ctx context.Context, deviceName string, req *ServiceR
 		return resp
 	}
 
-	routeStyle := magic.NewChainStyle(magic.SeparatorSlash, magic.SeparatorUnderscore)
-	r := route.NewChainRoute(device.Addr(c), routeStyle.Chain("/http"))
+	r := route.NewChainRoute(device.Addr(c), magic.GoogleChain("/http"))
 	msg := &message.Message{
 		Route:    r,
 		Encoding: e,

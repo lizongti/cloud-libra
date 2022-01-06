@@ -25,6 +25,11 @@ var abbrs = []string{
 
 var abbrMap = make(map[string]string)
 
+var (
+	googleChain = *NewChainStyle(SeparatorSlash, SeparatorHyphen)
+	unixChain   = *NewChainStyle(SeparatorPeriod, SeparatorUnderscore)
+)
+
 func init() {
 	for _, abbr := range abbrs {
 		abbrMap[camelize(abbr)] = abbr
@@ -86,4 +91,12 @@ func (cs ChainStyle) Chain(s string) []string {
 		chain[index] = Standardize(chain[index], cs.WordSeparator)
 	}
 	return chain
+}
+
+func GoogleChain(s string) []string {
+	return Chain(s, googleChain)
+}
+
+func UnixChain(s string) []string {
+	return Chain(s, unixChain)
 }

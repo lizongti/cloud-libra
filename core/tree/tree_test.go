@@ -63,33 +63,31 @@ func TestMapTree(t *testing.T) {
 	mapTree := tree.NewMapTree()
 	mapTree.SetData(data)
 
-	style := magic.NewChainStyle(magic.SeparatorPeriod, magic.SeparatorUnderscore)
-
-	v := mapTree.Get(style.Chain("animals.0.species_name"))
+	v := mapTree.Get(magic.UnixChain("animals.0.species_name"))
 	if s, ok := v.(string); !ok {
 		t.Fatalf("expected a string, but got %v", v)
 	} else if s != "Elephant" {
 		t.Fatalf("expected a string of `Elephant`, but got %s", s)
 	}
 
-	mapTree.Set(style.Chain("name"), "Sea World")
-	mapTree.Set(style.Chain("animals.0.species_name"), "Dolphin")
-	mapTree.Set(style.Chain("keepers.3"), map[string]interface{}{"Name": "Mike", "Age": 29})
-	mapTree.Set(style.Chain("animals.4.1.3"), "a mistake")
+	mapTree.Set(magic.UnixChain("name"), "Sea World")
+	mapTree.Set(magic.UnixChain("animals.0.species_name"), "Dolphin")
+	mapTree.Set(magic.UnixChain("keepers.3"), map[string]interface{}{"Name": "Mike", "Age": 29})
+	mapTree.Set(magic.UnixChain("animals.4.1.3"), "a mistake")
 
-	if mapTree.Get(style.Chain("name")) != "Sea World" {
-		t.Fatalf("expected zoo name `Sea World`, but got %s", mapTree.Get(style.Chain("sea")))
+	if mapTree.Get(magic.UnixChain("name")) != "Sea World" {
+		t.Fatalf("expected zoo name `Sea World`, but got %s", mapTree.Get(magic.UnixChain("sea")))
 	}
-	if mapTree.Get(style.Chain("animals.0.species_name")) != "Dolphin" {
-		t.Fatalf("expected species name `Dolphin`, but got %s", mapTree.Get(style.Chain("animals.0.species_name")))
+	if mapTree.Get(magic.UnixChain("animals.0.species_name")) != "Dolphin" {
+		t.Fatalf("expected species name `Dolphin`, but got %s", mapTree.Get(magic.UnixChain("animals.0.species_name")))
 	}
-	if mapTree.Get(style.Chain("keepers.3.name")) != "Mike" {
-		t.Fatalf("expected keeper name `Mike`, but got %s", mapTree.Get(style.Chain("keepers.3.name")))
+	if mapTree.Get(magic.UnixChain("keepers.3.name")) != "Mike" {
+		t.Fatalf("expected keeper name `Mike`, but got %s", mapTree.Get(magic.UnixChain("keepers.3.name")))
 	}
 
-	mapTree.Remove(style.Chain("animals.4.1.3"))
-	mapTree.Remove(style.Chain("Keepers.1.Name"))
-	mapTree.Remove(style.Chain("Keepers.1.Age"))
+	mapTree.Remove(magic.UnixChain("animals.4.1.3"))
+	mapTree.Remove(magic.UnixChain("Keepers.1.Name"))
+	mapTree.Remove(magic.UnixChain("Keepers.1.Age"))
 	zooJSON, err = json.Marshal(mapTree.Data())
 	if err != nil {
 		t.Fatal(err)
@@ -112,10 +110,10 @@ func TestMapTree(t *testing.T) {
 
 	mapTree2 := mapTree.Dulplicate()
 
-	mapTree2.Remove(style.Chain("Keepers.3.Name"))
-	mapTree2.Remove(style.Chain("Keepers.3.Age"))
-	mapTree2.Set(style.Chain("Name"), "Universe World")
-	mapTree2.Set(style.Chain("Keepers.0.Age"), 100)
+	mapTree2.Remove(magic.UnixChain("Keepers.3.Name"))
+	mapTree2.Remove(magic.UnixChain("Keepers.3.Age"))
+	mapTree2.Set(magic.UnixChain("Name"), "Universe World")
+	mapTree2.Set(magic.UnixChain("Keepers.0.Age"), 100)
 	zooJSON, err = json.Marshal(mapTree2.Data())
 	if err != nil {
 		t.Fatal(err)

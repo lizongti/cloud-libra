@@ -18,11 +18,9 @@ func TestService(t *testing.T) {
 		url = "https://top.baidu.com/board?platform=pc&sa=pcindex_entry"
 	)
 	var (
-		ctx           = context.Background()
-		encodingStyle = magic.NewChainStyle(magic.SeparatorPeriod, magic.SeparatorUnderscore)
-		routeStyle    = magic.NewChainStyle(magic.SeparatorSlash, magic.SeparatorUnderscore)
-		e             = encoding.NewChainEncoding(encodingStyle.Chain("json.base64.lazy"), encodingStyle.Chain("lazy.base64.json"))
-		r             = route.NewChainRoute(routeStyle.Chain("/client"), routeStyle.Chain("/https"))
+		ctx = context.Background()
+		e   = encoding.NewChainEncoding(magic.UnixChain("json.base64.lazy"), magic.UnixChain("lazy.base64.json"))
+		r   = route.NewChainRoute(magic.GoogleChain("/client"), magic.GoogleChain("/https"))
 	)
 	client := device.NewClient().WithName("Client")
 	service := &http.Service{}

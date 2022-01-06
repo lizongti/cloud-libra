@@ -23,8 +23,7 @@ func TestChain(t *testing.T) {
 		Slice:   []byte("this is slice"),
 	}
 	t.Logf("ts1: %+v", ts1)
-	style := magic.NewChainStyle(magic.SeparatorPeriod, magic.SeparatorUnderscore)
-	e1 := encoding.NewChainEncoding(style.Chain("json.base64.lazy"), style.Chain("lazy.base64.xml"))
+	e1 := encoding.NewChainEncoding(magic.GoogleChain("json.base64.lazy"), magic.GoogleChain("lazy.base64.xml"))
 	t.Logf("e1: %v", e1)
 
 	e2 := e1.Reverse()
