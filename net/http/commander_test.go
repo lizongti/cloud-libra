@@ -88,12 +88,9 @@ func TestInvoke(t *testing.T) {
 		Retry:   3,
 	}
 
-	resp, err := c.Invoke(req)
-	if err != nil {
-		t.Fatal(err)
+	if resp := c.Invoke(req); resp.Err != nil {
+		t.Fatal(resp.Err)
+	} else {
+		t.Log(resp.Body)
 	}
-	if resp.Err != nil {
-		t.Fatal(err)
-	}
-	t.Log(resp.Body)
 }

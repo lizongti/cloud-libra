@@ -107,11 +107,11 @@ func (c *Commander) ResponseChan() <-chan *ServiceResponse {
 	return c.respChan
 }
 
-func Invoke(c *Commander, req *ServiceRequest) (*ServiceResponse, error) {
+func Invoke(c *Commander, req *ServiceRequest) *ServiceResponse {
 	return c.Invoke(req)
 }
 
-func (c *Commander) Invoke(req *ServiceRequest) (*ServiceResponse, error) {
+func (c *Commander) Invoke(req *ServiceRequest) *ServiceResponse {
 	var resp *ServiceResponse
 	if err := coroutine.Start(func(co *coroutine.Coroutine) error {
 		req.CoroutineID = co.ID()
@@ -130,14 +130,12 @@ func (c *Commander) Invoke(req *ServiceRequest) (*ServiceResponse, error) {
 		}
 		return nil
 	}); err != nil {
-		return nil, err
+		return &ServiceResponse{
+			Err: err,
+		}
 	}
 
-	if resp.Err != nil {
-		return nil, resp.Err
-	}
-
-	return resp, nil
+	return resp
 }
 
 func (c *Commander) serve() (err error) {
