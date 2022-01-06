@@ -132,6 +132,11 @@ func (c *Commander) Invoke(req *ServiceRequest) (*ServiceResponse, error) {
 	}); err != nil {
 		return nil, err
 	}
+
+	if resp.Err != nil {
+		return nil, resp.Err
+	}
+
 	return resp, nil
 }
 
