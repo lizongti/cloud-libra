@@ -11,6 +11,7 @@ import (
 var (
 	ErrRouteDeadEnd       = errors.New("route has gone to a dead end")
 	ErrRouteMissingDevice = errors.New("route has gone to a missing device")
+	ErrGatewayNotFound    = errors.New("gateway is not found")
 )
 
 type Device interface {

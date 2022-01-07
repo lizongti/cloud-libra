@@ -9,7 +9,9 @@ import (
 	"github.com/aceaura/libra/core/message"
 )
 
-var ErrMissingProcessor = errors.New("processor cannot be found by message ID")
+var (
+	ErrMissingProcessor = errors.New("processor cannot be found by message ID")
+)
 
 type Processor interface {
 	Process(context.Context, *message.Message) error
@@ -44,6 +46,9 @@ func (c *Client) String() string {
 
 func (c *Client) Process(ctx context.Context, msg *message.Message) error {
 	if !msg.Route.Dispatching() {
+		if c.gateway == nil {
+			return ErrGatewayNotFound
+		}
 		return c.gateway.Process(ctx, msg)
 	}
 	return c.localProcess(ctx, msg)

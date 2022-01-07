@@ -48,6 +48,9 @@ func (r *Router) Process(ctx context.Context, msg *message.Message) error {
 	}
 
 	if !msg.Route.Dispatching() {
+		if r.gateway == nil {
+			return ErrGatewayNotFound
+		}
 		return r.gateway.Process(ctx, msg)
 	}
 	msg.Route = msg.Route.Forward()

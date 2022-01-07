@@ -21,6 +21,9 @@ func (h *Handler) String() string {
 
 func (h *Handler) Process(ctx context.Context, msg *message.Message) error {
 	if !msg.Route.Dispatching() {
+		if h.gateway == nil {
+			return ErrGatewayNotFound
+		}
 		return h.gateway.Process(ctx, msg)
 	}
 	return h.localProcess(ctx, msg)
