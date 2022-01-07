@@ -16,11 +16,32 @@ import (
 var (
 	ErrResultLengthNotValid  = errors.New("result length is not valid")
 	ErrResultContentNotValid = errors.New("result content is not valid")
+	ErrUnsupportedType       = errors.New("unsupported type for mapping")
 )
 
+type String struct {
+	Key   string
+	Value string
+}
+
 type Hash struct {
-	key   string
-	value map[string]interface{}
+	Key   string
+	Value map[interface{}]interface{}
+}
+
+type List struct {
+	Key   string
+	Value []interface{}
+}
+
+type Set struct {
+	Key   string
+	Value []interface{}
+}
+
+type SortedSet struct {
+	Key   string
+	Value map[interface{}]interface{}
 }
 
 type Mapping struct {
@@ -44,20 +65,76 @@ func (m *Mapping) String() string {
 	return m.opts.name
 }
 
-func (m *Mapping) storeHash(hash *Hash) (err error) {
+func (m *Mapping) Replace(v interface{}) error {
+	switch v := v.(type) {
+	case String:
+		return m.replaceString(&v)
+	case *String:
+		return m.replaceString(v)
+	case Hash:
+		return m.replaceHash(&v)
+	case *Hash:
+		return m.replaceHash(v)
+	case List:
+		return m.replaceList(&v)
+	case *List:
+		return m.replaceList(v)
+	case Set:
+		return m.replaceSet(&v)
+	case *Set:
+		return m.replaceSet(v)
+	case SortedSet:
+		return m.replaceSortedSet(&v)
+	case *SortedSet:
+		return m.replaceSortedSet(v)
+	default:
+		return ErrUnsupportedType
+	}
+}
+
+func (m *Mapping) replaceString(s *String) error {
+	cmd := []string{"SET", s.Key, s.Value}
+
+	result, err := m.invoke(cmd)
+	if err != nil {
+		return err
+	}
+
+	if len(result) != 1 {
+		return ErrResultLengthNotValid
+	}
+	if result[0] != magic.OK {
+		return ErrResultContentNotValid
+	}
+	return nil
+}
+
+func (m *Mapping) replaceHash(hash *Hash) (err error) {
 	defer func() {
 		if v := recover(); v != nil {
 			err = fmt.Errorf("%v", v)
 		}
 	}()
 
-	cmd := make([]string, 0, len(hash.value)*2+2)
-	cmd = append(cmd, "HMSET", hash.key)
-	for k, v := range hash.value {
-		cmd = append(cmd, k, cast.ToString(v))
+	cmd := []string{"DEL", hash.Key}
+	result, err := m.invoke(cmd)
+	if err != nil {
+		return err
+	}
+	if len(result) != 1 {
+		return ErrResultLengthNotValid
+	}
+	if _, err := cast.ToIntE(result[0]); err != nil {
+		return ErrResultContentNotValid
 	}
 
-	result, err := m.invoke(cmd)
+	cmd = make([]string, 0, len(hash.Value)*2+2)
+	cmd = append(cmd, "HMSET", hash.Key)
+	for k, v := range hash.Value {
+		cmd = append(cmd, cast.ToString(k), cast.ToString(v))
+	}
+
+	result, err = m.invoke(cmd)
 	if err != nil {
 		return err
 	}
@@ -72,7 +149,99 @@ func (m *Mapping) storeHash(hash *Hash) (err error) {
 	return nil
 }
 
-// func (m *Mapping) store
+func (m *Mapping) replaceList(list *List) error {
+	cmd := []string{"DEL", list.Key}
+	result, err := m.invoke(cmd)
+	if err != nil {
+		return err
+	}
+	if len(result) != 1 {
+		return ErrResultLengthNotValid
+	}
+	if _, err := cast.ToIntE(result[0]); err != nil {
+		return ErrResultContentNotValid
+	}
+
+	cmd = make([]string, 0, len(list.Value)+2)
+	cmd = append(cmd, "LPUSH", list.Key)
+	for _, v := range list.Value {
+		cmd = append(cmd, cast.ToString(v))
+	}
+	result, err = m.invoke(cmd)
+	if err != nil {
+		return err
+	}
+	if len(result) != 1 {
+		return ErrResultLengthNotValid
+	}
+	if result[0] != magic.OK {
+		return ErrResultContentNotValid
+	}
+
+	return nil
+}
+
+func (m *Mapping) replaceSet(set *Set) error {
+	cmd := []string{"DEL", set.Key}
+	result, err := m.invoke(cmd)
+	if err != nil {
+		return err
+	}
+	if len(result) != 1 {
+		return ErrResultLengthNotValid
+	}
+	if _, err := cast.ToIntE(result[0]); err != nil {
+		return ErrResultContentNotValid
+	}
+
+	cmd = make([]string, 0, len(set.Value)+2)
+	cmd = append(cmd, "SADD", set.Key)
+	for _, v := range set.Value {
+		cmd = append(cmd, cast.ToString(v))
+	}
+	result, err = m.invoke(cmd)
+	if err != nil {
+		return err
+	}
+	if len(result) != 1 {
+		return ErrResultLengthNotValid
+	}
+	if _, err := cast.ToIntE(result[0]); err != nil {
+		return ErrResultContentNotValid
+	}
+	return nil
+}
+
+func (m *Mapping) replaceSortedSet(sortedSet *SortedSet) error {
+	cmd := []string{"DEL", sortedSet.Key}
+	result, err := m.invoke(cmd)
+	if err != nil {
+		return err
+	}
+	if len(result) != 1 {
+		return ErrResultLengthNotValid
+	}
+	if _, err := cast.ToIntE(result[0]); err != nil {
+		return ErrResultContentNotValid
+	}
+
+	cmd = make([]string, 0, len(sortedSet.Value)*2+2)
+	cmd = append(cmd, "ZADD", sortedSet.Key)
+	for k, v := range sortedSet.Value {
+		cmd = append(cmd, cast.ToString(v), cast.ToString(k))
+	}
+	result, err = m.invoke(cmd)
+	if err != nil {
+		return err
+	}
+	if len(result) != 1 {
+		return ErrResultLengthNotValid
+	}
+	if _, err := cast.ToIntE(result[0]); err != nil {
+		return ErrResultContentNotValid
+	}
+	return nil
+}
 
 func (m *Mapping) invoke(cmd []string) (result []string, err error) {
 	if err := m.Client.Invoke(m.opts.context, &message.Message{
