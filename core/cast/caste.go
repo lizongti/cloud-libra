@@ -1115,6 +1115,33 @@ func ToSliceE(i interface{}) ([]interface{}, error) {
 	}
 }
 
+// ToMapE casts an interface to a map[interface{}]interface{} type.
+func ToMapE(i interface{}) (map[interface{}]interface{}, error) {
+	var m = map[interface{}]interface{}{}
+
+	switch v := i.(type) {
+	case map[interface{}]interface{}:
+		return v, nil
+	case map[string]interface{}:
+		for k, val := range v {
+			m[k] = val
+		}
+		return m, nil
+	case map[interface{}]string:
+		for k, val := range v {
+			m[k] = val
+		}
+		return m, nil
+	case map[string]string:
+		for k, val := range v {
+			m[k] = val
+		}
+		return m, nil
+	default:
+		return m, fmt.Errorf("unable to cast %#v of type %T to map[interface{}]interface{}", i, i)
+	}
+}
+
 // ToBoolSliceE casts an interface to a []bool type.
 func ToBoolSliceE(i interface{}) ([]bool, error) {
 	if i == nil {
