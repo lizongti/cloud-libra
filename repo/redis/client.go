@@ -44,7 +44,7 @@ func (c *Client) Do(commandName string, args ...interface{}) (interface{}, error
 		return nil, err
 	}
 	defer conn.Close()
-	return conn.Do(commandName, args...)
+	return redis.DoContext(conn, c.opts.context, commandName, args...)
 }
 
 func (c *Client) Command(commands ...interface{}) ([]string, error) {
@@ -57,7 +57,8 @@ func (c *Client) Command(commands ...interface{}) ([]string, error) {
 }
 
 func (c *Client) dial() (redis.Conn, error) {
-	conn, err := redis.Dial("tcp", c.opts.addr, redis.DialPassword(c.opts.password),
+	conn, err := redis.DialContext(c.opts.context, "tcp", c.opts.addr,
+		redis.DialPassword(c.opts.password),
 		redis.DialDatabase(c.opts.db),
 		redis.DialConnectTimeout(c.opts.connectTimeout),
 		redis.DialReadTimeout(c.opts.readTimeout),
@@ -66,7 +67,7 @@ func (c *Client) dial() (redis.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err := conn.Do("SELECT", c.opts.db); err != nil {
+	if _, err := redis.DoContext(conn, c.opts.context, "SELECT", c.opts.db); err != nil {
 		return nil, err
 	}
 	return conn, nil
@@ -91,7 +92,7 @@ type Pool struct {
 func (p *Pool) Do(commandName string, args ...interface{}) (interface{}, error) {
 	conn := p.pool.Get()
 	defer conn.Close()
-	return conn.Do(commandName, args...)
+	return redis.DoContext(conn, p.client.opts.context, commandName, args...)
 }
 
 func (p *Pool) Command(commands ...interface{}) ([]string, error) {
@@ -120,6 +121,7 @@ type clientOptions struct {
 }
 
 var defaultClientOptions = clientOptions{
+	context:  context.Background(),
 	addr:     "localhost:6379",
 	password: "",
 	db:       0,
