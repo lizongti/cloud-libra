@@ -7,6 +7,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/disiqueira/gotree v1.0.0
 	github.com/elazarl/goproxy v0.0.0-20210801061803-8e322dfb79c4
+	github.com/gocarina/gocsv v0.0.0-20211203214250-4735fba0c1d9 // indirect
 	github.com/gofrs/uuid v4.1.0+incompatible
 	github.com/golang/protobuf v1.5.2
 	github.com/gomodule/redigo v1.8.6
