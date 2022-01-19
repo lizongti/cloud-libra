@@ -12,7 +12,7 @@ import (
 var (
 	ErrCoroutineIsDead       = errors.New("coroutine is dead")
 	ErrCoroutineNotSuspended = errors.New("coroutine is not suspended")
-	ErrCoroutineTimeout      = errors.New("coroutine is timeout")
+	ErrCoroutineTimeout      = errors.New("coroutine timeout")
 )
 
 type CoroutineStateType int
