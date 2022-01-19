@@ -114,6 +114,7 @@ func Invoke(c *Commander, req *ServiceRequest) *ServiceResponse {
 func (c *Commander) Invoke(req *ServiceRequest) *ServiceResponse {
 	var resp *ServiceResponse
 	if err := coroutine.Start(func(co *coroutine.Coroutine) error {
+		co.WithTimeout(c.opts.coroutineTimeout)
 		req.CoroutineID = co.ID()
 		c.RequestChan() <- req
 		output, err := co.Yield()
@@ -233,21 +234,23 @@ type commanderOptions struct {
 	reportBacklog    int
 	taskBacklog      int
 	parallelBacklog  int
+	coroutineTimeout time.Duration
 }
 
 var defaultCommanderOptions = commanderOptions{
-	name:            "",
-	context:         context.Background(),
-	safety:          false,
-	background:      false,
-	errorChan:       nil,
-	parallelInit:    1,
-	tpsLimit:        -1,
-	reqBacklog:      0,
-	respBacklog:     0,
-	reportBacklog:   0,
-	taskBacklog:     0,
-	parallelBacklog: 0,
+	name:             "",
+	context:          context.Background(),
+	safety:           false,
+	background:       false,
+	errorChan:        nil,
+	parallelInit:     1,
+	tpsLimit:         -1,
+	reqBacklog:       0,
+	respBacklog:      0,
+	reportBacklog:    0,
+	taskBacklog:      0,
+	parallelBacklog:  0,
+	coroutineTimeout: 30 * time.Second,
 }
 
 type ApplyCommanderOption interface {
@@ -431,5 +434,16 @@ func (commanderOption) ParallelBacklog(parallelBacklog int) funcCommanderOption 
 
 func (c *Commander) WithParallelBacklog(parallelBacklog int) *Commander {
 	CommanderOption.ParallelBacklog(parallelBacklog).apply(&c.opts)
+	return c
+}
+
+func (commanderOption) CoroutineTimeout(coroutineTimeout time.Duration) funcCommanderOption {
+	return func(co *commanderOptions) {
+		co.coroutineTimeout = coroutineTimeout
+	}
+}
+
+func (c *Commander) WithCoroutineTimeout(coroutineTimeout time.Duration) *Commander {
+	CommanderOption.CoroutineTimeout(coroutineTimeout).apply(&c.opts)
 	return c
 }
