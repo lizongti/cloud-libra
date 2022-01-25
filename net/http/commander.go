@@ -23,17 +23,14 @@ var (
 
 type Commander struct {
 	*device.Client
-	opts         commanderOptions
-	scheduler    *scheduler.Scheduler
-	controller   *scheduler.TPSController
-	reqIndex     int
-	reqChan      chan *ServiceRequest
-	respChan     chan *ServiceResponse
-	errorChan    chan error
-	reportChan   chan *scheduler.Report
-	parallelChan chan int
-	dieChan      chan struct{}
-	exitChan     chan struct{}
+	opts       commanderOptions
+	controller *scheduler.TPSController
+	reqIndex   int
+	reqChan    chan *ServiceRequest
+	respChan   chan *ServiceResponse
+	errorChan  chan error
+	dieChan    chan struct{}
+	exitChan   chan struct{}
 }
 
 func NewCommander(opt ...ApplyCommanderOption) *Commander {
@@ -62,34 +59,23 @@ func (c *Commander) Close() {
 }
 
 func (c *Commander) Serve() error {
-	c.reportChan = make(chan *scheduler.Report, c.opts.reportBacklog)
-	c.parallelChan = make(chan int, c.opts.parallelBacklog)
 	c.reqChan = make(chan *ServiceRequest, c.opts.reqBacklog)
 	c.respChan = make(chan *ServiceResponse, c.opts.respBacklog)
-
-	c.scheduler = scheduler.NewScheduler(
-		scheduler.SchedulerOption.Safety(),
-		scheduler.SchedulerOption.Background(),
-		scheduler.SchedulerOption.ErrorChan(c.errorChan),
-		scheduler.SchedulerOption.TaskBacklog(c.opts.taskBacklog),
-		scheduler.SchedulerOption.Parallel(c.opts.parallelInit),
-		scheduler.SchedulerOption.ReportChan(c.reportChan),
-		scheduler.SchedulerOption.ParallelChan(c.parallelChan),
-	)
 
 	c.controller = scheduler.NewTPSController(
 		scheduler.TPSControllerOption.Safety(),
 		scheduler.TPSControllerOption.Background(),
 		scheduler.TPSControllerOption.ErrorChan(c.errorChan),
+		scheduler.TPSControllerOption.Parallel(c.opts.parallelInit),
+		scheduler.TPSControllerOption.TaskBacklog(c.opts.taskBacklog),
+		scheduler.TPSControllerOption.ReportBacklog(c.opts.reportBacklog),
+		scheduler.TPSControllerOption.ParallelBacklog(c.opts.parallelBacklog),
 		scheduler.TPSControllerOption.ParallelTick(c.opts.parallelTick),
 		scheduler.TPSControllerOption.ParallelIncrease(c.opts.parallelIncrease),
 		scheduler.TPSControllerOption.TPSLimit(c.opts.tpsLimit),
 	)
 
-	if err := c.scheduler.Serve(); err != nil {
-		return err
-	}
-	if err := c.controller.Serve(c.reportChan, c.parallelChan); err != nil {
+	if err := c.controller.Serve(); err != nil {
 		return err
 	}
 	if c.opts.background {
@@ -150,7 +136,6 @@ func (c *Commander) serve() (err error) {
 	}()
 
 	defer close(c.exitChan)
-	defer c.scheduler.Close()
 	defer c.controller.Close()
 
 	for {
@@ -216,7 +201,7 @@ func (c *Commander) createTask(req *ServiceRequest) *scheduler.Task {
 }
 
 func (c *Commander) pushTask(task *scheduler.Task) {
-	task.Publish(c.scheduler)
+	task.Publish(c.controller.Scheduler())
 }
 
 type commanderOptions struct {

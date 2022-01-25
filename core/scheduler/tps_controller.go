@@ -34,6 +34,10 @@ func (c *TPSController) Serve() error {
 	return c.serve()
 }
 
+func (c *TPSController) Scheduler() *Scheduler {
+	return c.scheduler
+}
+
 func (c *TPSController) serve() (err error) {
 	if c.opts.safety {
 		defer func() {
