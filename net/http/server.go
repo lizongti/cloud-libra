@@ -95,8 +95,8 @@ type ApplyServerOption interface {
 
 type funcServerOption func(*serverOptions)
 
-func (fso funcServerOption) apply(so *serverOptions) {
-	fso(so)
+func (f funcServerOption) apply(opt *serverOptions) {
+	f(opt)
 }
 
 type serverOption int

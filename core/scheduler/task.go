@@ -248,8 +248,8 @@ type ApplyTaskOption interface {
 
 type funcTaskOption func(*taskOptions)
 
-func (fto funcTaskOption) apply(to *taskOptions) {
-	fto(to)
+func (f funcTaskOption) apply(opt *taskOptions) {
+	f(opt)
 }
 
 type taskOption int

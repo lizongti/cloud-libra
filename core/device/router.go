@@ -89,8 +89,8 @@ type ApplyRouterOption interface {
 
 type funcRouterOption func(*routerOptions)
 
-func (fro funcRouterOption) apply(ro *routerOptions) {
-	fro(ro)
+func (f funcRouterOption) apply(opt *routerOptions) {
+	f(opt)
 }
 
 type routerOption int

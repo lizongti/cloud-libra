@@ -307,8 +307,8 @@ type ApplyCoroutineOption interface {
 
 type funcCoroutineOption func(*coroutineOptions)
 
-func (fco funcCoroutineOption) apply(id *coroutineOptions) {
-	fco(id)
+func (f funcCoroutineOption) apply(opt *coroutineOptions) {
+	f(opt)
 }
 
 type coroutineOption int

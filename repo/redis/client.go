@@ -141,8 +141,8 @@ type ApplyClientOption interface {
 
 type funcClientOption func(*clientOptions)
 
-func (fro funcClientOption) apply(so *clientOptions) {
-	fro(so)
+func (f funcClientOption) apply(opt *clientOptions) {
+	f(opt)
 }
 
 type clientOption int

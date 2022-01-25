@@ -108,8 +108,8 @@ type ApplyControllerOption interface {
 
 type funcControllerOption func(*controllerOptions)
 
-func (fco funcControllerOption) apply(co *controllerOptions) {
-	fco(co)
+func (f funcControllerOption) apply(opt *controllerOptions) {
+	f(opt)
 }
 
 type controllerOption int

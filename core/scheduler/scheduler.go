@@ -177,8 +177,8 @@ type ApplySchedulerOption interface {
 
 type funcSchedulerOption func(*schedulerOptions)
 
-func (fso funcSchedulerOption) apply(so *schedulerOptions) {
-	fso(so)
+func (f funcSchedulerOption) apply(opt *schedulerOptions) {
+	f(opt)
 }
 
 type schedulerOption int

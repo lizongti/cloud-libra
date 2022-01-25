@@ -259,8 +259,8 @@ type ApplyCommanderOption interface {
 
 type funcCommanderOption func(*commanderOptions)
 
-func (fco funcCommanderOption) apply(c *commanderOptions) {
-	fco(c)
+func (f funcCommanderOption) apply(opt *commanderOptions) {
+	f(opt)
 }
 
 type commanderOption int
