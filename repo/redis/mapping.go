@@ -425,8 +425,8 @@ type ApplyMappingOption interface {
 
 type funcMappingOption func(*mappingOptions)
 
-func (fmo funcMappingOption) apply(mo *mappingOptions) {
-	fmo(mo)
+func (f funcMappingOption) apply(opt *mappingOptions) {
+	f(opt)
 }
 
 type mappingOption int

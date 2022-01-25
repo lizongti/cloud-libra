@@ -25,7 +25,7 @@ type Commander struct {
 	*device.Client
 	opts         commanderOptions
 	scheduler    *scheduler.Scheduler
-	controller   *scheduler.Controller
+	controller   *scheduler.TPSController
 	reqIndex     int
 	reqChan      chan *ServiceRequest
 	respChan     chan *ServiceResponse
@@ -77,13 +77,13 @@ func (c *Commander) Serve() error {
 		scheduler.SchedulerOption.ParallelChan(c.parallelChan),
 	)
 
-	c.controller = scheduler.NewController(
-		scheduler.ControllerOption.Safety(),
-		scheduler.ControllerOption.Background(),
-		scheduler.ControllerOption.ErrorChan(c.errorChan),
-		scheduler.ControllerOption.ParallelTick(c.opts.parallelTick),
-		scheduler.ControllerOption.ParallelIncrease(c.opts.parallelIncrease),
-		scheduler.ControllerOption.TPSLimit(c.opts.tpsLimit),
+	c.controller = scheduler.NewTPSController(
+		scheduler.TPSControllerOption.Safety(),
+		scheduler.TPSControllerOption.Background(),
+		scheduler.TPSControllerOption.ErrorChan(c.errorChan),
+		scheduler.TPSControllerOption.ParallelTick(c.opts.parallelTick),
+		scheduler.TPSControllerOption.ParallelIncrease(c.opts.parallelIncrease),
+		scheduler.TPSControllerOption.TPSLimit(c.opts.tpsLimit),
 	)
 
 	if err := c.scheduler.Serve(); err != nil {
