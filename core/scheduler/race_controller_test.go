@@ -9,13 +9,12 @@ import (
 
 func TestRaceController(t *testing.T) {
 	tasks := make([]*scheduler.Task, 0)
-	tasks = append(tasks, scheduler.NewTask().WithStage(func(task *scheduler.Task) error {
-		time.Sleep(1 * time.Second)
-		return nil
-	}), scheduler.NewTask().WithStage(func(task *scheduler.Task) error {
-		time.Sleep(1 * time.Second)
-		return nil
-	}))
+	for i := 0; i < 4000; i++ {
+		tasks = append(tasks, scheduler.NewTask().WithStage(func(task *scheduler.Task) error {
+			time.Sleep(1 * time.Second)
+			return nil
+		}))
+	}
 
 	c := scheduler.NewRaceController().WithSafety()
 	c.WithDoneFunc(func(task *scheduler.Task) {

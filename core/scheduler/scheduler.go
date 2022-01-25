@@ -226,8 +226,8 @@ func (schedulerOption) TaskBacklog(taskBacklog int) funcSchedulerOption {
 	}
 }
 
-func (s *Scheduler) WithTaskBacklog(backlog int) *Scheduler {
-	SchedulerOption.TaskBacklog(backlog).apply(&s.opts)
+func (s *Scheduler) WithTaskBacklog(taskBacklog int) *Scheduler {
+	SchedulerOption.TaskBacklog(taskBacklog).apply(&s.opts)
 	return s
 }
 

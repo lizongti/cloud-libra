@@ -66,7 +66,7 @@ func (c *Commander) Serve() error {
 		scheduler.TPSControllerOption.Safety(),
 		scheduler.TPSControllerOption.Background(),
 		scheduler.TPSControllerOption.ErrorChan(c.errorChan),
-		scheduler.TPSControllerOption.Parallel(c.opts.parallelInit),
+		scheduler.TPSControllerOption.Parallel(c.opts.parallel),
 		scheduler.TPSControllerOption.TaskBacklog(c.opts.taskBacklog),
 		scheduler.TPSControllerOption.ReportBacklog(c.opts.reportBacklog),
 		scheduler.TPSControllerOption.ParallelBacklog(c.opts.parallelBacklog),
@@ -210,7 +210,7 @@ type commanderOptions struct {
 	safety           bool
 	background       bool
 	errorChan        chan<- error
-	parallelInit     int
+	parallel         int
 	parallelTick     time.Duration
 	parallelIncrease int
 	tpsLimit         int
@@ -228,7 +228,7 @@ var defaultCommanderOptions = commanderOptions{
 	safety:           false,
 	background:       false,
 	errorChan:        nil,
-	parallelInit:     1,
+	parallel:         1,
 	tpsLimit:         -1,
 	reqBacklog:       0,
 	respBacklog:      0,
@@ -307,16 +307,16 @@ func (c *Commander) WithErrorChan(errorChan chan<- error) *Commander {
 	return c
 }
 
-func (commanderOption) ParallelInit(parallelInit int) funcCommanderOption {
+func (commanderOption) Parallel(parallel int) funcCommanderOption {
 	return func(c *commanderOptions) {
-		if parallelInit > 0 {
-			c.parallelInit = parallelInit
+		if parallel > 0 {
+			c.parallel = parallel
 		}
 	}
 }
 
-func (c *Commander) WithParallelInit(parallelInit int) *Commander {
-	CommanderOption.ParallelInit(parallelInit).apply(&c.opts)
+func (c *Commander) WithParallel(parallel int) *Commander {
+	CommanderOption.Parallel(parallel).apply(&c.opts)
 	return c
 }
 

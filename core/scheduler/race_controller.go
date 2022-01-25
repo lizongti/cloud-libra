@@ -65,9 +65,11 @@ func (c *RaceController) serve() (err error) {
 	}
 	defer s.Close()
 
-	for _, task := range c.opts.taskMap {
-		task.Publish(s)
-	}
+	go func() {
+		for _, task := range c.opts.taskMap {
+			task.Publish(s)
+		}
+	}()
 
 	defer func() {
 		c.timeout = taskLength - c.done - c.failed
