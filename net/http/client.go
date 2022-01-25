@@ -206,8 +206,8 @@ type clientOption int
 var ClientOption clientOption
 
 func (clientOption) Protocol(protocol string) funcClientOption {
-	return func(co *clientOptions) {
-		co.protocol = protocol
+	return func(c *clientOptions) {
+		c.protocol = protocol
 	}
 }
 
@@ -217,8 +217,8 @@ func (c *Client) WithProtocol(protocol string) *Client {
 }
 
 func (clientOption) Timeout(timeout time.Duration) funcClientOption {
-	return func(co *clientOptions) {
-		co.timeout = timeout
+	return func(c *clientOptions) {
+		c.timeout = timeout
 	}
 }
 
@@ -239,8 +239,8 @@ func (c *Client) WithRetry(retry int) *Client {
 }
 
 func (clientOption) Proxy(proxy string) funcClientOption {
-	return func(co *clientOptions) {
-		co.proxy = proxy
+	return func(c *clientOptions) {
+		c.proxy = proxy
 	}
 }
 
@@ -250,8 +250,8 @@ func (c *Client) WithProxy(proxy string) *Client {
 }
 
 func (clientOption) ContentType(contentType string) funcClientOption {
-	return func(co *clientOptions) {
-		co.contentType = contentType
+	return func(c *clientOptions) {
+		c.contentType = contentType
 	}
 }
 
@@ -261,8 +261,8 @@ func (c *Client) WithContentType(contentType string) *Client {
 }
 
 func (clientOption) Form(form url.Values) funcClientOption {
-	return func(co *clientOptions) {
-		co.form = form
+	return func(c *clientOptions) {
+		c.form = form
 	}
 }
 
@@ -272,8 +272,8 @@ func (c *Client) WithForm(form url.Values) *Client {
 }
 
 func (clientOption) RequestBody(requestBodyFunc func() (io.Reader, error)) funcClientOption {
-	return func(co *clientOptions) {
-		co.requestBodyFunc = requestBodyFunc
+	return func(c *clientOptions) {
+		c.requestBodyFunc = requestBodyFunc
 	}
 }
 
@@ -294,8 +294,8 @@ func (c *Client) WithResponseBodyFunc(responseBodyFunc func(io.Reader) error) *C
 }
 
 func (clientOption) Safety() funcClientOption {
-	return func(co *clientOptions) {
-		co.safety = true
+	return func(c *clientOptions) {
+		c.safety = true
 	}
 }
 
@@ -305,8 +305,8 @@ func (c *Client) WithSafety() *Client {
 }
 
 func (clientOption) Context(context context.Context) funcClientOption {
-	return func(co *clientOptions) {
-		co.context = context
+	return func(c *clientOptions) {
+		c.context = context
 	}
 }
 

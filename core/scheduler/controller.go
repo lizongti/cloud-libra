@@ -6,26 +6,26 @@ import (
 	"time"
 )
 
-type TPSController struct {
-	opts     tpsControllerOptions
+type Controller struct {
+	opts     controllerOptions
 	dieChan  chan struct{}
 	exitChan chan struct{}
 }
 
-func NewTPSController(opt ...ApplyTPSControllerOption) *TPSController {
-	opts := defaultTPSControllerOptions
+func NewController(opt ...ApplyControllerOption) *Controller {
+	opts := defaultControllerOptions
 	for _, o := range opt {
 		o.apply(&opts)
 	}
 
-	return &TPSController{
+	return &Controller{
 		opts:     opts,
 		dieChan:  make(chan struct{}),
 		exitChan: make(chan struct{}),
 	}
 }
 
-func (c *TPSController) Serve(reportChan <-chan *Report, parallelChan chan<- int) error {
+func (c *Controller) Serve(reportChan <-chan *Report, parallelChan chan<- int) error {
 	if c.opts.background {
 		go c.serve(reportChan, parallelChan)
 		return nil
@@ -33,7 +33,7 @@ func (c *TPSController) Serve(reportChan <-chan *Report, parallelChan chan<- int
 	return c.serve(reportChan, parallelChan)
 }
 
-func (c *TPSController) serve(reportChan <-chan *Report, parallelChan chan<- int) (err error) {
+func (c *Controller) serve(reportChan <-chan *Report, parallelChan chan<- int) (err error) {
 	if c.opts.safety {
 		defer func() {
 			if v := recover(); v != nil {
@@ -79,12 +79,12 @@ func (c *TPSController) serve(reportChan <-chan *Report, parallelChan chan<- int
 	}
 }
 
-func (c *TPSController) Close() {
+func (c *Controller) Close() {
 	close(c.dieChan)
 	<-c.exitChan
 }
 
-type tpsControllerOptions struct {
+type controllerOptions struct {
 	safety           bool
 	background       bool
 	errorChan        chan<- error
@@ -93,7 +93,7 @@ type tpsControllerOptions struct {
 	tpsLimit         int
 }
 
-var defaultTPSControllerOptions = tpsControllerOptions{
+var defaultControllerOptions = controllerOptions{
 	safety:           false,
 	background:       false,
 	errorChan:        nil,
@@ -102,86 +102,86 @@ var defaultTPSControllerOptions = tpsControllerOptions{
 	tpsLimit:         -1,
 }
 
-type ApplyTPSControllerOption interface {
-	apply(*tpsControllerOptions)
+type ApplyControllerOption interface {
+	apply(*controllerOptions)
 }
 
-type funcTPSControllerOption func(*tpsControllerOptions)
+type funcControllerOption func(*controllerOptions)
 
-func (fco funcTPSControllerOption) apply(co *tpsControllerOptions) {
+func (fco funcControllerOption) apply(co *controllerOptions) {
 	fco(co)
 }
 
-type tpsControllerOption int
+type controllerOption int
 
-var ControllerOption tpsControllerOption
+var ControllerOption controllerOption
 
-func (tpsControllerOption) Safety() funcTPSControllerOption {
-	return func(c *tpsControllerOptions) {
+func (controllerOption) Safety() funcControllerOption {
+	return func(c *controllerOptions) {
 		c.safety = true
 	}
 }
 
-func (c *TPSController) Safety() *TPSController {
+func (c *Controller) Safety() *Controller {
 	ControllerOption.Safety().apply(&c.opts)
 	return c
 }
 
-func (tpsControllerOption) Background() funcTPSControllerOption {
-	return func(c *tpsControllerOptions) {
+func (controllerOption) Background() funcControllerOption {
+	return func(c *controllerOptions) {
 		c.background = true
 	}
 }
 
-func (c *TPSController) WithBackground() *TPSController {
+func (c *Controller) WithBackground() *Controller {
 	ControllerOption.Background().apply(&c.opts)
 	return c
 }
 
-func (tpsControllerOption) ErrorChan(errorChan chan<- error) funcTPSControllerOption {
-	return func(c *tpsControllerOptions) {
+func (controllerOption) ErrorChan(errorChan chan<- error) funcControllerOption {
+	return func(c *controllerOptions) {
 		c.errorChan = errorChan
 	}
 }
 
-func (c *TPSController) ErrorChan(errorChan chan<- error) *TPSController {
+func (c *Controller) ErrorChan(errorChan chan<- error) *Controller {
 	ControllerOption.ErrorChan(errorChan).apply(&c.opts)
 	return c
 }
 
-func (tpsControllerOption) ParallelTick(parallelTick time.Duration) funcTPSControllerOption {
-	return func(c *tpsControllerOptions) {
+func (controllerOption) ParallelTick(parallelTick time.Duration) funcControllerOption {
+	return func(c *controllerOptions) {
 		c.parallelTick = parallelTick
 	}
 }
 
-func (c *TPSController) WithParallelTick(parallelTick time.Duration) *TPSController {
+func (c *Controller) WithParallelTick(parallelTick time.Duration) *Controller {
 	ControllerOption.ParallelTick(parallelTick).apply(&c.opts)
 	return c
 }
 
-func (tpsControllerOption) ParallelIncrease(parallelIncrease int) funcTPSControllerOption {
-	return func(c *tpsControllerOptions) {
+func (controllerOption) ParallelIncrease(parallelIncrease int) funcControllerOption {
+	return func(c *controllerOptions) {
 		if parallelIncrease > 0 {
 			c.parallelIncrease = parallelIncrease
 		}
 	}
 }
 
-func (c *TPSController) WithParallelIncrease(parallelIncrease int) *TPSController {
+func (c *Controller) WithParallelIncrease(parallelIncrease int) *Controller {
 	ControllerOption.ParallelIncrease(parallelIncrease).apply(&c.opts)
 	return c
 }
 
-func (tpsControllerOption) TPSLimit(tpsLimit int) funcTPSControllerOption {
-	return func(c *tpsControllerOptions) {
+func (controllerOption) TPSLimit(tpsLimit int) funcControllerOption {
+	return func(c *controllerOptions) {
 		if tpsLimit > 0 {
 			c.tpsLimit = tpsLimit
 		}
 	}
 }
 
-func (c *TPSController) WithTPSLimit(tpsLimit int) *TPSController {
+func (c *Controller) WithTPSLimit(tpsLimit int) *Controller {
 	ControllerOption.TPSLimit(tpsLimit).apply(&c.opts)
 	return c
 }

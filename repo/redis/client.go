@@ -150,8 +150,8 @@ type clientOption int
 var ClientOption clientOption
 
 func (clientOption) Context(context context.Context) funcClientOption {
-	return func(co *clientOptions) {
-		co.context = context
+	return func(c *clientOptions) {
+		c.context = context
 	}
 }
 
@@ -161,8 +161,8 @@ func (c *Client) WithContext(context context.Context) *Client {
 }
 
 func (clientOption) Addr(addr string) funcClientOption {
-	return func(co *clientOptions) {
-		co.addr = addr
+	return func(c *clientOptions) {
+		c.addr = addr
 	}
 }
 
@@ -172,8 +172,8 @@ func (c *Client) WithAddr(addr string) *Client {
 }
 
 func (clientOption) Password(password string) funcClientOption {
-	return func(co *clientOptions) {
-		co.password = password
+	return func(c *clientOptions) {
+		c.password = password
 	}
 }
 
@@ -183,8 +183,8 @@ func (c *Client) WithPassword(password string) *Client {
 }
 
 func (clientOption) DB(db int) funcClientOption {
-	return func(co *clientOptions) {
-		co.db = db
+	return func(c *clientOptions) {
+		c.db = db
 	}
 }
 
@@ -194,8 +194,8 @@ func (c *Client) WithDB(db int) *Client {
 }
 
 func (clientOption) MaxActive(maxActive int) funcClientOption {
-	return func(co *clientOptions) {
-		co.maxActive = maxActive
+	return func(c *clientOptions) {
+		c.maxActive = maxActive
 	}
 }
 
@@ -205,8 +205,8 @@ func (c *Client) WithMaxActive(maxActive int) *Client {
 }
 
 func (clientOption) MaxIdle(maxIdle int) funcClientOption {
-	return func(co *clientOptions) {
-		co.maxIdle = maxIdle
+	return func(c *clientOptions) {
+		c.maxIdle = maxIdle
 	}
 }
 
@@ -216,8 +216,8 @@ func (c *Client) WithMaxIdle(maxIdle int) *Client {
 }
 
 func (clientOption) ConnectTimeout(connectTimeout time.Duration) funcClientOption {
-	return func(co *clientOptions) {
-		co.connectTimeout = connectTimeout
+	return func(c *clientOptions) {
+		c.connectTimeout = connectTimeout
 	}
 }
 
@@ -227,8 +227,8 @@ func (c *Client) WithConnectTimeout(connectTimeout time.Duration) *Client {
 }
 
 func (clientOption) ReadTimeout(readTimeout time.Duration) funcClientOption {
-	return func(co *clientOptions) {
-		co.readTimeout = readTimeout
+	return func(c *clientOptions) {
+		c.readTimeout = readTimeout
 	}
 }
 
@@ -238,8 +238,8 @@ func (c *Client) WithReadTimeout(readTimeout time.Duration) *Client {
 }
 
 func (clientOption) WriteTimeout(writeTimeout time.Duration) funcClientOption {
-	return func(co *clientOptions) {
-		co.writeTimeout = writeTimeout
+	return func(c *clientOptions) {
+		c.writeTimeout = writeTimeout
 	}
 }
 
@@ -249,8 +249,8 @@ func (c *Client) WithWriteTimeout(writeTimeout time.Duration) *Client {
 }
 
 func (clientOption) IdleTimeout(idleTimeout time.Duration) funcClientOption {
-	return func(co *clientOptions) {
-		co.idleTimeout = idleTimeout
+	return func(c *clientOptions) {
+		c.idleTimeout = idleTimeout
 	}
 }
 

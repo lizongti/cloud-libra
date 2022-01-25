@@ -434,8 +434,8 @@ type mappingOption int
 var MappingOption mappingOption
 
 func (mappingOption) URL(url string) funcMappingOption {
-	return func(co *mappingOptions) {
-		co.url = url
+	return func(c *mappingOptions) {
+		c.url = url
 	}
 }
 
@@ -445,8 +445,8 @@ func (c *Mapping) WithURL(url string) *Mapping {
 }
 
 func (mappingOption) Name(name string) funcMappingOption {
-	return func(co *mappingOptions) {
-		co.name = name
+	return func(c *mappingOptions) {
+		c.name = name
 	}
 }
 
@@ -456,8 +456,8 @@ func (c *Mapping) WithName(name string) *Mapping {
 }
 
 func (mappingOption) Context(context context.Context) funcMappingOption {
-	return func(co *mappingOptions) {
-		co.context = context
+	return func(c *mappingOptions) {
+		c.context = context
 	}
 }
 
