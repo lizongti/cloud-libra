@@ -23,7 +23,7 @@ func TestComannder(t *testing.T) {
 		http.CommanderOption.ResponseBacklog(1000),
 		http.CommanderOption.ReportBacklog(1),
 		http.CommanderOption.TPSLimit(20),
-		http.CommanderOption.ParallelInit(10),
+		http.CommanderOption.Parallel(10),
 		http.CommanderOption.ParallelTick(100*time.Millisecond),
 		http.CommanderOption.ParallelIncrease(1),
 	)
@@ -73,7 +73,7 @@ func TestInvoke(t *testing.T) {
 		http.CommanderOption.ResponseBacklog(1000),
 		http.CommanderOption.ReportBacklog(1),
 		http.CommanderOption.TPSLimit(20),
-		http.CommanderOption.ParallelInit(10),
+		http.CommanderOption.Parallel(10),
 		http.CommanderOption.ParallelTick(100*time.Millisecond),
 		http.CommanderOption.ParallelIncrease(1),
 	)
