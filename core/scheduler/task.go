@@ -108,8 +108,9 @@ func (t *Task) State() TaskStateType {
 	return t.state
 }
 
-func (t *Task) Set(key interface{}, value interface{}) {
+func (t *Task) Set(key interface{}, value interface{}) *Task {
 	t.values.Store(key, value)
+	return t
 }
 
 func (t *Task) Value(key interface{}) interface{} {
