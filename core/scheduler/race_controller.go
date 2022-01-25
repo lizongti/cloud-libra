@@ -69,7 +69,6 @@ func (c *RaceController) serve() (err error) {
 		c.timeout = taskLength - c.done - c.failed
 	}()
 
-	stateMap := make(map[TaskStateType]int)
 	if c.opts.timeout > 0 {
 		timer := time.After(c.opts.timeout)
 		for {
@@ -77,7 +76,6 @@ func (c *RaceController) serve() (err error) {
 			case e := <-errorChan:
 				c.opts.errorFunc(e)
 			case r := <-reportChan:
-				stateMap[r.State]++
 				switch {
 				case r.State == TaskStateDone:
 					c.done++
@@ -85,7 +83,7 @@ func (c *RaceController) serve() (err error) {
 				case r.State == TaskStateFailed:
 					c.failed++
 					c.opts.failedFunc(c.opts.taskMap[r.ID])
-				case stateMap[TaskStateDone]+stateMap[TaskStateFailed] == taskLength:
+				case c.done+c.failed == taskLength:
 					return
 				}
 			case <-timer:
@@ -98,7 +96,6 @@ func (c *RaceController) serve() (err error) {
 			case e := <-errorChan:
 				c.opts.errorFunc(e)
 			case r := <-reportChan:
-				stateMap[r.State]++
 				switch {
 				case r.State == TaskStateDone:
 					c.done++
@@ -106,7 +103,8 @@ func (c *RaceController) serve() (err error) {
 				case r.State == TaskStateFailed:
 					c.failed++
 					c.opts.failedFunc(c.opts.taskMap[r.ID])
-				case stateMap[TaskStateDone]+stateMap[TaskStateFailed] == taskLength:
+				}
+				if c.done+c.failed == taskLength {
 					return
 				}
 			}
