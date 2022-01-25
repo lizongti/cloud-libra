@@ -32,6 +32,10 @@ func (c *RaceController) Serve() error {
 }
 
 func (c *RaceController) serve() (err error) {
+	if len(c.opts.taskMap) == 0 {
+		return nil
+	}
+
 	if c.opts.safety {
 		defer func() {
 			if v := recover(); v != nil {
