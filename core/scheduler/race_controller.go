@@ -6,10 +6,11 @@ import (
 )
 
 type RaceController struct {
-	opts    raceControllerOptions
-	done    int
-	failed  int
-	timeout int
+	opts      raceControllerOptions
+	scheduler *Scheduler
+	done      int
+	failed    int
+	timeout   int
 }
 
 func NewRaceController(opt ...ApplyRaceControllerOption) *RaceController {
@@ -19,7 +20,8 @@ func NewRaceController(opt ...ApplyRaceControllerOption) *RaceController {
 	}
 
 	return &RaceController{
-		opts: opts,
+		opts:      opts,
+		scheduler: NewScheduler(),
 	}
 }
 
@@ -51,23 +53,22 @@ func (c *RaceController) serve() (err error) {
 	errorChan := make(chan error, taskLength)
 	reportChan := make(chan *Report, taskLength)
 
-	s := NewScheduler()
 	if c.opts.safety {
-		s.WithSafety()
+		c.scheduler.WithSafety()
 	}
-	s.WithBackground()
-	s.WithErrorChan(errorChan)
-	s.WithTaskBacklog(taskLength)
-	s.WithParallel(taskLength)
-	s.WithReportChan(reportChan)
-	if err := s.Serve(); err != nil {
+	c.scheduler.WithBackground()
+	c.scheduler.WithErrorChan(errorChan)
+	c.scheduler.WithTaskBacklog(taskLength)
+	c.scheduler.WithParallel(taskLength)
+	c.scheduler.WithReportChan(reportChan)
+	if err := c.scheduler.Serve(); err != nil {
 		return err
 	}
-	defer s.Close()
+	defer c.scheduler.Close()
 
 	go func() {
 		for _, task := range c.opts.taskMap {
-			task.Publish(s)
+			task.Publish(c.scheduler)
 		}
 	}()
 

@@ -20,9 +20,10 @@ func NewTPSController(opt ...ApplyTPSControllerOption) *TPSController {
 	}
 
 	return &TPSController{
-		opts:     opts,
-		dieChan:  make(chan struct{}),
-		exitChan: make(chan struct{}),
+		opts:      opts,
+		scheduler: NewScheduler(),
+		dieChan:   make(chan struct{}),
+		exitChan:  make(chan struct{}),
 	}
 }
 
@@ -55,21 +56,20 @@ func (c *TPSController) serve() (err error) {
 	reportChan := make(chan *Report, c.opts.reportBacklog)
 	parallelChan := make(chan int, c.opts.parallelBacklog)
 
-	s := NewScheduler()
 	if c.opts.safety {
-		s.WithSafety()
+		c.scheduler.WithSafety()
 	}
-	s.WithBackground()
-	s.WithErrorChan(c.opts.errorChan)
-	s.WithTaskBacklog(c.opts.taskBacklog)
-	s.WithParallel(c.opts.parallel)
-	s.WithReportChan(reportChan)
-	s.WithParallelChan(parallelChan)
+	c.scheduler.WithBackground()
+	c.scheduler.WithErrorChan(c.opts.errorChan)
+	c.scheduler.WithTaskBacklog(c.opts.taskBacklog)
+	c.scheduler.WithParallel(c.opts.parallel)
+	c.scheduler.WithReportChan(reportChan)
+	c.scheduler.WithParallelChan(parallelChan)
 
-	if err := s.Serve(); err != nil {
+	if err := c.scheduler.Serve(); err != nil {
 		return err
 	}
-	defer s.Close()
+	defer c.scheduler.Close()
 
 	tickerChan := time.NewTicker(c.opts.parallelTick).C
 	stateMap := make(map[TaskStateType]int)
