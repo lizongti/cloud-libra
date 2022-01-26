@@ -8,6 +8,7 @@ import (
 type RaceController struct {
 	opts      raceControllerOptions
 	scheduler *Scheduler
+	taskMap   map[string]*Task
 	done      int
 	failed    int
 	timeout   int
@@ -22,6 +23,7 @@ func NewRaceController(opt ...ApplyRaceControllerOption) *RaceController {
 	return &RaceController{
 		opts:      opts,
 		scheduler: NewScheduler(),
+		taskMap:   make(map[string]*Task),
 	}
 }
 
@@ -34,7 +36,7 @@ func (c *RaceController) Serve() error {
 }
 
 func (c *RaceController) serve() (err error) {
-	if len(c.opts.taskMap) == 0 {
+	if len(c.opts.tasks) == 0 {
 		return nil
 	}
 
@@ -49,7 +51,7 @@ func (c *RaceController) serve() (err error) {
 		}()
 	}
 
-	taskLength := len(c.opts.taskMap)
+	taskLength := len(c.opts.tasks)
 	reportChan := make(chan *Report, taskLength)
 
 	if c.opts.safety {
@@ -74,10 +76,14 @@ func (c *RaceController) serve() (err error) {
 				}
 			}
 		}()
-		for _, task := range c.opts.taskMap {
+		for _, task := range c.opts.tasks {
 			task.Publish(c.scheduler)
 		}
 	}()
+
+	for _, task := range c.opts.tasks {
+		c.taskMap[task.ID()] = task
+	}
 
 	defer func() {
 		c.timeout = taskLength - c.done - c.failed
@@ -91,11 +97,16 @@ func (c *RaceController) serve() (err error) {
 				switch {
 				case r.State == TaskStateDone:
 					c.done++
-					c.opts.doneFunc(c.opts.taskMap[r.ID])
+					if c.opts.doneFunc != nil {
+						c.opts.doneFunc(c.taskMap[r.ID])
+					}
 				case r.State == TaskStateFailed:
 					c.failed++
-					c.opts.failedFunc(c.opts.taskMap[r.ID])
-				case c.done+c.failed == taskLength:
+					if c.opts.failedFunc != nil {
+						c.opts.failedFunc(c.taskMap[r.ID])
+					}
+				}
+				if c.done+c.failed == taskLength {
 					return
 				}
 			case <-timer:
@@ -109,10 +120,14 @@ func (c *RaceController) serve() (err error) {
 				switch {
 				case r.State == TaskStateDone:
 					c.done++
-					c.opts.doneFunc(c.opts.taskMap[r.ID])
+					if c.opts.doneFunc != nil {
+						c.opts.doneFunc(c.taskMap[r.ID])
+					}
 				case r.State == TaskStateFailed:
 					c.failed++
-					c.opts.failedFunc(c.opts.taskMap[r.ID])
+					if c.opts.failedFunc != nil {
+						c.opts.failedFunc(c.taskMap[r.ID])
+					}
 				}
 				if c.done+c.failed == taskLength {
 					return
@@ -124,7 +139,7 @@ func (c *RaceController) serve() (err error) {
 }
 
 func (c *RaceController) Size() int {
-	return len(c.opts.taskMap)
+	return len(c.opts.tasks)
 }
 
 func (c *RaceController) Done() int {
@@ -144,7 +159,7 @@ type raceControllerOptions struct {
 	background bool
 	errorChan  chan<- error
 	timeout    time.Duration
-	taskMap    map[string]*Task
+	tasks      []*Task
 	doneFunc   func(*Task)
 	failedFunc func(*Task)
 }
@@ -154,9 +169,9 @@ var defaultRaceControllerOptions = raceControllerOptions{
 	background: false,
 	errorChan:  nil,
 	timeout:    0,
-	taskMap:    map[string]*Task{},
-	doneFunc:   func(*Task) {},
-	failedFunc: func(*Task) {},
+	tasks:      nil,
+	doneFunc:   nil,
+	failedFunc: nil,
 }
 
 type ApplyRaceControllerOption interface {
@@ -206,16 +221,14 @@ func (c *RaceController) WithErrorChan(errorChan chan<- error) *RaceController {
 	return c
 }
 
-func (raceControllerOption) Task(tasks ...*Task) funcRaceControllerOption {
+func (raceControllerOption) Tasks(tasks ...*Task) funcRaceControllerOption {
 	return func(c *raceControllerOptions) {
-		for _, task := range tasks {
-			c.taskMap[task.ID()] = task
-		}
+		c.tasks = tasks
 	}
 }
 
 func (c *RaceController) WithTask(tasks ...*Task) *RaceController {
-	RaceControllerOption.Task(tasks...).apply(&c.opts)
+	RaceControllerOption.Tasks(tasks...).apply(&c.opts)
 	return c
 }
 
