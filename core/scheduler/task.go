@@ -85,7 +85,7 @@ func NewTask(opt ...ApplyTaskOption) *Task {
 }
 
 func (t *Task) String() string {
-	return fmt.Sprintf("%s[%s](%d/%d)", t.opts.name, t.id, t.progress, len(t.opts.stages))
+	return fmt.Sprintf("%s(%d/%d)", t.opts.name, t.progress, len(t.opts.stages))
 }
 
 func (t *Task) Name() string {
