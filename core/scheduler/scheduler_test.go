@@ -104,7 +104,7 @@ func TestParallelChan(t *testing.T) {
 	}
 }
 
-func TestTPS(t *testing.T) {
+func TestParallelTPS(t *testing.T) {
 	const (
 		reportChanBacklog = 1000
 		backlog           = 1000
