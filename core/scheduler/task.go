@@ -88,6 +88,10 @@ func (t *Task) String() string {
 	return fmt.Sprintf("%s[%s](%d/%d)", t.opts.name, t.id, t.progress, len(t.opts.stages))
 }
 
+func (t *Task) Name() string {
+	return t.opts.name
+}
+
 func (t *Task) Context() context.Context {
 	return t.context
 }
