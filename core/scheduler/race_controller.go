@@ -50,14 +50,13 @@ func (c *RaceController) serve() (err error) {
 	}
 
 	taskLength := len(c.opts.taskMap)
-	errorChan := make(chan error, taskLength)
 	reportChan := make(chan *Report, taskLength)
 
 	if c.opts.safety {
 		c.scheduler.WithSafety()
 	}
 	c.scheduler.WithBackground()
-	c.scheduler.WithErrorChan(errorChan)
+	c.scheduler.WithErrorChan(c.opts.errorChan)
 	c.scheduler.WithTaskBacklog(taskLength)
 	c.scheduler.WithParallel(taskLength)
 	c.scheduler.WithReportChan(reportChan)
@@ -67,6 +66,14 @@ func (c *RaceController) serve() (err error) {
 	defer c.scheduler.Close()
 
 	go func() {
+		defer func() {
+			if v := recover(); v != nil {
+				err := fmt.Errorf("%v", v)
+				if c.opts.errorChan != nil {
+					c.opts.errorChan <- err
+				}
+			}
+		}()
 		for _, task := range c.opts.taskMap {
 			task.Publish(c.scheduler)
 		}
@@ -80,8 +87,6 @@ func (c *RaceController) serve() (err error) {
 		timer := time.After(c.opts.timeout)
 		for {
 			select {
-			case e := <-errorChan:
-				c.opts.errorFunc(e)
 			case r := <-reportChan:
 				switch {
 				case r.State == TaskStateDone:
@@ -100,8 +105,6 @@ func (c *RaceController) serve() (err error) {
 	} else {
 		for {
 			select {
-			case e := <-errorChan:
-				c.opts.errorFunc(e)
 			case r := <-reportChan:
 				switch {
 				case r.State == TaskStateDone:
@@ -142,7 +145,6 @@ type raceControllerOptions struct {
 	errorChan  chan<- error
 	timeout    time.Duration
 	taskMap    map[string]*Task
-	errorFunc  func(error)
 	doneFunc   func(*Task)
 	failedFunc func(*Task)
 }
@@ -153,7 +155,6 @@ var defaultRaceControllerOptions = raceControllerOptions{
 	errorChan:  nil,
 	timeout:    0,
 	taskMap:    map[string]*Task{},
-	errorFunc:  func(error) {},
 	doneFunc:   func(*Task) {},
 	failedFunc: func(*Task) {},
 }
@@ -226,17 +227,6 @@ func (raceControllerOption) Timeout(timeout time.Duration) funcRaceControllerOpt
 
 func (c *RaceController) WithTimeout(timeout time.Duration) *RaceController {
 	RaceControllerOption.Timeout(timeout).apply(&c.opts)
-	return c
-}
-
-func (raceControllerOption) ErrorFunc(errorFunc func(error)) funcRaceControllerOption {
-	return func(c *raceControllerOptions) {
-		c.errorFunc = errorFunc
-	}
-}
-
-func (c *RaceController) WithErrorFunc(errorFunc func(error)) *RaceController {
-	RaceControllerOption.ErrorFunc(errorFunc).apply(&c.opts)
 	return c
 }
 

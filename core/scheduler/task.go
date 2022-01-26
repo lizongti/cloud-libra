@@ -118,6 +118,10 @@ func (t *Task) Value(key interface{}) interface{} {
 	return value
 }
 
+func (t *Task) Error() error {
+	return t.err
+}
+
 func (t *Task) Publish(s *Scheduler) {
 	t.report = func(r *Report) {
 		s.report(r)
@@ -126,10 +130,10 @@ func (t *Task) Publish(s *Scheduler) {
 	s.schedule(t)
 }
 
-func (t *Task) execute() {
+func (t *Task) Execute() (err error) {
 	defer func() {
 		if v := recover(); v != nil {
-			err := fmt.Errorf("%v", v)
+			err = fmt.Errorf("%v", v)
 			t.err = err
 			t.switchState(TaskStateFailed)
 		}
@@ -154,20 +158,33 @@ func (t *Task) execute() {
 
 	ctx, cancel := context.WithTimeout(t.opts.parentContext, t.opts.timeout)
 	t.context = ctx
-	doneChan := make(chan struct{})
-	defer close(doneChan)
+
+	errChan := make(chan error)
+	defer close(errChan)
 	defer cancel()
 
 	go func() {
+		defer func() {
+			if v := recover(); v != nil {
+				err := fmt.Errorf("%v", v)
+				errChan <- err
+			}
+		}()
+
 		t.doStages()
-		doneChan <- struct{}{}
+		errChan <- nil
 	}()
 
 	select {
-	case <-doneChan:
+	case e := <-errChan:
+		if e != nil {
+			panic(e)
+		}
 	case <-ctx.Done():
 		panic(ctx.Err())
 	}
+
+	return nil
 }
 
 func (t *Task) doStages() {

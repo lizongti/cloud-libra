@@ -9,7 +9,6 @@ type Scheduler struct {
 
 	pipelines []*pipeline
 	taskChan  chan *Task
-	errorChan chan interface{}
 	dieChan   chan struct{}
 	exitChan  chan struct{}
 }
@@ -42,10 +41,9 @@ func NewScheduler(opt ...ApplySchedulerOption) *Scheduler {
 	}
 
 	s := &Scheduler{
-		opts:      opts,
-		errorChan: make(chan interface{}, 1),
-		dieChan:   make(chan struct{}),
-		exitChan:  make(chan struct{}),
+		opts:     opts,
+		dieChan:  make(chan struct{}),
+		exitChan: make(chan struct{}),
 	}
 
 	return s
@@ -90,8 +88,6 @@ func (s *Scheduler) serve() (err error) {
 		select {
 		case n := <-s.opts.parallelChan:
 			s.increaseParallel(n)
-		case p := <-s.errorChan:
-			panic(p)
 		case <-s.dieChan:
 			return
 		}
@@ -116,7 +112,9 @@ func (s *Scheduler) digest(p *pipeline) {
 	defer func() {
 		if v := recover(); v != nil {
 			err := fmt.Errorf("%v", v)
-			s.errorChan <- err
+			if s.opts.errorChan != nil {
+				s.opts.errorChan <- err
+			}
 		}
 	}()
 
@@ -125,7 +123,7 @@ func (s *Scheduler) digest(p *pipeline) {
 	for {
 		select {
 		case t := <-s.taskChan:
-			t.execute()
+			s.execute(t)
 		case <-p.dieChan:
 			return
 		}
@@ -134,10 +132,18 @@ func (s *Scheduler) digest(p *pipeline) {
 
 func (s *Scheduler) schedule(t *Task) {
 	if s == emptyScheduler {
-		t.execute()
+		s.execute(t)
 		return
 	}
 	s.taskChan <- t
+}
+
+func (s *Scheduler) execute(t *Task) {
+	if err := t.Execute(); err != nil {
+		if s.opts.errorChan != nil {
+			s.opts.errorChan <- err
+		}
+	}
 }
 
 func (s *Scheduler) close(p *pipeline) {
