@@ -1,46 +1,39 @@
 package bar
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+)
 
 type Bar struct {
-	percent int64
-	cur     int64
-	total   int64
-	rate    string
-	graph   string
+	percent int
+	current int
+	total   int
+	bar     bytes.Buffer
+	element string
 }
 
-func NewBar() *Bar {
-	return &Bar{}
-}
-
-func (bar *Bar) Prepare(start, total int64, graph string) {
-	bar.graph = graph
-	bar.cur = start
+func NewBar(total int) *Bar {
+	bar := &Bar{}
 	bar.total = total
-	if bar.graph == "" {
-		bar.graph = "█"
-	}
-	bar.percent = bar.getPercent()
-	for i := 0; i < int(bar.percent); i += 2 {
-		bar.rate += bar.graph
-	}
+	bar.element = "="
+	return bar
 }
 
-func (bar *Bar) Update(cur int64) {
-	bar.cur = cur
+func (bar *Bar) Move(n int) {
+	bar.current += n
 	last := bar.percent
 	bar.percent = bar.getPercent()
-	if bar.percent != last && bar.percent%2 == 0 {
-		bar.rate += bar.graph
+	for i := last; i < bar.percent; i++ {
+		bar.bar.WriteString(bar.element)
 	}
-	fmt.Printf("\r[%-50s]%3d%%  %8d/%d", bar.rate, bar.percent, bar.cur, bar.total)
+	fmt.Printf("\r[%-100s]%3d%%  %8d/%d", bar.bar.String(), bar.percent, bar.current, bar.total)
 }
 
-func (bar *Bar) Finish() {
+func (bar *Bar) Close() {
 	fmt.Println()
 }
 
-func (bar *Bar) getPercent() int64 {
-	return int64(float32(bar.cur) / float32(bar.total) * 100)
+func (bar *Bar) getPercent() int {
+	return int(float32(bar.current) / float32(bar.total) * 100)
 }
