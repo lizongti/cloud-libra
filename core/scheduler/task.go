@@ -126,12 +126,13 @@ func (t *Task) Error() error {
 	return t.err
 }
 
-func (t *Task) Publish(s *Scheduler) {
+func (t *Task) Publish(s *Scheduler) *Task {
 	t.report = func(r *Report) {
 		s.report(r)
 	}
 	t.switchState(TaskStatePending)
 	s.schedule(t)
+	return t
 }
 
 func (t *Task) Execute() (err error) {
