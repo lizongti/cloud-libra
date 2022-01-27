@@ -117,7 +117,7 @@ func (t *Task) Set(key interface{}, value interface{}) *Task {
 	return t
 }
 
-func (t *Task) Value(key interface{}) interface{} {
+func (t *Task) Get(key interface{}) interface{} {
 	value, _ := t.values.Load(key)
 	return value
 }

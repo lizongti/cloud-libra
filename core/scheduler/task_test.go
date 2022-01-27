@@ -96,7 +96,7 @@ func TestTaskParams(t *testing.T) {
 	var stages = make([]func(*scheduler.Task) error, 0, stageCount)
 	for index := 0; index < 10; index++ {
 		stages = append(stages, func(task *scheduler.Task) error {
-			progress := task.Value("progress").(int)
+			progress := task.Get("progress").(int)
 			defer func() {
 				task.Set("progress", progress)
 			}()
