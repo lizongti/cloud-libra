@@ -7,6 +7,7 @@ import (
 
 func Map(inputs []interface{}, f func(interface{}) interface{}) []interface{} {
 	bar := bar.NewBar(len(inputs))
+	bar.Begin()
 
 	outputs := make([]interface{}, 0, len(inputs))
 	round := 0
@@ -36,19 +37,19 @@ func Map(inputs []interface{}, f func(interface{}) interface{}) []interface{} {
 			panic(err)
 		}
 	}
-	bar.Close()
+	bar.End()
 
 	return outputs
 }
 
-func TestMap(inputs []interface{}, f func(interface{}) interface{}) []interface{} {
+func MapTest(inputs []interface{}, f func(interface{}) interface{}) []interface{} {
 	bar := bar.NewBar(len(inputs))
-
+	bar.Begin()
 	outputs := make([]interface{}, 0, len(inputs))
 	for _, input := range inputs {
 		outputs = append(outputs, f(input))
 		bar.Move(1)
 	}
-	bar.Close()
+	bar.End()
 	return outputs
 }

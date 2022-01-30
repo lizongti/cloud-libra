@@ -20,6 +20,10 @@ func NewBar(total int) *Bar {
 	return bar
 }
 
+func (bar *Bar) Begin() {
+	fmt.Printf("\r[%-100s]%3d%%  %8d/%d", bar.bar.String(), bar.percent, bar.current, bar.total)
+}
+
 func (bar *Bar) Move(n int) {
 	bar.current += n
 	last := bar.percent
@@ -30,7 +34,7 @@ func (bar *Bar) Move(n int) {
 	fmt.Printf("\r[%-100s]%3d%%  %8d/%d", bar.bar.String(), bar.percent, bar.current, bar.total)
 }
 
-func (bar *Bar) Close() {
+func (bar *Bar) End() {
 	fmt.Println()
 }
 
