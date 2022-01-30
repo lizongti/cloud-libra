@@ -75,9 +75,9 @@ func (m *Mapping) Append(v interface{}) (err error) {
 
 	switch v := v.(type) {
 	case Hash:
-		return m.replaceHash(&v)
+		return m.appendHash(&v)
 	case *Hash:
-		return m.replaceHash(v)
+		return m.appendHash(v)
 	default:
 		return ErrUnsupportedType
 	}
