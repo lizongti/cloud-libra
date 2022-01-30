@@ -66,6 +66,23 @@ func (m *Mapping) String() string {
 	return m.opts.name
 }
 
+func (m *Mapping) Append(v interface{}) (err error) {
+	defer func() {
+		if v := recover(); v != nil {
+			err = fmt.Errorf("%v", v)
+		}
+	}()
+
+	switch v := v.(type) {
+	case Hash:
+		return m.replaceHash(&v)
+	case *Hash:
+		return m.replaceHash(v)
+	default:
+		return ErrUnsupportedType
+	}
+}
+
 func (m *Mapping) Replace(v interface{}) (err error) {
 	defer func() {
 		if v := recover(); v != nil {
@@ -199,6 +216,32 @@ func (m *Mapping) replaceString(s *String) error {
 	if result[0] != magic.OK {
 		return ErrResultContentNotValid
 	}
+	return nil
+}
+
+func (m *Mapping) appendHash(hash *Hash) error {
+	if len(hash.Value) == 0 {
+		return nil
+	}
+
+	cmd := make([]string, 0, len(hash.Value)*2+2)
+	cmd = append(cmd, "HMSET", hash.Key)
+	for k, v := range hash.Value {
+		cmd = append(cmd, k, v)
+	}
+
+	result, err := m.invoke(cmd)
+	if err != nil {
+		return err
+	}
+
+	if len(result) != 1 {
+		return ErrResultLengthNotValid
+	}
+	if result[0] != magic.OK {
+		return ErrResultContentNotValid
+	}
+
 	return nil
 }
 
