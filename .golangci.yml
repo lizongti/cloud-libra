@@ -62,16 +62,7 @@ linters:
 run:
   timeout: 5m
   skip-dirs:
-    - internal/exported
-    - bin
-    - vendor
-    - misc
-    - log
-    - external
     - config
-    - scripts
-    - tmp
-    - tools/converter
 
 output:
   format: colored-line-number
