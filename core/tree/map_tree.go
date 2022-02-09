@@ -18,7 +18,7 @@ func NewMapTree() *MapTree {
 	}
 }
 
-func (mt *MapTree) SetData(data map[string]interface{}) {
+func (mt *MapTree) SetData(data map[string]interface{}) *MapTree {
 	mt.data = data
 }
 
