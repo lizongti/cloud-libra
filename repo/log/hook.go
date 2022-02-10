@@ -3,6 +3,8 @@ package log
 import (
 	"errors"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/aceaura/libra/core/cast"
@@ -61,16 +63,15 @@ type LumberjackHookCreater struct{}
 
 func (c LumberjackHookCreater) Create(config *tree.MapTree) (logrus.Hook, error) {
 	hook := &LumberjackHook{}
-	// var directory string
-	var file = cast.ToString(config.Get(magic.UnixChain("file")))
-	var filename string
-	switch cast.ToString(config.Get(magic.UnixChain("directory"))) {
-	case "":
-		filename = file
-	case "exe":
-	case "cwd":
-	case "project":
+	var filename = cast.ToString(config.Get(magic.UnixChain("file")))
+	if cast.ToBool(config.Get(magic.UnixChain("cwd"))) {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+		filename = filepath.Join(cwd, filename)
 	}
+
 	hook.logger = &lumberjack.Logger{
 		Filename:   filename,
 		MaxSize:    cast.ToInt(config.Get(magic.UnixChain("size"))),      // megabytes
