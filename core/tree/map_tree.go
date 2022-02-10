@@ -20,6 +20,7 @@ func NewMapTree() *MapTree {
 
 func (mt *MapTree) SetData(data map[string]interface{}) *MapTree {
 	mt.data = data
+	return mt
 }
 
 func (mt *MapTree) Data() interface{} {
