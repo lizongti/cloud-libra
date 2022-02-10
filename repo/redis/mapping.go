@@ -431,12 +431,12 @@ func (m *Mapping) invoke(cmd []string) (result []string, err error) {
 	if err := m.Client.Invoke(m.opts.context, &message.Message{
 		Route:    route.NewChainRoute(device.Addr(m), magic.GoogleChain("/redis")),
 		Encoding: encoding.NewJSON(),
-		Data: encoding.Encode(encoding.NewJSON(), &ServiceRequest{
+		Data: encoding.Encode(encoding.NewJSON(), &RedisRequest{
 			URL: m.opts.url,
 			Cmd: cmd,
 		}),
 	}, device.NewFuncProcessor(func(ctx context.Context, msg *message.Message) error {
-		resp := new(ServiceResponse)
+		resp := new(RedisResponse)
 		encoding.Decode(msg.Encoding, msg.Data, resp)
 		if resp.Result == nil {
 			result = make([]string, 0)

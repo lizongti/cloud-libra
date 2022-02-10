@@ -8,15 +8,13 @@ import (
 	"github.com/aceaura/libra/core/device"
 )
 
-type ServiceRequest struct {
+type RedisRequest struct {
 	URL string
 	Cmd []string
 }
 
-type ServiceResponse struct {
-	Err     error
-	Request *ServiceRequest
-	Result  []string
+type RedisResponse struct {
+	Result []string
 }
 
 type Service struct{}
@@ -25,7 +23,7 @@ func init() {
 	device.Bus().WithService(&Service{})
 }
 
-func (s *Service) Redis(ctx context.Context, req *ServiceRequest) (resp *ServiceResponse, err error) {
+func (s *Service) Redis(ctx context.Context, req *RedisRequest) (resp *RedisResponse, err error) {
 	u, err := url.Parse(req.URL)
 	if err != nil {
 		return nil, err
@@ -35,7 +33,7 @@ func (s *Service) Redis(ctx context.Context, req *ServiceRequest) (resp *Service
 	db := cast.ToInt(u.Path[1:])
 	password, _ := u.User.Password()
 
-	resp = new(ServiceResponse)
+	resp = new(RedisResponse)
 	c := NewClient().WithAddr(addr).WithDB(db).WithContext(ctx).WithPassword(password)
 	result, err := c.Command(cast.ToSlice(req.Cmd)...)
 	if err != nil {
@@ -45,6 +43,6 @@ func (s *Service) Redis(ctx context.Context, req *ServiceRequest) (resp *Service
 	return resp, nil
 }
 
-func (s *Service) RedisPipeline(ctx context.Context, req *ServiceRequest) (resp *ServiceResponse, err error) {
+func (s *Service) RedisPipeline(ctx context.Context, req *RedisRequest) (resp *RedisResponse, err error) {
 	return nil, nil
 }

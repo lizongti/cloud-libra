@@ -31,7 +31,7 @@ func TestService(t *testing.T) {
 	service := &redis.Service{}
 	bus := device.NewRouter().WithBus().WithName("Bus").WithService(service).WithDevice(client)
 	t.Logf("\n%s", device.Tree(bus))
-	req := &redis.ServiceRequest{
+	req := &redis.RedisRequest{
 		URL: url,
 		Cmd: []string{"SET", "test", "100"},
 	}
@@ -45,7 +45,7 @@ func TestService(t *testing.T) {
 		Data:     data,
 	}
 	processor := device.NewFuncProcessor(func(ctx context.Context, msg *message.Message) error {
-		resp := new(redis.ServiceResponse)
+		resp := new(redis.RedisResponse)
 		if err := msg.Encoding.Unmarshal(msg.Data, resp); err != nil {
 			return err
 		}
