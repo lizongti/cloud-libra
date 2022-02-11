@@ -6,20 +6,20 @@ import (
 	"github.com/aceaura/libra/core/message"
 )
 
-type hole struct {
+type discard struct {
 	*Base
 }
 
-func Hole() Device {
-	return NewHole()
+func Discard() Device {
+	return NewDiscard()
 }
 
-func NewHole() *hole {
-	return &hole{
+func NewDiscard() *discard {
+	return &discard{
 		Base: NewBase(),
 	}
 }
 
-func (*hole) Process(context.Context, *message.Message) error {
+func (*discard) Process(context.Context, *message.Message) error {
 	return nil
 }
