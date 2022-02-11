@@ -12,7 +12,7 @@ type Tree struct {
 	data map[string]interface{}
 }
 
-func NewMapTree() *Tree {
+func NewTree() *Tree {
 	return &Tree{
 		data: make(map[string]interface{}),
 	}
@@ -242,7 +242,7 @@ func (t *Tree) merge(source interface{}, target interface{}) interface{} {
 }
 
 func (t *Tree) Dulplicate() *Tree {
-	mapTree := NewMapTree()
+	mapTree := NewTree()
 	mapTree.SetData(deepcopy.Copy(t.data).(map[string]interface{}))
 	return mapTree
 }
@@ -267,8 +267,8 @@ func (t *Tree) marshalHash(pairs [][]interface{}, source interface{}, prefix []s
 	return pairs
 }
 
-func (mt *Tree) UnmarshalHash(pairs [][]interface{}) {
+func (t *Tree) UnmarshalHash(pairs [][]interface{}) {
 	for _, pair := range pairs {
-		mt.Set(cast.ToStringSlice(pair[0]), pair[1])
+		t.Set(cast.ToStringSlice(pair[0]), pair[1])
 	}
 }

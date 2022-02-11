@@ -28,7 +28,7 @@ func NewLogger(config *tree.Tree) (*logrus.Logger, error) {
 	logger.SetLevel(logLevel.Level())
 
 	for name, c := range cast.ToStringMap(config.Get(magic.UnixChain("hooks"))) {
-		hook, err := NewHook(name, tree.NewMapTree().SetData(cast.ToStringMap(c)))
+		hook, err := NewHook(name, tree.NewTree().SetData(cast.ToStringMap(c)))
 		if err != nil {
 			return nil, err
 		}

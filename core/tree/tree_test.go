@@ -60,35 +60,35 @@ func TestMapTree(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	mapTree := tree.NewMapTree()
-	mapTree.SetData(data)
+	tree1 := tree.NewTree()
+	tree1.SetData(data)
 
-	v := mapTree.Get(magic.UnixChain("animals.0.species_name"))
+	v := tree1.Get(magic.UnixChain("animals.0.species_name"))
 	if s, ok := v.(string); !ok {
 		t.Fatalf("expected a string, but got %v", v)
 	} else if s != "Elephant" {
 		t.Fatalf("expected a string of `Elephant`, but got %s", s)
 	}
 
-	mapTree.Set(magic.UnixChain("name"), "Sea World")
-	mapTree.Set(magic.UnixChain("animals.0.species_name"), "Dolphin")
-	mapTree.Set(magic.UnixChain("keepers.3"), map[string]interface{}{"Name": "Mike", "Age": 29})
-	mapTree.Set(magic.UnixChain("animals.4.1.3"), "a mistake")
+	tree1.Set(magic.UnixChain("name"), "Sea World")
+	tree1.Set(magic.UnixChain("animals.0.species_name"), "Dolphin")
+	tree1.Set(magic.UnixChain("keepers.3"), map[string]interface{}{"Name": "Mike", "Age": 29})
+	tree1.Set(magic.UnixChain("animals.4.1.3"), "a mistake")
 
-	if mapTree.Get(magic.UnixChain("name")) != "Sea World" {
-		t.Fatalf("expected zoo name `Sea World`, but got %s", mapTree.Get(magic.UnixChain("sea")))
+	if tree1.Get(magic.UnixChain("name")) != "Sea World" {
+		t.Fatalf("expected zoo name `Sea World`, but got %s", tree1.Get(magic.UnixChain("sea")))
 	}
-	if mapTree.Get(magic.UnixChain("animals.0.species_name")) != "Dolphin" {
-		t.Fatalf("expected species name `Dolphin`, but got %s", mapTree.Get(magic.UnixChain("animals.0.species_name")))
+	if tree1.Get(magic.UnixChain("animals.0.species_name")) != "Dolphin" {
+		t.Fatalf("expected species name `Dolphin`, but got %s", tree1.Get(magic.UnixChain("animals.0.species_name")))
 	}
-	if mapTree.Get(magic.UnixChain("keepers.3.name")) != "Mike" {
-		t.Fatalf("expected keeper name `Mike`, but got %s", mapTree.Get(magic.UnixChain("keepers.3.name")))
+	if tree1.Get(magic.UnixChain("keepers.3.name")) != "Mike" {
+		t.Fatalf("expected keeper name `Mike`, but got %s", tree1.Get(magic.UnixChain("keepers.3.name")))
 	}
 
-	mapTree.Remove(magic.UnixChain("animals.4.1.3"))
-	mapTree.Remove(magic.UnixChain("Keepers.1.Name"))
-	mapTree.Remove(magic.UnixChain("Keepers.1.Age"))
-	zooJSON, err = json.Marshal(mapTree.Data())
+	tree1.Remove(magic.UnixChain("animals.4.1.3"))
+	tree1.Remove(magic.UnixChain("Keepers.1.Name"))
+	tree1.Remove(magic.UnixChain("Keepers.1.Age"))
+	zooJSON, err = json.Marshal(tree1.Data())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +108,7 @@ func TestMapTree(t *testing.T) {
 		t.Fatalf("expected keeper name `Mike`, but got %s", zoo.Keepers[3].Name)
 	}
 
-	mapTree2 := mapTree.Dulplicate()
+	mapTree2 := tree1.Dulplicate()
 
 	mapTree2.Remove(magic.UnixChain("Keepers.3.Name"))
 	mapTree2.Remove(magic.UnixChain("Keepers.3.Age"))
@@ -128,8 +128,8 @@ func TestMapTree(t *testing.T) {
 		t.Fatalf("expected 1 keeper, but got %d", len(zoo.Keepers))
 	}
 
-	mapTree.Merge(mapTree2)
-	zooJSON, err = json.Marshal(mapTree.Data())
+	tree1.Merge(mapTree2)
+	zooJSON, err = json.Marshal(tree1.Data())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,20 +143,20 @@ func TestMapTree(t *testing.T) {
 		t.Fatalf("expected name `Universe World`, but got %s", zoo.Name)
 	}
 
-	hash, err := encoding.NewHash().Marshal(mapTree)
+	hash, err := encoding.NewHash().Marshal(tree1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	t.Log(string(hash))
 
-	mapTree3 := tree.NewMapTree()
-	if err := encoding.NewHash().Unmarshal(hash, mapTree3); err != nil {
+	tree3 := tree.NewTree()
+	if err := encoding.NewHash().Unmarshal(hash, tree3); err != nil {
 		t.Fatal(err)
 	}
 
 	// DeepEqual doesnot match
-	if fmt.Sprintf("%v", mapTree3) != fmt.Sprintf("%v", mapTree) {
-		t.Fatalf("expected `mapTree3` equals to `mapTree`, mapTree3: %+v, mapTree: %+v", mapTree3, mapTree)
+	if fmt.Sprintf("%v", tree3) != fmt.Sprintf("%v", tree1) {
+		t.Fatalf("expected `mapTree3` equals to `tree`, mapTree3: %+v, tree: %+v", tree3, tree1)
 	}
 }
