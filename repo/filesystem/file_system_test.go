@@ -1,4 +1,4 @@
-package file
+package filesystem
 
 import (
 	"path/filepath"
@@ -10,10 +10,10 @@ import (
 func TestPath(t *testing.T) {
 	home, err := homedir.Dir()
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	path := NewPath(filepath.Join(home, ".libra"))
-	dir, err := path.Dir()
+	dir, err := path.Directory()
 	if err != nil {
 		t.Fatal(err)
 	}

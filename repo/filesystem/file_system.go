@@ -1,4 +1,4 @@
-package file
+package filesystem
 
 import (
 	"errors"
@@ -75,6 +75,17 @@ func (p *Path) Remove() error {
 	return os.RemoveAll(p.path)
 }
 
+func (p *Path) MaybeFile() (*File, error) {
+	info, err := os.Stat(p.path)
+	if err != nil {
+		return nil, err
+	}
+	if info.IsDir() {
+		return nil, ErrPathIsDirectory
+	}
+	return NewFile(p.path), nil
+}
+
 func (p *Path) File() (*File, error) {
 	state, err := p.State()
 	if err != nil {
@@ -95,12 +106,21 @@ func (p *Path) File() (*File, error) {
 			return nil, err
 		}
 	}
-	return &File{
-		path: p.path,
-	}, nil
+	return NewFile(p.path), nil
 }
 
-func (p *Path) Dir() (*Directory, error) {
+func (p *Path) MaybeDirectory() (*Directory, error) {
+	info, err := os.Stat(p.path)
+	if err != nil {
+		return nil, err
+	}
+	if !info.IsDir() {
+		return nil, ErrPathIsFile
+	}
+	return NewDirectory(p.path), nil
+}
+
+func (p *Path) Directory() (*Directory, error) {
 	state, err := p.State()
 	if err != nil {
 		return nil, err
@@ -113,13 +133,17 @@ func (p *Path) Dir() (*Directory, error) {
 			return nil, err
 		}
 	}
-	return &Directory{
-		path: p.path,
-	}, nil
+	return NewDirectory(p.path), nil
 }
 
 type File struct {
 	path string
+}
+
+func NewFile(path string) *File {
+	return &File{
+		path: path,
+	}
 }
 
 func (f *File) String() string {
@@ -153,22 +177,18 @@ type Directory struct {
 	path string
 }
 
+func NewDirectory(path string) *Directory {
+	return &Directory{
+		path: path,
+	}
+}
+
 func (d *Directory) String() string {
 	return fmt.Sprintf("Directory[%s]", d.path)
 }
 
 func (d *Directory) Path() *Path {
 	return NewPath(d.path)
-}
-
-func (d *Directory) FilesList() {
-	var paths []string
-	filepath.Walk(d.path, func(path string, info os.FileInfo, err error) error {
-		if !info.IsDir() {
-			paths = append(paths)
-		}
-		return nil
-	})
 }
 
 func (d *Directory) Files() (map[string]*File, error) {
@@ -197,6 +217,19 @@ func (d *Directory) Write(dataMap map[string][]byte) error {
 			return err
 		}
 		if err := f.Write(data); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (d *Directory) Append(dataMap map[string][]byte) error {
+	for dataPath, data := range dataMap {
+		f, err := NewPath(filepath.Join(d.path, dataPath)).File()
+		if err != nil {
+			return err
+		}
+		if err := f.Append(data); err != nil {
 			return err
 		}
 	}
