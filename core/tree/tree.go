@@ -9,16 +9,16 @@ import (
 )
 
 type Tree struct {
-	data map[string]interface{}
+	data interface{}
 }
 
 func NewTree() *Tree {
 	return &Tree{
-		data: make(map[string]interface{}),
+		data: nil,
 	}
 }
 
-func (t *Tree) SetData(data map[string]interface{}) *Tree {
+func (t *Tree) SetData(data interface{}) *Tree {
 	t.data = data
 	return t
 }
@@ -55,8 +55,21 @@ func (t *Tree) get(source interface{}, path []string) interface{} {
 	}
 }
 
+func (t *Tree) dynamicInit(path []string) {
+	_, err := strconv.Atoi(path[0])
+	if err != nil {
+		t.data = make(map[string]interface{})
+	} else {
+		t.data = make([]interface{}, 0)
+	}
+}
+
 func (t *Tree) Set(path []string, v interface{}) {
-	t.data = t.set(t.data, path, v).(map[string]interface{})
+	if t.data == nil {
+		t.dynamicInit(path)
+	}
+
+	t.data = t.set(t.data, path, v)
 }
 
 func (t *Tree) set(source interface{}, path []string, v interface{}) interface{} {
@@ -204,8 +217,8 @@ func (t *Tree) remove(source interface{}, path []string) interface{} {
 	}
 }
 
-func (t *Tree) Merge(smt *Tree) {
-	t.data = t.merge(smt.data, t.data).(map[string]interface{})
+func (t *Tree) Merge(targetTree *Tree) {
+	t.data = t.merge(targetTree.data, t.data)
 }
 
 func (t *Tree) merge(source interface{}, target interface{}) interface{} {
