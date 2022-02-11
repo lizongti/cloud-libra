@@ -21,7 +21,7 @@ var (
 )
 
 type HookCreater interface {
-	Create(*tree.MapTree) (logrus.Hook, error)
+	Create(*tree.Tree) (logrus.Hook, error)
 	String() string
 }
 
@@ -31,7 +31,7 @@ func RegisterHookCreater(hookCreater HookCreater) {
 	hookCreaterMap[hookCreater.String()] = hookCreater
 }
 
-func NewHook(name string, config *tree.MapTree) (logrus.Hook, error) {
+func NewHook(name string, config *tree.Tree) (logrus.Hook, error) {
 	name = strings.ToLower(name)
 	hookCreater, ok := hookCreaterMap[name]
 	if !ok {
@@ -61,7 +61,7 @@ func (hook *LumberjackHook) Levels() []logrus.Level {
 
 type LumberjackHookCreater struct{}
 
-func (c LumberjackHookCreater) Create(config *tree.MapTree) (logrus.Hook, error) {
+func (c LumberjackHookCreater) Create(config *tree.Tree) (logrus.Hook, error) {
 	hook := &LumberjackHook{}
 	var filename = cast.ToString(config.Get(magic.UnixChain("file")))
 	if cast.ToBool(config.Get(magic.UnixChain("cwd"))) {
@@ -93,7 +93,7 @@ func (LumberjackHookCreater) String() string {
 	return "lumberjack"
 }
 
-func (LumberjackHookCreater) levelSource(config *tree.MapTree) interface{} {
+func (LumberjackHookCreater) levelSource(config *tree.Tree) interface{} {
 	level := cast.ToString(config.Get(magic.UnixChain("level")))
 	if level != "" {
 		return level
@@ -130,7 +130,7 @@ func (hook *StdoutHook) Levels() []logrus.Level {
 
 type StdoutHookCreater struct{}
 
-func (c StdoutHookCreater) Create(config *tree.MapTree) (logrus.Hook, error) {
+func (c StdoutHookCreater) Create(config *tree.Tree) (logrus.Hook, error) {
 	hook := &StdoutHook{}
 	hook.writer = stdio.Out()
 
@@ -147,7 +147,7 @@ func (StdoutHookCreater) String() string {
 	return "stdout"
 }
 
-func (StdoutHookCreater) levelSource(config *tree.MapTree) interface{} {
+func (StdoutHookCreater) levelSource(config *tree.Tree) interface{} {
 	level := cast.ToString(config.Get(magic.UnixChain("level")))
 	if level != "" {
 		return level
@@ -188,7 +188,7 @@ func (hook *StderrHook) Levels() []logrus.Level {
 
 type StderrHookCreater struct{}
 
-func (c StderrHookCreater) Create(config *tree.MapTree) (logrus.Hook, error) {
+func (c StderrHookCreater) Create(config *tree.Tree) (logrus.Hook, error) {
 	hook := &StderrHook{}
 	hook.writer = stdio.Err()
 
@@ -205,7 +205,7 @@ func (StderrHookCreater) String() string {
 	return "stderr"
 }
 
-func (StderrHookCreater) levelSource(config *tree.MapTree) interface{} {
+func (StderrHookCreater) levelSource(config *tree.Tree) interface{} {
 	level := cast.ToString(config.Get(magic.UnixChain("level")))
 	if level != "" {
 		return level

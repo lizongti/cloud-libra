@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NewLogger(config *tree.MapTree) (*logrus.Logger, error) {
+func NewLogger(config *tree.Tree) (*logrus.Logger, error) {
 	logger := logrus.New()
 	logger.SetReportCaller(true)
 

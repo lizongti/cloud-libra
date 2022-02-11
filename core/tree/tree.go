@@ -8,30 +8,30 @@ import (
 	"github.com/mohae/deepcopy"
 )
 
-type MapTree struct {
+type Tree struct {
 	data map[string]interface{}
 }
 
-func NewMapTree() *MapTree {
-	return &MapTree{
+func NewMapTree() *Tree {
+	return &Tree{
 		data: make(map[string]interface{}),
 	}
 }
 
-func (mt *MapTree) SetData(data map[string]interface{}) *MapTree {
-	mt.data = data
-	return mt
+func (t *Tree) SetData(data map[string]interface{}) *Tree {
+	t.data = data
+	return t
 }
 
-func (mt *MapTree) Data() interface{} {
-	return mt.data
+func (t *Tree) Data() interface{} {
+	return t.data
 }
 
-func (mt *MapTree) Get(path []string) interface{} {
-	return mt.get(mt.data, path)
+func (t *Tree) Get(path []string) interface{} {
+	return t.get(t.data, path)
 }
 
-func (mt *MapTree) get(source interface{}, path []string) interface{} {
+func (t *Tree) get(source interface{}, path []string) interface{} {
 	if len(path) == 0 {
 		return source
 	}
@@ -42,24 +42,24 @@ func (mt *MapTree) get(source interface{}, path []string) interface{} {
 		if !ok {
 			return nil
 		}
-		return mt.get(next, path[1:])
+		return t.get(next, path[1:])
 	case []interface{}:
 		index, err := strconv.Atoi(path[0])
 		if err != nil || len(source) <= index {
 			return nil
 		}
 		next := source[index]
-		return mt.get(next, path[1:])
+		return t.get(next, path[1:])
 	default:
 		return nil
 	}
 }
 
-func (mt *MapTree) Set(path []string, v interface{}) {
-	mt.data = mt.set(mt.data, path, v).(map[string]interface{})
+func (t *Tree) Set(path []string, v interface{}) {
+	t.data = t.set(t.data, path, v).(map[string]interface{})
 }
 
-func (mt *MapTree) set(source interface{}, path []string, v interface{}) interface{} {
+func (t *Tree) set(source interface{}, path []string, v interface{}) interface{} {
 	if len(path) == 0 {
 		return source
 	}
@@ -95,7 +95,7 @@ func (mt *MapTree) set(source interface{}, path []string, v interface{}) interfa
 				next = make([]interface{}, 0)
 			}
 		}
-		source[path[0]] = mt.set(next, path[1:], v)
+		source[path[0]] = t.set(next, path[1:], v)
 		return source
 	case []interface{}:
 		index, err := strconv.Atoi(path[0])
@@ -114,18 +114,18 @@ func (mt *MapTree) set(source interface{}, path []string, v interface{}) interfa
 				next = make([]interface{}, 0)
 			}
 		}
-		source[index] = mt.set(next, path[1:], v)
+		source[index] = t.set(next, path[1:], v)
 		return source
 	default:
 		return source
 	}
 }
 
-func (mt *MapTree) Remove(path []string) {
-	mt.remove(mt.data, path)
+func (t *Tree) Remove(path []string) {
+	t.remove(t.data, path)
 }
 
-func (mt *MapTree) remove(source interface{}, path []string) interface{} {
+func (t *Tree) remove(source interface{}, path []string) interface{} {
 	if len(path) == 0 {
 		return source
 	}
@@ -171,7 +171,7 @@ func (mt *MapTree) remove(source interface{}, path []string) interface{} {
 		if !ok {
 			return source
 		}
-		source[path[0]] = mt.remove(next, path[1:])
+		source[path[0]] = t.remove(next, path[1:])
 		for k, v := range source {
 			if v == nil {
 				delete(source, k)
@@ -187,7 +187,7 @@ func (mt *MapTree) remove(source interface{}, path []string) interface{} {
 			return source
 		}
 		next := source[index]
-		source[index] = mt.remove(next, path[1:])
+		source[index] = t.remove(next, path[1:])
 		for i := len(source) - 1; i >= 0; i-- {
 			if source[i] == nil {
 				source = source[:len(source)-1]
@@ -204,11 +204,11 @@ func (mt *MapTree) remove(source interface{}, path []string) interface{} {
 	}
 }
 
-func (mt *MapTree) Merge(smt *MapTree) {
-	mt.data = mt.merge(smt.data, mt.data).(map[string]interface{})
+func (t *Tree) Merge(smt *Tree) {
+	t.data = t.merge(smt.data, t.data).(map[string]interface{})
 }
 
-func (mt *MapTree) merge(source interface{}, target interface{}) interface{} {
+func (t *Tree) merge(source interface{}, target interface{}) interface{} {
 	sourceType := reflect.TypeOf(source)
 	targetType := reflect.TypeOf(target)
 	if sourceType != targetType {
@@ -222,7 +222,7 @@ func (mt *MapTree) merge(source interface{}, target interface{}) interface{} {
 			if !ok || dv == nil {
 				target[sk] = sv
 			} else {
-				target[sk] = mt.merge(sv, target[sk])
+				target[sk] = t.merge(sv, target[sk])
 			}
 		}
 		return target
@@ -232,7 +232,7 @@ func (mt *MapTree) merge(source interface{}, target interface{}) interface{} {
 			if index >= len(target) {
 				target = append(target, source[index])
 			} else {
-				target[index] = mt.merge(source[index], target[index])
+				target[index] = t.merge(source[index], target[index])
 			}
 		}
 		return target
@@ -241,25 +241,25 @@ func (mt *MapTree) merge(source interface{}, target interface{}) interface{} {
 	}
 }
 
-func (mt *MapTree) Dulplicate() *MapTree {
+func (t *Tree) Dulplicate() *Tree {
 	mapTree := NewMapTree()
-	mapTree.SetData(deepcopy.Copy(mt.data).(map[string]interface{}))
+	mapTree.SetData(deepcopy.Copy(t.data).(map[string]interface{}))
 	return mapTree
 }
 
-func (mt *MapTree) MarshalHash() [][]interface{} {
-	return mt.marshalHash(make([][]interface{}, 0), mt.data, []string{})
+func (t *Tree) MarshalHash() [][]interface{} {
+	return t.marshalHash(make([][]interface{}, 0), t.data, []string{})
 }
 
-func (mt *MapTree) marshalHash(pairs [][]interface{}, source interface{}, prefix []string) [][]interface{} {
+func (t *Tree) marshalHash(pairs [][]interface{}, source interface{}, prefix []string) [][]interface{} {
 	switch source := source.(type) {
 	case map[string]interface{}:
 		for k, v := range source {
-			pairs = mt.marshalHash(pairs, v, append(prefix, k))
+			pairs = t.marshalHash(pairs, v, append(prefix, k))
 		}
 	case []interface{}:
 		for i := 0; i < len(source); i++ {
-			pairs = mt.marshalHash(pairs, source[i], append(prefix, strconv.Itoa(i)))
+			pairs = t.marshalHash(pairs, source[i], append(prefix, strconv.Itoa(i)))
 		}
 	default:
 		pairs = append(pairs, []interface{}{prefix, source})
@@ -267,7 +267,7 @@ func (mt *MapTree) marshalHash(pairs [][]interface{}, source interface{}, prefix
 	return pairs
 }
 
-func (mt *MapTree) UnmarshalHash(pairs [][]interface{}) {
+func (mt *Tree) UnmarshalHash(pairs [][]interface{}) {
 	for _, pair := range pairs {
 		mt.Set(cast.ToStringSlice(pair[0]), pair[1])
 	}
