@@ -429,14 +429,14 @@ func (m *Mapping) selectSortedSet(sortedSet *SortedSet) (*SortedSet, error) {
 
 func (m *Mapping) invoke(cmd []string) (result []string, err error) {
 	if err := m.Client.Invoke(m.opts.context, &message.Message{
-		Route:    route.NewChainRoute(device.Addr(m), magic.GoogleChain("/redis")),
+		Route:    route.NewChainRoute(device.Addr(m), magic.GoogleChain("/redis/command")),
 		Encoding: encoding.NewJSON(),
-		Data: encoding.Encode(encoding.NewJSON(), &RedisRequest{
+		Data: encoding.Encode(encoding.NewJSON(), &CommandRequest{
 			URL: m.opts.url,
 			Cmd: cmd,
 		}),
 	}, device.NewFuncProcessor(func(ctx context.Context, msg *message.Message) error {
-		resp := new(RedisResponse)
+		resp := new(CommandResponse)
 		encoding.Decode(msg.Encoding, msg.Data, resp)
 		if resp.Result == nil {
 			result = make([]string, 0)

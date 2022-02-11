@@ -37,7 +37,7 @@ type WriteResponse struct {
 type Service struct{}
 
 func init() {
-	device.Bus().WithService(&Service{})
+	device.Bus().WithDevice(device.NewRouter().WithName("FileSystem").WithService(&Service{}))
 }
 
 func (s *Service) Read(ctx context.Context, req *ReadRequest) (resp *ReadResponse, err error) {

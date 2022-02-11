@@ -25,13 +25,14 @@ func TestService(t *testing.T) {
 		url = fmt.Sprintf("redis://:@%s/%d", s.Addr(), 0)
 		ctx = context.Background()
 		e   = encoding.NewChainEncoding(magic.UnixChain("json.base64.lazy"), magic.UnixChain("lazy.base64.json"))
-		r   = route.NewChainRoute(magic.GoogleChain("/client"), magic.GoogleChain("/redis"))
+		r   = route.NewChainRoute(magic.GoogleChain("/client"), magic.GoogleChain("/redis/command"))
 	)
 	client := device.NewClient().WithName("Client")
 	service := &redis.Service{}
-	bus := device.NewRouter().WithBus().WithName("Bus").WithService(service).WithDevice(client)
+	redisRouter := device.NewRouter().WithName("Redis").WithService(service)
+	bus := device.NewRouter().WithBus().WithName("Bus").WithDevice(redisRouter).WithDevice(client)
 	t.Logf("\n%s", device.Tree(bus))
-	req := &redis.RedisRequest{
+	req := &redis.CommandRequest{
 		URL: url,
 		Cmd: []string{"SET", "test", "100"},
 	}
@@ -45,7 +46,7 @@ func TestService(t *testing.T) {
 		Data:     data,
 	}
 	processor := device.NewFuncProcessor(func(ctx context.Context, msg *message.Message) error {
-		resp := new(redis.RedisResponse)
+		resp := new(redis.CommandResponse)
 		if err := msg.Encoding.Unmarshal(msg.Data, resp); err != nil {
 			return err
 		}
