@@ -14,15 +14,24 @@ var (
 	ErrIsFile = errors.New("path is a file")
 )
 
-type ReadLocalFileRequest struct {
+type ReadFileRequest struct {
 	Path string
 }
 
-type ReadLocalFileResponse struct {
+type ReadFileResponse struct {
 	Data []byte
 }
 
-type ReadLocalDirectoryRequest struct {
+type WriteFileRequest struct {
+	Truncate bool
+	Path     string
+	Data     []byte
+}
+
+type WriteFileResponse struct {
+}
+
+type ReadDirectoryRequest struct {
 	Path string
 }
 
@@ -36,7 +45,7 @@ func init() {
 	device.Bus().WithService(&Service{})
 }
 
-func (s *Service) ReadLocalFile(ctx context.Context, req *ReadLocalFileRequest) (resp *ReadLocalFileResponse, err error) {
+func (s *Service) ReadFile(ctx context.Context, req *ReadFileRequest) (resp *ReadFileResponse, err error) {
 	if info, err := os.Stat(req.Path); err != nil {
 		return nil, err
 	} else if info.IsDir() {
@@ -51,12 +60,24 @@ func (s *Service) ReadLocalFile(ctx context.Context, req *ReadLocalFileRequest) 
 	if err != nil {
 		return nil, err
 	}
-	resp = new(ReadLocalFileResponse)
+	resp = new(ReadFileResponse)
 	resp.Data = data
 	return resp, nil
 }
 
-func (s *Service) ReadLocalDir(ctx context.Context, req *ReadLocalDirectoryRequest) (resp *ReadLocalDirectoryResponse, err error) {
+func (s *Service) WriteFile(ctx context.Context, req *WriteFileRequest) (resp *WriteFileResponse, err error) {
+	// if info, err := os.Stat(req.Path); err != nil {
+	// 	if os.IsNotExist(err) {
+	// 		// os.Create(req.Path)
+	// 		os.MkdirAll(req.Path)
+	// 	}
+	// }
+	return nil, nil
+}
+
+// func (s *Service) DeleteLocalFile()
+
+func (s *Service) ReadLocalDir(ctx context.Context, req *ReadDirectoryRequest) (resp *ReadLocalDirectoryResponse, err error) {
 	if info, err := os.Stat(req.Path); err != nil {
 		return nil, err
 	} else if !info.IsDir() {
