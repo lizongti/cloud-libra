@@ -46,12 +46,16 @@ func Map(inputs []interface{}, f func(interface{}) (interface{}, error)) []inter
 	return outputs
 }
 
-func MapTest(inputs []interface{}, f func(interface{}) interface{}) []interface{} {
+func MapTest(inputs []interface{}, f func(interface{}) (interface{}, error)) []interface{} {
 	bar := bar.NewBar(len(inputs))
 	bar.Begin()
 	outputs := make([]interface{}, 0, len(inputs))
 	for _, input := range inputs {
-		outputs = append(outputs, f(input))
+		output, err := f(input)
+		if err != nil {
+			panic(err)
+		}
+		outputs = append(outputs, output)
 		bar.Move(1)
 	}
 	bar.End()
