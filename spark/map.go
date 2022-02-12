@@ -5,7 +5,7 @@ import (
 	"github.com/aceaura/libra/core/scheduler"
 )
 
-func Map(inputs []interface{}, f func(interface{}) interface{}) []interface{} {
+func Map(inputs []interface{}, f func(interface{}) (interface{}, error)) []interface{} {
 	bar := bar.NewBar(len(inputs))
 	bar.Begin()
 
@@ -18,7 +18,11 @@ func Map(inputs []interface{}, f func(interface{}) interface{}) []interface{} {
 			tasks = append(tasks, scheduler.NewTask(
 				scheduler.TaskOption.Params(map[interface{}]interface{}{"Input": input}),
 				scheduler.TaskOption.Stage(func(task *scheduler.Task) error {
-					task.Set("Output", f(task.Get("Input")))
+					output, err := f(task.Get("Input"))
+					if err != nil {
+						return err
+					}
+					task.Set("Output", output)
 					return nil
 				}),
 			))
