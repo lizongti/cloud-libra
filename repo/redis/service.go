@@ -49,6 +49,8 @@ func (s *Service) Command(ctx context.Context, req *CommandRequest) (resp *Comma
 	return resp, nil
 }
 
+// TODO ADD POOL
+
 func (s *Service) Pipeline(ctx context.Context, req *PipelineRequest) (resp *PipelineResponse, err error) {
 	return nil, nil
 }

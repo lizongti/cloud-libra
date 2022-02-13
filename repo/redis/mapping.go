@@ -246,7 +246,7 @@ func (m *Mapping) appendHash(hash *Hash) error {
 }
 
 func (m *Mapping) replaceHash(hash *Hash) error {
-	m.Delete(hash.Key)
+	m.Delete(hash)
 
 	if len(hash.Value) == 0 {
 		return nil
@@ -274,7 +274,7 @@ func (m *Mapping) replaceHash(hash *Hash) error {
 }
 
 func (m *Mapping) replaceList(list *List) error {
-	m.Delete(list.Key)
+	m.Delete(list)
 
 	if len(list.Value) == 0 {
 		return nil
@@ -300,7 +300,7 @@ func (m *Mapping) replaceList(list *List) error {
 }
 
 func (m *Mapping) replaceSet(set *Set) error {
-	m.Delete(set.Key)
+	m.Delete(set)
 
 	if len(set.Value) == 0 {
 		return nil
@@ -325,7 +325,7 @@ func (m *Mapping) replaceSet(set *Set) error {
 }
 
 func (m *Mapping) replaceSortedSet(sortedSet *SortedSet) error {
-	m.Delete(sortedSet.Key)
+	m.Delete(sortedSet)
 
 	if len(sortedSet.Value) == 0 {
 		return nil
