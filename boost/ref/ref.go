@@ -13,5 +13,11 @@ func TypeName(i interface{}) string {
 }
 
 func CallName(t interface{}, method string) {
-	reflect.ValueOf(t).MethodByName(method).Call([]reflect.Value{})
+	v := reflect.ValueOf(i)
+	if v.Kind() == reflect.Ptr && v.Elem().Kind() == reflect.Struct {
+		return reflect.TypeOf(i).Elem().MethodByName(method).Call([]reflect.Value{})
+	} else if v.Kind() == reflect.Struct {
+		return reflect.TypeOf(i).MethodByName(method).Call([]reflect.Value{})
+	}
+	return
 }
