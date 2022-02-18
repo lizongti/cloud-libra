@@ -1,9 +1,10 @@
-package filesystem
+package file_test
 
 import (
 	"path/filepath"
 	"testing"
 
+	"github.com/aceaura/libra/repo/file"
 	"github.com/mitchellh/go-homedir"
 )
 
@@ -12,7 +13,7 @@ func TestPath(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	path := NewPath(filepath.Join(home, ".libra"))
+	path := file.NewPath(filepath.Join(home, ".libra"))
 	dir, err := path.Directory()
 	if err != nil {
 		t.Fatal(err)

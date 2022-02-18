@@ -1,4 +1,4 @@
-package filesystem_test
+package file_test
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/aceaura/libra/core/encoding"
 	"github.com/aceaura/libra/core/message"
 	"github.com/aceaura/libra/core/route"
-	"github.com/aceaura/libra/repo/filesystem"
+	"github.com/aceaura/libra/repo/file"
 	"github.com/mitchellh/go-homedir"
 )
 
@@ -35,14 +35,14 @@ func TestService(t *testing.T) {
 	}
 
 	client := device.NewClient().WithName("Client")
-	service := &filesystem.Service{}
-	fileSystemRouter := device.NewRouter().WithName("FileSystem").WithService(service)
+	service := &file.Service{}
+	fileSystemRouter := device.NewRouter().WithName("File").WithService(service)
 	bus := device.NewRouter().WithBus().WithName("Bus").WithDevice(fileSystemRouter).WithDevice(client)
 	t.Logf("\n%s", device.Tree(bus))
 
-	reqWrite := &filesystem.WriteRequest{
+	reqWrite := &file.WriteRequest{
 		Path:          filepath.Join(home, ".libra", "service_test"),
-		PathState:     filesystem.PathStateDirectory,
+		PathState:     file.PathStateDirectory,
 		PathRemove:    true,
 		FileTruncate:  true,
 		DirectoryData: srcDataMap,
@@ -57,7 +57,7 @@ func TestService(t *testing.T) {
 		Data:     data,
 	}
 	processor := device.NewFuncProcessor(func(ctx context.Context, msg *message.Message) error {
-		resp := new(filesystem.WriteResponse)
+		resp := new(file.WriteResponse)
 		if err := msg.Encoding.Unmarshal(msg.Data, resp); err != nil {
 			return err
 		}
@@ -67,7 +67,7 @@ func TestService(t *testing.T) {
 		t.Fatalf("unexpected error getting from device: %v", err)
 	}
 
-	reqRead := &filesystem.ReadRequest{
+	reqRead := &file.ReadRequest{
 		Path: filepath.Join(home, ".libra", "service_test"),
 	}
 	data, err = e.Marshal(reqRead)
@@ -80,11 +80,11 @@ func TestService(t *testing.T) {
 		Data:     data,
 	}
 	processor = device.NewFuncProcessor(func(ctx context.Context, msg *message.Message) error {
-		resp := new(filesystem.ReadResponse)
+		resp := new(file.ReadResponse)
 		if err := msg.Encoding.Unmarshal(msg.Data, resp); err != nil {
 			return err
 		}
-		if resp.PathState != filesystem.PathStateDirectory {
+		if resp.PathState != file.PathStateDirectory {
 			t.Fatal("expected path state directory")
 		}
 		dstDataMap := resp.DirectoryData
