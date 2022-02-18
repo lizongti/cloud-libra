@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aceaura/libra/boost/ref"
 	"github.com/aceaura/libra/core/device"
 	"github.com/aceaura/libra/core/encoding"
 	"github.com/aceaura/libra/core/magic"
@@ -84,7 +85,7 @@ func TestRouter1(t *testing.T) {
 	logChan := make(chan string, logChanSize)
 	client := &Client1{device.NewBase(), logChan}
 	try := &Try{logChan}
-	service := device.NewRouter().WithName(magic.TypeName(try)).WithService(try)
+	service := device.NewRouter().WithName(ref.TypeName(try)).WithService(try)
 	router := device.NewRouter().WithName(version).WithDevice(service)
 	bus := device.NewRouter().WithBus().WithName("Bus").WithDevice(client, router)
 
@@ -139,7 +140,7 @@ func TestRouter2(t *testing.T) {
 	logChan := make(chan string, logChanSize)
 	client := &Client2{device.NewBase(), logChan}
 	try := &Try{logChan}
-	service := device.NewRouter().WithName(magic.TypeName(try)).WithService(try)
+	service := device.NewRouter().WithName(ref.TypeName(try)).WithService(try)
 	router := device.NewRouter().WithName(version).WithDevice(service)
 	bus := device.NewRouter().WithBus().WithName("Bus").WithDevice(client, router)
 
@@ -192,7 +193,7 @@ func TestRouter3(t *testing.T) {
 	logChan := make(chan string, logChanSize)
 	client := device.NewClient().WithName("Anonymous")
 	try := &Try{logChan}
-	service := device.NewRouter().WithName(magic.TypeName(try)).WithService(try)
+	service := device.NewRouter().WithName(ref.TypeName(try)).WithService(try)
 	router := device.NewRouter().WithName(version).WithDevice(service)
 	bus := device.NewRouter().WithBus().WithName("Bus").WithDevice(client, router)
 

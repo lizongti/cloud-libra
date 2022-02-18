@@ -12,12 +12,3 @@ var (
 	TypeNil       = reflect.Type(nil)
 )
 
-func TypeName(i interface{}) string {
-	v := reflect.ValueOf(i)
-	if v.Kind() == reflect.Ptr && v.Elem().Kind() == reflect.Struct {
-		return reflect.TypeOf(i).Elem().Name()
-	} else if v.Kind() == reflect.Struct {
-		return reflect.TypeOf(i).Name()
-	}
-	return ""
-}

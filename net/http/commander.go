@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aceaura/libra/core/coroutine"
+	"github.com/aceaura/libra/boost/coroutine"
 	"github.com/aceaura/libra/core/device"
 	"github.com/aceaura/libra/core/encoding"
 	"github.com/aceaura/libra/core/magic"

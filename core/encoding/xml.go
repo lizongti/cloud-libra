@@ -3,7 +3,7 @@ package encoding
 import (
 	"encoding/xml"
 
-	"github.com/aceaura/libra/core/magic"
+	"github.com/aceaura/libra/boost/ref"
 )
 
 type XML struct{}
@@ -17,7 +17,7 @@ func NewXML() *XML {
 }
 
 func (xml XML) String() string {
-	return magic.TypeName(xml)
+	return ref.TypeName(xml)
 }
 
 func (xml XML) Style() EncodingStyleType {

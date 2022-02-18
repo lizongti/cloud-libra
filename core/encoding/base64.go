@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 
-	"github.com/aceaura/libra/core/magic"
+	"github.com/aceaura/libra/boost/ref"
 )
 
 var (
@@ -23,7 +23,7 @@ func NewBase64() *Base64 {
 }
 
 func (b Base64) String() string {
-	return magic.TypeName(b)
+	return ref.TypeName(b)
 }
 
 func (Base64) Style() EncodingStyleType {
@@ -75,7 +75,7 @@ func NewBase64URL() *Base64URL {
 }
 
 func (b Base64URL) String() string {
-	return magic.TypeName(b)
+	return ref.TypeName(b)
 }
 
 func (Base64URL) Style() EncodingStyleType {

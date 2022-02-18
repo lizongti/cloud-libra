@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/aceaura/libra/core/coroutine"
+	"github.com/aceaura/libra/boost/coroutine"
 )
 
 func TestCreate(t *testing.T) {

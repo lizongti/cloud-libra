@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/aceaura/libra/core/magic"
+	"github.com/aceaura/libra/boost/ref"
 )
 
 var (
@@ -22,7 +22,7 @@ func NewJSON() *JSON {
 }
 
 func (json JSON) String() string {
-	return magic.TypeName(json)
+	return ref.TypeName(json)
 }
 
 func (json JSON) Style() EncodingStyleType {

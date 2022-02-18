@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/aceaura/libra/core/cast"
+	"github.com/aceaura/libra/boost/cast"
 	"github.com/aceaura/libra/core/device"
 )
 

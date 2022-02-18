@@ -1,8 +1,8 @@
 package spark
 
 import (
-	"github.com/aceaura/libra/boost/bar"
 	"github.com/aceaura/libra/core/scheduler"
+	"github.com/aceaura/libra/util/bar"
 )
 
 func Map(inputs []interface{}, f func(interface{}) (interface{}, error)) []interface{} {

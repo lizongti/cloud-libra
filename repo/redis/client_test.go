@@ -3,7 +3,7 @@ package redis_test
 import (
 	"testing"
 
-	"github.com/aceaura/libra/core/cast"
+	"github.com/aceaura/libra/boost/cast"
 	"github.com/aceaura/libra/repo/redis"
 	"github.com/alicebob/miniredis/v2"
 )
