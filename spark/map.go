@@ -1,7 +1,7 @@
 package spark
 
 import (
-	"github.com/aceaura/libra/core/bar"
+	"github.com/aceaura/libra/boost/bar"
 	"github.com/aceaura/libra/core/scheduler"
 )
 
