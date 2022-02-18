@@ -4,8 +4,8 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/aceaura/libra/boost/magic"
 	"github.com/aceaura/libra/core/encoding"
-	"github.com/aceaura/libra/core/magic"
 	"github.com/aceaura/libra/core/message"
 )
 

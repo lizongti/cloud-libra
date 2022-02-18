@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aceaura/libra/core/magic"
+	"github.com/aceaura/libra/boost/magic"
 	"github.com/aceaura/libra/core/route"
 )
 

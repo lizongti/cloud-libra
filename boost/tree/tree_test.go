@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aceaura/libra/boost/magic"
+	"github.com/aceaura/libra/boost/tree"
 	"github.com/aceaura/libra/core/encoding"
-	"github.com/aceaura/libra/core/magic"
-	"github.com/aceaura/libra/core/tree"
 )
 
 type Zoo struct {

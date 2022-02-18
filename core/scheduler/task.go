@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aceaura/libra/core/magic"
+	"github.com/aceaura/libra/boost/magic"
 	"github.com/gofrs/uuid"
 )
 
