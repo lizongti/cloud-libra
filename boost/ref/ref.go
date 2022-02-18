@@ -13,5 +13,5 @@ func TypeName(i interface{}) string {
 }
 
 func CallName(t interface{}, method string) {
-	reflect.ValueOf(&t).MethodByName(method).Call([]reflect.Value{})
+	reflect.ValueOf(t).MethodByName(method).Call([]reflect.Value{})
 }
