@@ -12,11 +12,11 @@ func TypeName(i interface{}) string {
 	return ""
 }
 
-func CallName(t interface{}, method string) {
+func CallName(i interface{}, method string) {
 	v := reflect.ValueOf(i)
 	if v.Kind() == reflect.Ptr && v.Elem().Kind() == reflect.Struct {
-		reflect.TypeOf(i).Elem().MethodByName(method).Call([]reflect.Value{})
+		reflect.ValueOf(i).Elem().MethodByName(method).Call([]reflect.Value{})
 	} else if v.Kind() == reflect.Struct {
-		reflect.TypeOf(i).MethodByName(method).Call([]reflect.Value{})
+		reflect.ValueOf(i).MethodByName(method).Call([]reflect.Value{})
 	}
 }
