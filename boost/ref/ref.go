@@ -12,9 +12,15 @@ func TypeName(i interface{}) string {
 	return ""
 }
 
-func CallName(i interface{}, method string) {
+func CallMethod(i interface{}, method string) []interface{} {
 	v := reflect.ValueOf(i)
 	if v.Kind() == reflect.Ptr && v.Elem().Kind() == reflect.Struct || v.Kind() == reflect.Struct {
-		reflect.ValueOf(i).MethodByName(method).Call([]reflect.Value{})
+		var results []interface{}
+		values := reflect.ValueOf(i).MethodByName(method).Call([]reflect.Value{})
+		for _, value := range values {
+			results = append(results, value.Interface())
+		}
+		return results
 	}
+	return nil
 }
