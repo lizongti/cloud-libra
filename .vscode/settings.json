@@ -68,7 +68,8 @@
     "go.toolsEnvVars": {
         "GOOS": "windows",
         "GOARCH": "amd64",
-        "CGO_ENABLED": 0,
+        "CGO_ENABLED": 1,
+        "GO111MODULE": "auto",
     },
     "clang-format.style": "google",
     "clang-format.language.proto.enable": true,
