@@ -1,4 +1,7 @@
 {
+    "terminal.integrated.env.windows": {
+        "PATH": "${cwd};${env:PATH}",
+    },
     "editor.wordWrapColumn": 120,
     "editor.wordWrap": "bounded",
     "debug.console.wordWrap": false,
