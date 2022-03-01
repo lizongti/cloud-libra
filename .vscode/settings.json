@@ -3,7 +3,7 @@
         "PATH": "${cwd};${env:PATH}",
     },
     "editor.wordWrapColumn": 120,
-    "editor.wordWrap": "bounded",
+    "editor.wordWrap": "off",
     "debug.console.wordWrap": false,
     "editor.defaultFormatter": null,
     "extensions.ignoreRecommendations": false,
