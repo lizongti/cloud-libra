@@ -2,6 +2,7 @@
     "terminal.integrated.env.windows": {
         "PATH": "${cwd};${env:PATH}",
     },
+    "files.saveConflictResolution": "overwriteFileOnDisk",
     "editor.wordWrapColumn": 120,
     "editor.wordWrap": "off",
     "debug.console.wordWrap": false,
@@ -14,7 +15,7 @@
     "files.eol": "\n",
     "files.encoding": "utf8",
     "files.autoSave": "afterDelay",
-    "files.autoSaveDelay": 500,
+    "files.autoSaveDelay": 5000,
     "editor.tabSize": 4,
     "editor.formatOnType": true,
     "editor.formatOnSaveMode": "file",
