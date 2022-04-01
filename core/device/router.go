@@ -65,13 +65,13 @@ func (r *Router) localProcess(ctx context.Context, msg *message.Message) error {
 
 func (r *Router) Integrate(targetList ...interface{}) *Router {
 	for _, target := range targetList {
-		if d, ok := target.(Device); ok {
-			r.AddLower(d)
-			d.SetSuper(r)
+		if device, ok := target.(Device); ok {
+			r.AddLower(device)
+			device.SetSuper(r)
 		} else {
-			for _, d := range extractHandlers(d) {
-				r.AddLower(d)
-				d.SetSuper(r)
+			for _, device := range extractHandlers(target) {
+				r.AddLower(device)
+				device.SetSuper(r)
 			}
 		}
 	}
