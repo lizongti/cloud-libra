@@ -54,14 +54,14 @@ func (c *RaceController) serve() (err error) {
 	reportChan := make(chan *Report, taskLength)
 
 	opt := []ApplySchedulerOption{
-		WithSchedulerBackground(),
-		WithSchedulerErrorChan(c.opts.errorChan),
-		WithSchedulerTaskBacklog(taskLength),
-		WithSchedulerParallel(taskLength),
-		WithSchedulerReportChan(reportChan),
+		WithBackground(),
+		WithErrorChan(c.opts.errorChan),
+		WithTaskBacklog(taskLength),
+		WithParallel(taskLength),
+		WithReportChan(reportChan),
 	}
 	if c.opts.safety {
-		opt = append(opt, WithSchedulerSafety())
+		opt = append(opt, WithSafety())
 	}
 	c.scheduler = NewScheduler(opt...)
 

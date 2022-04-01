@@ -56,15 +56,15 @@ func (c *TPSController) serve() (err error) {
 	parallelChan := make(chan int, c.opts.parallelBacklog)
 
 	opt := []ApplySchedulerOption{
-		WithSchedulerBackground(),
-		WithSchedulerErrorChan(c.opts.errorChan),
-		WithSchedulerTaskBacklog(c.opts.taskBacklog),
-		WithSchedulerParallel(c.opts.parallel),
-		WithSchedulerReportChan(reportChan),
-		WithSchedulerParallelChan(parallelChan),
+		WithBackground(),
+		WithErrorChan(c.opts.errorChan),
+		WithTaskBacklog(c.opts.taskBacklog),
+		WithParallel(c.opts.parallel),
+		WithReportChan(reportChan),
+		WithParallelChan(parallelChan),
 	}
 	if c.opts.safety {
-		opt = append(opt, WithSchedulerSafety())
+		opt = append(opt, WithSafety())
 	}
 	c.scheduler = NewScheduler(opt...)
 

@@ -14,8 +14,8 @@ func TestTaskState(t *testing.T) {
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
 	s := scheduler.NewScheduler(
-		scheduler.SchedulerOption.WithReportChan(reportChan),
-		scheduler.SchedulerOption.WithBackground(),
+		scheduler.WithReportChan(reportChan),
+		scheduler.WithBackground(),
 	)
 	if err := s.Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
@@ -54,8 +54,8 @@ func TestTaskStage(t *testing.T) {
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
 	s := scheduler.NewScheduler(
-		scheduler.SchedulerOption.WithReportChan(reportChan),
-		scheduler.SchedulerOption.WithBackground(),
+		scheduler.WithReportChan(reportChan),
+		scheduler.WithBackground(),
 	)
 	if err := s.Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
@@ -99,8 +99,8 @@ func TestTaskParams(t *testing.T) {
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
 	s := scheduler.NewScheduler(
-		scheduler.SchedulerOption.WithReportChan(reportChan),
-		scheduler.SchedulerOption.WithBackground(),
+		scheduler.WithReportChan(reportChan),
+		scheduler.WithBackground(),
 	)
 	if err := s.Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
@@ -151,8 +151,8 @@ func TestTaskTimeout(t *testing.T) {
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
 	s := scheduler.NewScheduler(
-		scheduler.SchedulerOption.WithReportChan(reportChan),
-		scheduler.SchedulerOption.WithBackground(),
+		scheduler.WithReportChan(reportChan),
+		scheduler.WithBackground(),
 	)
 	if err := s.Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
@@ -187,8 +187,8 @@ func TestTaskReportTime(t *testing.T) {
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
 	s := scheduler.NewScheduler(
-		scheduler.SchedulerOption.WithReportChan(reportChan),
-		scheduler.SchedulerOption.WithBackground(),
+		scheduler.WithReportChan(reportChan),
+		scheduler.WithBackground(),
 	)
 	if err := s.Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)

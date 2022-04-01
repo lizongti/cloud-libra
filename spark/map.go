@@ -29,15 +29,15 @@ func Map(inputs []interface{}, f func(interface{}) (interface{}, error)) []inter
 		}
 		inputs = []interface{}{}
 		c := scheduler.NewRaceController(
-			scheduler.RaceControllerOption.WithSafety(),
-			scheduler.RaceControllerOption.WithDoneFunc(func(task *scheduler.Task) {
+			scheduler.WithRaceSafety(),
+			scheduler.WithRaceDoneFunc(func(task *scheduler.Task) {
 				bar.Move(1)
 				outputs = append(outputs, task.Get("Output"))
 			}),
-			scheduler.RaceControllerOption.WithFailedFunc(func(task *scheduler.Task) {
+			scheduler.WithRaceFailedFunc(func(task *scheduler.Task) {
 				inputs = append(inputs, task.Get("Input"))
 			}),
-			scheduler.RaceControllerOption.WithTasks(tasks...),
+			scheduler.WithRaceTasks(tasks...),
 		)
 		if err := c.Serve(); err != nil {
 			panic(err)

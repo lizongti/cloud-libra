@@ -63,16 +63,16 @@ func (c *Commander) Serve() error {
 	c.respChan = make(chan *ServiceResponse, c.opts.respBacklog)
 
 	c.controller = scheduler.NewTPSController(
-		scheduler.TPSControllerOption.WithSafety(),
-		scheduler.TPSControllerOption.WithBackground(),
-		scheduler.TPSControllerOption.WithErrorChan(c.errorChan),
-		scheduler.TPSControllerOption.WithParallel(c.opts.parallel),
-		scheduler.TPSControllerOption.WithTaskBacklog(c.opts.taskBacklog),
-		scheduler.TPSControllerOption.WithReportBacklog(c.opts.reportBacklog),
-		scheduler.TPSControllerOption.WithParallelBacklog(c.opts.parallelBacklog),
-		scheduler.TPSControllerOption.WithParallelTick(c.opts.parallelTick),
-		scheduler.TPSControllerOption.WithParallelIncrease(c.opts.parallelIncrease),
-		scheduler.TPSControllerOption.WithTPSLimit(c.opts.tpsLimit),
+		scheduler.WithTPSSafety(),
+		scheduler.WithTPSBackground(),
+		scheduler.WithTPSErrorChan(c.errorChan),
+		scheduler.WithTPSParallel(c.opts.parallel),
+		scheduler.WithTPSTaskBacklog(c.opts.taskBacklog),
+		scheduler.WithTPSReportBacklog(c.opts.reportBacklog),
+		scheduler.WithTPSParallelBacklog(c.opts.parallelBacklog),
+		scheduler.WithTPSParallelTick(c.opts.parallelTick),
+		scheduler.WithTPSParallelIncrease(c.opts.parallelIncrease),
+		scheduler.WithTPSLimit(c.opts.tpsLimit),
 	)
 
 	if err := c.controller.Serve(); err != nil {
@@ -187,8 +187,8 @@ func (c *Commander) invoke(ctx context.Context, deviceName string, req *ServiceR
 
 func (c *Commander) createTask(req *ServiceRequest) *scheduler.Task {
 	return scheduler.NewTask(
-		scheduler.TaskOption.WithName(fmt.Sprintf("%s[%d]", c.String(), c.reqIndex)),
-		scheduler.TaskOption.WithStage(func(task *scheduler.Task) error {
+		scheduler.WithTaskName(fmt.Sprintf("%s[%d]", c.String(), c.reqIndex)),
+		scheduler.WithTaskStage(func(task *scheduler.Task) error {
 			if req.CoroutineID != "" {
 				coroutine.TryResume(req.CoroutineID, c.invoke(c.opts.context, c.String(), req))
 			} else {

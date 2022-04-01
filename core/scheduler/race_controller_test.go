@@ -18,14 +18,14 @@ func TestRaceController(t *testing.T) {
 	}
 
 	c := scheduler.NewRaceController(
-		scheduler.RaceControllerOption.WithSafety(),
-		scheduler.RaceControllerOption.WithDoneFunc(func(task *scheduler.Task) {
+		scheduler.WithRaceSafety(),
+		scheduler.WithRaceDoneFunc(func(task *scheduler.Task) {
 			t.Logf("%v done", task)
 		}),
-		scheduler.RaceControllerOption.WithFailedFunc(func(task *scheduler.Task) {
+		scheduler.WithRaceFailedFunc(func(task *scheduler.Task) {
 			t.Logf("%v failed", task)
 		}),
-		scheduler.RaceControllerOption.WithTasks(tasks...),
+		scheduler.WithRaceTasks(tasks...),
 	)
 	c.Serve()
 }

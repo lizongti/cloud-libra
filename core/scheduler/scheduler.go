@@ -19,8 +19,8 @@ type pipeline struct {
 }
 
 var defaultScheduler = NewScheduler(
-	WithSchedulerSafety(),
-	WithSchedulerBackground(),
+	WithSafety(),
+	WithBackground(),
 )
 var emptyScheduler *Scheduler
 
@@ -190,25 +190,25 @@ func (f funcSchedulerOption) apply(opt *schedulerOptions) {
 	f(opt)
 }
 
-func WithSchedulerSafety() funcSchedulerOption {
+func WithSafety() funcSchedulerOption {
 	return func(s *schedulerOptions) {
 		s.safety = true
 	}
 }
 
-func WithSchedulerBackground() funcSchedulerOption {
+func WithBackground() funcSchedulerOption {
 	return func(s *schedulerOptions) {
 		s.background = true
 	}
 }
 
-func WithSchedulerErrorChan(errorChan chan<- error) funcSchedulerOption {
+func WithErrorChan(errorChan chan<- error) funcSchedulerOption {
 	return func(s *schedulerOptions) {
 		s.errorChan = errorChan
 	}
 }
 
-func WithSchedulerTaskBacklog(taskBacklog int) funcSchedulerOption {
+func WithTaskBacklog(taskBacklog int) funcSchedulerOption {
 	return func(s *schedulerOptions) {
 		if taskBacklog > 0 {
 			s.taskBacklog = taskBacklog
@@ -216,7 +216,7 @@ func WithSchedulerTaskBacklog(taskBacklog int) funcSchedulerOption {
 	}
 }
 
-func WithSchedulerParallel(parallel int) funcSchedulerOption {
+func WithParallel(parallel int) funcSchedulerOption {
 	return func(s *schedulerOptions) {
 		if parallel > 0 {
 			s.parallel = parallel
@@ -224,13 +224,13 @@ func WithSchedulerParallel(parallel int) funcSchedulerOption {
 	}
 }
 
-func WithSchedulerReportChan(reportChan chan<- *Report) funcSchedulerOption {
+func WithReportChan(reportChan chan<- *Report) funcSchedulerOption {
 	return func(s *schedulerOptions) {
 		s.reportChan = reportChan
 	}
 }
 
-func WithSchedulerParallelChan(parallelChan <-chan int) funcSchedulerOption {
+func WithParallelChan(parallelChan <-chan int) funcSchedulerOption {
 	return func(s *schedulerOptions) {
 		s.parallelChan = parallelChan
 	}
