@@ -27,16 +27,16 @@ func TestTPSController(t *testing.T) {
 		errorChan = make(chan error, 1000)
 	)
 	c := scheduler.NewTPSController(
-		scheduler.TPSControllerOption.Safety(),
-		scheduler.TPSControllerOption.Background(),
-		scheduler.TPSControllerOption.ErrorChan(errorChan),
-		scheduler.TPSControllerOption.Parallel(parallel),
-		scheduler.TPSControllerOption.TaskBacklog(taskBacklog),
-		scheduler.TPSControllerOption.ReportBacklog(reportBacklog),
-		scheduler.TPSControllerOption.ParallelBacklog(parallelBacklog),
-		scheduler.TPSControllerOption.ParallelTick(parallelTick),
-		scheduler.TPSControllerOption.ParallelIncrease(parallelIncrease),
-		scheduler.TPSControllerOption.TPSLimit(tpsLimit),
+		scheduler.WithTPSSafety(),
+		scheduler.WithTPSBackground(),
+		scheduler.WithTPSErrorChan(errorChan),
+		scheduler.WithTPSParallel(parallel),
+		scheduler.WithTPSTaskBacklog(taskBacklog),
+		scheduler.WithTPSReportBacklog(reportBacklog),
+		scheduler.WithTPSParallelBacklog(parallelBacklog),
+		scheduler.WithTPSParallelTick(parallelTick),
+		scheduler.WithTPSParallelIncrease(parallelIncrease),
+		scheduler.WithTPSLimit(tpsLimit),
 	)
 
 	if err := c.Serve(); err != nil {
@@ -47,8 +47,8 @@ func TestTPSController(t *testing.T) {
 	var exitChan = make(chan struct{}, 1)
 	for index := 0; index < taskCount; index++ {
 		scheduler.NewTask(
-			scheduler.TaskOption.Name(fmt.Sprintf("test_parallel_tps[%d]", index)),
-			scheduler.TaskOption.Stage(func(task *scheduler.Task) error {
+			scheduler.WithTaskName(fmt.Sprintf("test_parallel_tps[%d]", index)),
+			scheduler.WithTaskStage(func(task *scheduler.Task) error {
 				time.Sleep(time.Second * 1)
 				atomic.AddInt64(&count, 1)
 				if atomic.LoadInt64(&count) == taskCount {

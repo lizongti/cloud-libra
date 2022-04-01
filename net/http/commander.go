@@ -63,16 +63,16 @@ func (c *Commander) Serve() error {
 	c.respChan = make(chan *ServiceResponse, c.opts.respBacklog)
 
 	c.controller = scheduler.NewTPSController(
-		scheduler.TPSControllerOption.Safety(),
-		scheduler.TPSControllerOption.Background(),
-		scheduler.TPSControllerOption.ErrorChan(c.errorChan),
-		scheduler.TPSControllerOption.Parallel(c.opts.parallel),
-		scheduler.TPSControllerOption.TaskBacklog(c.opts.taskBacklog),
-		scheduler.TPSControllerOption.ReportBacklog(c.opts.reportBacklog),
-		scheduler.TPSControllerOption.ParallelBacklog(c.opts.parallelBacklog),
-		scheduler.TPSControllerOption.ParallelTick(c.opts.parallelTick),
-		scheduler.TPSControllerOption.ParallelIncrease(c.opts.parallelIncrease),
-		scheduler.TPSControllerOption.TPSLimit(c.opts.tpsLimit),
+		scheduler.TPSControllerOption.WithSafety(),
+		scheduler.TPSControllerOption.WithBackground(),
+		scheduler.TPSControllerOption.WithErrorChan(c.errorChan),
+		scheduler.TPSControllerOption.WithParallel(c.opts.parallel),
+		scheduler.TPSControllerOption.WithTaskBacklog(c.opts.taskBacklog),
+		scheduler.TPSControllerOption.WithReportBacklog(c.opts.reportBacklog),
+		scheduler.TPSControllerOption.WithParallelBacklog(c.opts.parallelBacklog),
+		scheduler.TPSControllerOption.WithParallelTick(c.opts.parallelTick),
+		scheduler.TPSControllerOption.WithParallelIncrease(c.opts.parallelIncrease),
+		scheduler.TPSControllerOption.WithTPSLimit(c.opts.tpsLimit),
 	)
 
 	if err := c.controller.Serve(); err != nil {
@@ -187,8 +187,8 @@ func (c *Commander) invoke(ctx context.Context, deviceName string, req *ServiceR
 
 func (c *Commander) createTask(req *ServiceRequest) *scheduler.Task {
 	return scheduler.NewTask(
-		scheduler.TaskOption.Name(fmt.Sprintf("%s[%d]", c.String(), c.reqIndex)),
-		scheduler.TaskOption.Stage(func(task *scheduler.Task) error {
+		scheduler.TaskOption.WithName(fmt.Sprintf("%s[%d]", c.String(), c.reqIndex)),
+		scheduler.TaskOption.WithStage(func(task *scheduler.Task) error {
 			if req.CoroutineID != "" {
 				coroutine.TryResume(req.CoroutineID, c.invoke(c.opts.context, c.String(), req))
 			} else {

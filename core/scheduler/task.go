@@ -275,62 +275,33 @@ func (f funcTaskOption) apply(opt *taskOptions) {
 	f(opt)
 }
 
-type taskOption int
-
-var TaskOption taskOption
-
-func (taskOption) Name(name string) funcTaskOption {
+func WithTaskName(name string) funcTaskOption {
 	return func(t *taskOptions) {
 		t.name = name
 	}
 }
 
-func (t *Task) WithName(name string) *Task {
-	TaskOption.Name(name).apply(&t.opts)
-	return t
-}
-
-func (taskOption) Stage(stages ...func(*Task) error) funcTaskOption {
+func WithTaskStage(stages ...func(*Task) error) funcTaskOption {
 	return func(t *taskOptions) {
 		t.stages = append(t.stages, stages...)
 
 	}
 }
 
-func (t *Task) WithStage(stages ...func(*Task) error) *Task {
-	TaskOption.Stage(stages...).apply(&t.opts)
-	return t
-}
-
-func (taskOption) Params(params map[interface{}]interface{}) funcTaskOption {
+func WithTaskParams(params map[interface{}]interface{}) funcTaskOption {
 	return func(t *taskOptions) {
 		t.params = params
 	}
 }
 
-func (t *Task) WithParams(params map[interface{}]interface{}) *Task {
-	TaskOption.Params(params).apply(&t.opts)
-	return t
-}
-
-func (taskOption) ParentContext(context context.Context) funcTaskOption {
+func WithTaskParentContext(context context.Context) funcTaskOption {
 	return func(t *taskOptions) {
 		t.parentContext = context
 	}
 }
 
-func (t *Task) WithParentContext(context context.Context) *Task {
-	TaskOption.ParentContext(context).apply(&t.opts)
-	return t
-}
-
-func (taskOption) Timeout(timeout time.Duration) funcTaskOption {
+func WithTaskTimeout(timeout time.Duration) funcTaskOption {
 	return func(t *taskOptions) {
 		t.timeout = timeout
 	}
-}
-
-func (t *Task) WithTimeout(timeout time.Duration) *Task {
-	TaskOption.Timeout(timeout).apply(&t.opts)
-	return t
 }

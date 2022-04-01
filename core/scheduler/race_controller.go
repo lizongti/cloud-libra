@@ -21,9 +21,8 @@ func NewRaceController(opt ...ApplyRaceControllerOption) *RaceController {
 	}
 
 	return &RaceController{
-		opts:      opts,
-		scheduler: NewScheduler(),
-		taskMap:   make(map[string]*Task),
+		opts:    opts,
+		taskMap: make(map[string]*Task),
 	}
 }
 
@@ -54,14 +53,18 @@ func (c *RaceController) serve() (err error) {
 	taskLength := len(c.opts.tasks)
 	reportChan := make(chan *Report, taskLength)
 
-	if c.opts.safety {
-		c.scheduler.WithSafety()
+	opt := []ApplySchedulerOption{
+		WithSchedulerBackground(),
+		WithSchedulerErrorChan(c.opts.errorChan),
+		WithSchedulerTaskBacklog(taskLength),
+		WithSchedulerParallel(taskLength),
+		WithSchedulerReportChan(reportChan),
 	}
-	c.scheduler.WithBackground()
-	c.scheduler.WithErrorChan(c.opts.errorChan)
-	c.scheduler.WithTaskBacklog(taskLength)
-	c.scheduler.WithParallel(taskLength)
-	c.scheduler.WithReportChan(reportChan)
+	if c.opts.safety {
+		opt = append(opt, WithSchedulerSafety())
+	}
+	c.scheduler = NewScheduler(opt...)
+
 	if err := c.scheduler.Serve(); err != nil {
 		return err
 	}
@@ -184,83 +187,44 @@ func (f funcRaceControllerOption) apply(opt *raceControllerOptions) {
 	f(opt)
 }
 
-type raceControllerOption int
-
-var RaceControllerOption raceControllerOption
-
-func (raceControllerOption) Safety() funcRaceControllerOption {
+func WithRaceSafety() funcRaceControllerOption {
 	return func(c *raceControllerOptions) {
 		c.safety = true
 	}
 }
 
-func (c *RaceController) WithSafety() *RaceController {
-	RaceControllerOption.Safety().apply(&c.opts)
-	return c
-}
-
-func (raceControllerOption) Background() funcRaceControllerOption {
+func WithRaceBackground() funcRaceControllerOption {
 	return func(c *raceControllerOptions) {
 		c.background = true
 	}
 }
 
-func (c *RaceController) WithBackground() *RaceController {
-	RaceControllerOption.Background().apply(&c.opts)
-	return c
-}
-
-func (raceControllerOption) ErrorChan(errorChan chan<- error) funcRaceControllerOption {
+func WithRaceErrorChan(errorChan chan<- error) funcRaceControllerOption {
 	return func(c *raceControllerOptions) {
 		c.errorChan = errorChan
 	}
 }
 
-func (c *RaceController) WithErrorChan(errorChan chan<- error) *RaceController {
-	RaceControllerOption.ErrorChan(errorChan).apply(&c.opts)
-	return c
-}
-
-func (raceControllerOption) Tasks(tasks ...*Task) funcRaceControllerOption {
+func WithRaceTasks(tasks ...*Task) funcRaceControllerOption {
 	return func(c *raceControllerOptions) {
 		c.tasks = tasks
 	}
 }
 
-func (c *RaceController) WithTask(tasks ...*Task) *RaceController {
-	RaceControllerOption.Tasks(tasks...).apply(&c.opts)
-	return c
-}
-
-func (raceControllerOption) Timeout(timeout time.Duration) funcRaceControllerOption {
+func WithRaceTimeout(timeout time.Duration) funcRaceControllerOption {
 	return func(c *raceControllerOptions) {
 		c.timeout = timeout
 	}
 }
 
-func (c *RaceController) WithTimeout(timeout time.Duration) *RaceController {
-	RaceControllerOption.Timeout(timeout).apply(&c.opts)
-	return c
-}
-
-func (raceControllerOption) DoneFunc(doneFunc func(*Task)) funcRaceControllerOption {
+func WithRaceDoneFunc(doneFunc func(*Task)) funcRaceControllerOption {
 	return func(c *raceControllerOptions) {
 		c.doneFunc = doneFunc
 	}
 }
 
-func (c *RaceController) WithDoneFunc(doneFunc func(*Task)) *RaceController {
-	RaceControllerOption.DoneFunc(doneFunc).apply(&c.opts)
-	return c
-}
-
-func (raceControllerOption) FailedFunc(failedFunc func(*Task)) funcRaceControllerOption {
+func WithRaceFailedFunc(failedFunc func(*Task)) funcRaceControllerOption {
 	return func(c *raceControllerOptions) {
 		c.failedFunc = failedFunc
 	}
-}
-
-func (c *RaceController) WithFailedFunc(failedFunc func(*Task)) *RaceController {
-	RaceControllerOption.FailedFunc(failedFunc).apply(&c.opts)
-	return c
 }

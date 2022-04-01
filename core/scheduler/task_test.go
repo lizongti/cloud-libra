@@ -13,11 +13,14 @@ func TestTaskState(t *testing.T) {
 		timeout           = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().WithReportChan(reportChan)
-	if err := s.WithBackground().Serve(); err != nil {
+	s := scheduler.NewScheduler(
+		scheduler.SchedulerOption.WithReportChan(reportChan),
+		scheduler.SchedulerOption.WithBackground(),
+	)
+	if err := s.Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
-	scheduler.NewTask().WithName("test_task_state").Publish(s)
+	scheduler.NewTask(scheduler.WithTaskName("test_task_state")).Publish(s)
 	var states = []scheduler.TaskStateType{
 		scheduler.TaskStateCreated,
 		scheduler.TaskStatePending,
@@ -50,8 +53,11 @@ func TestTaskStage(t *testing.T) {
 		timeout           = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().WithReportChan(reportChan)
-	if err := s.WithBackground().Serve(); err != nil {
+	s := scheduler.NewScheduler(
+		scheduler.SchedulerOption.WithReportChan(reportChan),
+		scheduler.SchedulerOption.WithBackground(),
+	)
+	if err := s.Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	var stages = make([]func(*scheduler.Task) error, 0, stageCount)
@@ -61,7 +67,10 @@ func TestTaskStage(t *testing.T) {
 		})
 	}
 
-	scheduler.NewTask().WithStage(stages...).WithName("test_task_stage").Publish(s)
+	scheduler.NewTask(
+		scheduler.WithTaskStage(stages...),
+		scheduler.WithTaskName("test_task_stage"),
+	).Publish(s)
 	var progress = -1
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
 	for {
@@ -89,8 +98,11 @@ func TestTaskParams(t *testing.T) {
 		timeout           = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().WithReportChan(reportChan)
-	if err := s.WithBackground().Serve(); err != nil {
+	s := scheduler.NewScheduler(
+		scheduler.SchedulerOption.WithReportChan(reportChan),
+		scheduler.SchedulerOption.WithBackground(),
+	)
+	if err := s.Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	var stages = make([]func(*scheduler.Task) error, 0, stageCount)
@@ -111,9 +123,11 @@ func TestTaskParams(t *testing.T) {
 		})
 	}
 
-	scheduler.NewTask().WithStage(stages...).WithParams(map[interface{}]interface{}{
-		"progress": 0,
-	}).WithName("test_task_params").Publish(s)
+	scheduler.NewTask(
+		scheduler.WithTaskStage(stages...),
+		scheduler.WithTaskParams(map[interface{}]interface{}{"progress": 0}),
+		scheduler.WithTaskName("test_task_params"),
+	).Publish(s)
 
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
 	for {
@@ -136,14 +150,21 @@ func TestTaskTimeout(t *testing.T) {
 		sleep             = 2
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().WithReportChan(reportChan)
-	if err := s.WithBackground().Serve(); err != nil {
+	s := scheduler.NewScheduler(
+		scheduler.SchedulerOption.WithReportChan(reportChan),
+		scheduler.SchedulerOption.WithBackground(),
+	)
+	if err := s.Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
-	scheduler.NewTask().WithStage(func(*scheduler.Task) error {
-		time.Sleep(time.Duration(sleep) * time.Second)
-		return nil
-	}).WithName("test_task_timeout").WithTimeout(time.Duration(taskTimeout) * time.Second).Publish(s)
+	scheduler.NewTask(
+		scheduler.WithTaskStage(func(*scheduler.Task) error {
+			time.Sleep(time.Duration(sleep) * time.Second)
+			return nil
+		}),
+		scheduler.WithTaskName("test_task_timeout"),
+		scheduler.WithTaskTimeout(time.Duration(taskTimeout)*time.Second),
+	).Publish(s)
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
 	for {
 		select {
@@ -165,8 +186,11 @@ func TestTaskReportTime(t *testing.T) {
 		sleep             = 1
 	)
 	var reportChan = make(chan *scheduler.Report, reportChanBacklog)
-	s := scheduler.NewScheduler().WithReportChan(reportChan)
-	if err := s.WithBackground().Serve(); err != nil {
+	s := scheduler.NewScheduler(
+		scheduler.SchedulerOption.WithReportChan(reportChan),
+		scheduler.SchedulerOption.WithBackground(),
+	)
+	if err := s.Serve(); err != nil {
 		t.Fatalf("unexpected error getting from scheduler: %v", err)
 	}
 	var stages = make([]func(*scheduler.Task) error, 0, stageCount)
@@ -177,7 +201,10 @@ func TestTaskReportTime(t *testing.T) {
 		})
 	}
 
-	scheduler.NewTask().WithStage(stages...).WithName("test_task_report_time").Publish(s)
+	scheduler.NewTask(
+		scheduler.WithTaskStage(stages...),
+		scheduler.WithTaskName("test_task_report_time"),
+	).Publish(s)
 	var timeoutChan = time.After(time.Duration(timeout) * time.Second)
 	for {
 		select {

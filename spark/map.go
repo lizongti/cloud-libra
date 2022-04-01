@@ -16,8 +16,8 @@ func Map(inputs []interface{}, f func(interface{}) (interface{}, error)) []inter
 		var tasks []*scheduler.Task
 		for _, input := range inputs {
 			tasks = append(tasks, scheduler.NewTask(
-				scheduler.TaskOption.Params(map[interface{}]interface{}{"Input": input}),
-				scheduler.TaskOption.Stage(func(task *scheduler.Task) error {
+				scheduler.WithTaskParams(map[interface{}]interface{}{"Input": input}),
+				scheduler.WithTaskStage(func(task *scheduler.Task) error {
 					output, err := f(task.Get("Input"))
 					if err != nil {
 						return err
@@ -27,16 +27,18 @@ func Map(inputs []interface{}, f func(interface{}) (interface{}, error)) []inter
 				}),
 			))
 		}
-		c := scheduler.NewRaceController().WithSafety()
-		c.WithDoneFunc(func(task *scheduler.Task) {
-			bar.Move(1)
-			outputs = append(outputs, task.Get("Output"))
-		})
 		inputs = []interface{}{}
-		c.WithFailedFunc(func(task *scheduler.Task) {
-			inputs = append(inputs, task.Get("Input"))
-		})
-		c.WithTask(tasks...)
+		c := scheduler.NewRaceController(
+			scheduler.RaceControllerOption.WithSafety(),
+			scheduler.RaceControllerOption.WithDoneFunc(func(task *scheduler.Task) {
+				bar.Move(1)
+				outputs = append(outputs, task.Get("Output"))
+			}),
+			scheduler.RaceControllerOption.WithFailedFunc(func(task *scheduler.Task) {
+				inputs = append(inputs, task.Get("Input"))
+			}),
+			scheduler.RaceControllerOption.WithTasks(tasks...),
+		)
 		if err := c.Serve(); err != nil {
 			panic(err)
 		}
