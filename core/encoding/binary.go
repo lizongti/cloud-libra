@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	"github.com/aceaura/libra/core/magic"
+	"github.com/aceaura/libra/boost/ref"
 )
 
 // TO DO
@@ -19,7 +19,7 @@ func NewBinary() *Binary {
 }
 
 func (b Binary) String() string {
-	return magic.TypeName(b)
+	return ref.TypeName(b)
 }
 
 func (Binary) Style() EncodingStyleType {
@@ -54,7 +54,7 @@ func NewLittleEndian() *LittleEndian {
 }
 
 func (le LittleEndian) String() string {
-	return magic.TypeName(le)
+	return ref.TypeName(le)
 }
 
 func (le LittleEndian) Style() EncodingStyleType {
@@ -89,7 +89,7 @@ func NewBigEndian() *BigEndian {
 }
 
 func (be BigEndian) String() string {
-	return magic.TypeName(be)
+	return ref.TypeName(be)
 }
 
 func (be BigEndian) Style() EncodingStyleType {

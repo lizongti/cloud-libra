@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/aceaura/libra/core/cast"
+	"github.com/aceaura/libra/boost/cast"
 	"github.com/mohae/deepcopy"
 )
 

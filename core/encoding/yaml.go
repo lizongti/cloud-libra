@@ -1,9 +1,8 @@
 package encoding
 
 import (
+	"github.com/aceaura/libra/boost/ref"
 	"gopkg.in/yaml.v2"
-
-	"github.com/aceaura/libra/core/magic"
 )
 
 type YAML struct{}
@@ -17,7 +16,7 @@ func NewYAML() *YAML {
 }
 
 func (yaml YAML) String() string {
-	return magic.TypeName(yaml)
+	return ref.TypeName(yaml)
 }
 
 func (yaml YAML) Style() EncodingStyleType {

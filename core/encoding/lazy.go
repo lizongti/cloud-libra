@@ -3,7 +3,7 @@ package encoding
 import (
 	"errors"
 
-	"github.com/aceaura/libra/core/magic"
+	"github.com/aceaura/libra/boost/ref"
 )
 
 var (
@@ -21,7 +21,7 @@ func NewLazy() *Lazy {
 }
 
 func (l Lazy) String() string {
-	return magic.TypeName(l)
+	return ref.TypeName(l)
 }
 
 func (Lazy) Style() EncodingStyleType {

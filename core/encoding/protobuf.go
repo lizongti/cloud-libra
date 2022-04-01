@@ -3,7 +3,7 @@ package encoding
 import (
 	"errors"
 
-	"github.com/aceaura/libra/core/magic"
+	"github.com/aceaura/libra/boost/ref"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -22,7 +22,7 @@ func NewProtobuf() *Protobuf {
 }
 
 func (p Protobuf) String() string {
-	return magic.TypeName(p)
+	return ref.TypeName(p)
 }
 
 func (p Protobuf) Style() EncodingStyleType {

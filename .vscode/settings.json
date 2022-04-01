@@ -1,22 +1,11 @@
 {
-    "[proto3]": {
-        "editor.defaultFormatter": "xaver.clang-format"
+    "terminal.integrated.env.windows": {
+        "PATH": "${cwd};${env:PATH}",
     },
-    "[json]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[html]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[css]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[less]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[javascript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
+    "files.saveConflictResolution": "overwriteFileOnDisk",
+    "editor.wordWrapColumn": 120,
+    "editor.wordWrap": "off",
+    "debug.console.wordWrap": false,
     "editor.defaultFormatter": null,
     "extensions.ignoreRecommendations": false,
     "git.autofetchPeriod": 60,
@@ -26,7 +15,7 @@
     "files.eol": "\n",
     "files.encoding": "utf8",
     "files.autoSave": "afterDelay",
-    "files.autoSaveDelay": 500,
+    "files.autoSaveDelay": 5000,
     "editor.tabSize": 4,
     "editor.formatOnType": true,
     "editor.formatOnSaveMode": "file",
@@ -83,7 +72,8 @@
     "go.toolsEnvVars": {
         "GOOS": "windows",
         "GOARCH": "amd64",
-        "CGO_ENABLED": 0,
+        "CGO_ENABLED": 1,
+        "GO111MODULE": "auto",
     },
     "clang-format.style": "google",
     "clang-format.language.proto.enable": true,

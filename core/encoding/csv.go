@@ -3,7 +3,7 @@ package encoding
 import (
 	"bytes"
 
-	"github.com/aceaura/libra/core/magic"
+	"github.com/aceaura/libra/boost/ref"
 	"github.com/gocarina/gocsv"
 )
 
@@ -18,7 +18,7 @@ func NewCSV() *CSV {
 }
 
 func (csv CSV) String() string {
-	return magic.TypeName(csv)
+	return ref.TypeName(csv)
 }
 
 func (CSV) Style() EncodingStyleType {
@@ -53,7 +53,7 @@ func NewCSVWithHeaders() *CSVWithHeaders {
 }
 
 func (csvwh CSVWithHeaders) String() string {
-	return magic.TypeName(csvwh)
+	return ref.TypeName(csvwh)
 }
 
 func (CSVWithHeaders) Style() EncodingStyleType {

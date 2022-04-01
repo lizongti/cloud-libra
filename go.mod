@@ -15,7 +15,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/mattn/go-colorable v0.1.12
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/sirupsen/logrus v1.8.1
 	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9 // indirect

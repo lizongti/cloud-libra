@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/aceaura/libra/core/magic"
+	"github.com/aceaura/libra/boost/ref"
 )
 
 var (
@@ -100,7 +100,7 @@ func register(encodings ...Encoding) {
 
 func (es EncodingSet) register(encodings ...Encoding) {
 	for _, encoding := range encodings {
-		es[magic.TypeName(encoding)] = encoding
+		es[ref.TypeName(encoding)] = encoding
 	}
 }
 

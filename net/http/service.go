@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aceaura/libra/core/coroutine"
+	"github.com/aceaura/libra/boost/coroutine"
+	"github.com/aceaura/libra/boost/magic"
 	"github.com/aceaura/libra/core/device"
-	"github.com/aceaura/libra/core/magic"
 )
 
 type ServiceRequest struct {

@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/aceaura/libra/core/cast"
+	"github.com/aceaura/libra/boost/cast"
+	"github.com/aceaura/libra/boost/magic"
 	"github.com/aceaura/libra/core/device"
 	"github.com/aceaura/libra/core/encoding"
-	"github.com/aceaura/libra/core/magic"
 	"github.com/aceaura/libra/core/message"
 	"github.com/aceaura/libra/core/route"
 	"github.com/mohae/deepcopy"

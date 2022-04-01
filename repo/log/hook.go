@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aceaura/libra/core/cast"
-	"github.com/aceaura/libra/core/magic"
-	"github.com/aceaura/libra/core/tree"
+	"github.com/aceaura/libra/boost/cast"
+	"github.com/aceaura/libra/boost/magic"
+	"github.com/aceaura/libra/boost/tree"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
 )

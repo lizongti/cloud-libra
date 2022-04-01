@@ -3,7 +3,7 @@ package encoding
 import (
 	"encoding/json"
 
-	"github.com/aceaura/libra/core/magic"
+	"github.com/aceaura/libra/boost/ref"
 )
 
 type Hash struct{}
@@ -17,7 +17,7 @@ func NewHash() *Hash {
 }
 
 func (h Hash) String() string {
-	return magic.TypeName(h)
+	return ref.TypeName(h)
 }
 
 func (h Hash) Style() EncodingStyleType {

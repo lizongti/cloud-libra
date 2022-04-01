@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/aceaura/libra/boost/magic"
 	"github.com/aceaura/libra/core/encoding"
-	"github.com/aceaura/libra/core/magic"
 )
 
 func TestChain(t *testing.T) {

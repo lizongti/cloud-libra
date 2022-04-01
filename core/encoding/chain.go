@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/aceaura/libra/core/magic"
+	"github.com/aceaura/libra/boost/magic"
 )
 
 var (

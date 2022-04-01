@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aceaura/libra/core/magic"
+	"github.com/aceaura/libra/boost/magic"
 )
 
 type Route interface {
