@@ -85,9 +85,9 @@ func TestRouter1(t *testing.T) {
 	logChan := make(chan string, logChanSize)
 	client := &Client1{device.NewBase(), logChan}
 	try := &Try{logChan}
-	service := device.NewRouter().WithName(ref.TypeName(try)).WithService(try)
-	router := device.NewRouter().WithName(version).WithDevice(service)
-	bus := device.NewRouter().WithBus().WithName("Bus").WithDevice(client, router)
+	service := device.NewRouter(ref.TypeName(try)).Integrate(try)
+	router := device.NewRouter(version).Integrate(service)
+	bus := device.NewBus().Integrate(client, router)
 
 	t.Logf("\n%s", device.Tree(bus))
 
@@ -140,9 +140,9 @@ func TestRouter2(t *testing.T) {
 	logChan := make(chan string, logChanSize)
 	client := &Client2{device.NewBase(), logChan}
 	try := &Try{logChan}
-	service := device.NewRouter().WithName(ref.TypeName(try)).WithService(try)
-	router := device.NewRouter().WithName(version).WithDevice(service)
-	bus := device.NewRouter().WithBus().WithName("Bus").WithDevice(client, router)
+	service := device.NewRouter(ref.TypeName(try)).Integrate(try)
+	router := device.NewRouter(version).Integrate(service)
+	bus := device.NewBus().Integrate(client, router)
 
 	t.Logf("\n%s", device.Tree(bus))
 
@@ -191,11 +191,11 @@ func TestRouter3(t *testing.T) {
 		logChanSize = 2
 	)
 	logChan := make(chan string, logChanSize)
-	client := device.NewClient().WithName("Anonymous")
+	client := device.NewClient("Anonymous")
 	try := &Try{logChan}
-	service := device.NewRouter().WithName(ref.TypeName(try)).WithService(try)
-	router := device.NewRouter().WithName(version).WithDevice(service)
-	bus := device.NewRouter().WithBus().WithName("Bus").WithDevice(client, router)
+	service := device.NewRouter(ref.TypeName(try)).Integrate(try)
+	router := device.NewRouter(version).Integrate(service)
+	bus := device.NewBus().Integrate(client, router)
 
 	t.Logf("\n%s", device.Tree(bus))
 

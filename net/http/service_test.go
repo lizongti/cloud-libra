@@ -22,9 +22,9 @@ func TestService(t *testing.T) {
 		e   = encoding.NewChainEncoding(magic.UnixChain("json.base64.lazy"), magic.UnixChain("lazy.base64.json"))
 		r   = route.NewChainRoute(magic.GoogleChain("/client"), magic.GoogleChain("/https"))
 	)
-	client := device.NewClient().WithName("Client")
+	client := device.NewClient("Client")
 	service := &http.Service{}
-	bus := device.NewRouter().WithBus().WithName("Bus").WithService(service).WithDevice(client)
+	bus := device.NewBus().Integrate(service, client)
 
 	t.Logf("\n%s", device.Tree(bus))
 

@@ -8,37 +8,35 @@ import (
 
 type Router struct {
 	*Base
-	opts routerOptions
+	name string
+	bus  bool
 }
 
-func NewRouter(opt ...funcRouterOption) *Router {
-	opts := defaultRouterOptions
-
-	for _, o := range opt {
-		o.apply(&opts)
-	}
-
+func NewRouter(name string) *Router {
 	r := &Router{
 		Base: NewBase(),
+		name: name,
 	}
-
-	r.link()
 
 	return r
 }
 
-var bus *Router = NewRouter().WithBus().WithName("Bus")
+func NewBus() *Router {
+	return NewRouter("Bus").AsBus()
+}
+
+var bus *Router = NewBus()
 
 func Bus() *Router {
 	return bus
 }
 
 func (r *Router) String() string {
-	return r.opts.name
+	return r.name
 }
 
 func (r *Router) Process(ctx context.Context, msg *message.Message) error {
-	if r.opts.bus {
+	if r.bus {
 		if !msg.Route.Dispatching() {
 			msg.Route = msg.Route.Forward()
 			return r.localProcess(ctx, msg)
@@ -65,82 +63,22 @@ func (r *Router) localProcess(ctx context.Context, msg *message.Message) error {
 	return device.Process(ctx, msg)
 }
 
-func (r *Router) link() {
-	for _, d := range r.opts.devices {
-		d.Access(r)
-		r.Extend(d)
-	}
-}
-
-type routerOptions struct {
-	name    string
-	bus     bool
-	devices []Device
-}
-
-var defaultRouterOptions = routerOptions{
-	name: "",
-	bus:  false,
-}
-
-type ApplyRouterOption interface {
-	apply(*routerOptions)
-}
-
-type funcRouterOption func(*routerOptions)
-
-func (f funcRouterOption) apply(opt *routerOptions) {
-	f(opt)
-}
-
-type routerOption int
-
-var RouterOption routerOption
-
-func (routerOption) Device(devices ...Device) funcRouterOption {
-	return func(r *routerOptions) {
-		r.devices = append(r.devices, devices...)
-	}
-}
-
-func (r *Router) WithDevice(devices ...Device) *Router {
-	RouterOption.Device(devices...).apply(&r.opts)
-	r.link()
-	return r
-}
-
-func (routerOption) Service(services ...interface{}) funcRouterOption {
-	return func(r *routerOptions) {
-		for _, service := range services {
-			r.devices = append(r.devices, extractHandlers(service)...)
+func (r *Router) Integrate(targetList ...interface{}) *Router {
+	for _, target := range targetList {
+		if d, ok := target.(Device); ok {
+			r.AddLower(d)
+			d.SetSuper(r)
+		} else {
+			for _, d := range extractHandlers(d) {
+				r.AddLower(d)
+				d.SetSuper(r)
+			}
 		}
 	}
-}
-
-func (r *Router) WithService(services ...interface{}) *Router {
-	RouterOption.Service(services...).apply(&r.opts)
-	r.link()
 	return r
 }
 
-func (routerOption) Name(name string) funcRouterOption {
-	return func(r *routerOptions) {
-		r.name = name
-	}
-}
-
-func (r *Router) WithName(name string) *Router {
-	RouterOption.Name(name).apply(&r.opts)
-	return r
-}
-
-func (routerOption) Bus() funcRouterOption {
-	return func(r *routerOptions) {
-		r.bus = true
-	}
-}
-
-func (r *Router) WithBus() *Router {
-	RouterOption.Bus().apply(&r.opts)
+func (r *Router) AsBus() *Router {
+	r.bus = true
 	return r
 }

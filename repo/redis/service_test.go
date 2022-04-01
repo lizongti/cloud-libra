@@ -27,10 +27,10 @@ func TestService(t *testing.T) {
 		e   = encoding.NewChainEncoding(magic.UnixChain("json.base64.lazy"), magic.UnixChain("lazy.base64.json"))
 		r   = route.NewChainRoute(magic.GoogleChain("/client"), magic.GoogleChain("/redis/command"))
 	)
-	client := device.NewClient().WithName("Client")
+	client := device.NewClient("Client")
 	service := &redis.Service{}
-	redisRouter := device.NewRouter().WithName("Redis").WithService(service)
-	bus := device.NewRouter().WithBus().WithName("Bus").WithDevice(redisRouter).WithDevice(client)
+	redisRouter := device.NewRouter("Redis").Integrate(service)
+	bus := device.NewBus().Integrate(redisRouter, client)
 	t.Logf("\n%s", device.Tree(bus))
 	req := &redis.CommandRequest{
 		URL: url,

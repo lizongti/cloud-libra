@@ -28,7 +28,7 @@ func (b *Base) String() string {
 	return magic.Anonymous
 }
 
-func (b *Base) Access(device Device) {
+func (b *Base) SetSuper(device Device) {
 	b.gateway = device
 }
 
@@ -40,7 +40,7 @@ func (b *Base) Devices() map[string][]Device {
 	return b.devices
 }
 
-func (b *Base) Extend(device Device) {
+func (b *Base) AddLower(device Device) {
 	b.rwMutex.Lock()
 	defer b.rwMutex.Unlock()
 

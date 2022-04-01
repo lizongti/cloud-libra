@@ -34,10 +34,10 @@ func TestService(t *testing.T) {
 		path2: []byte(path2),
 	}
 
-	client := device.NewClient().WithName("Client")
+	client := device.NewClient("Client")
 	service := &file.Service{}
-	fileSystemRouter := device.NewRouter().WithName("File").WithService(service)
-	bus := device.NewRouter().WithBus().WithName("Bus").WithDevice(fileSystemRouter).WithDevice(client)
+	fileSystemRouter := device.NewRouter("File").Integrate(service)
+	bus := device.NewBus().Integrate(fileSystemRouter).Integrate(client)
 	t.Logf("\n%s", device.Tree(bus))
 
 	reqWrite := &file.WriteRequest{

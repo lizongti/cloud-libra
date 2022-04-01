@@ -33,7 +33,7 @@ type ServiceResponse struct {
 type Service struct{}
 
 func init() {
-	device.Bus().WithService(&Service{})
+	device.Bus().Integrate(&Service{})
 }
 
 func (s *Service) HTTP(ctx context.Context, req *ServiceRequest) (resp *ServiceResponse, err error) {

@@ -29,19 +29,20 @@ func (fp funcProcessor) Process(ctx context.Context, msg *message.Message) error
 
 type Client struct {
 	*Base
-	opts       clientOptions
+	name       string
 	msgID      uint64
 	processors sync.Map
 }
 
-func NewClient() *Client {
+func NewClient(name string) *Client {
 	return &Client{
 		Base: NewBase(),
+		name: name,
 	}
 }
 
 func (c *Client) String() string {
-	return c.opts.name
+	return c.name
 }
 
 func (c *Client) Process(ctx context.Context, msg *message.Message) error {
@@ -67,37 +68,4 @@ func (c *Client) Invoke(ctx context.Context, m *message.Message, p Processor) er
 	m.ID = atomic.AddUint64(&c.msgID, 1)
 	c.processors.Store(m.ID, p)
 	return c.Process(ctx, m)
-}
-
-type clientOptions struct {
-	name string
-}
-
-var defaultClientOptions = clientOptions{
-	name: "",
-}
-
-type ApplyClientOption interface {
-	apply(*clientOptions)
-}
-
-type funcClientOption func(*clientOptions)
-
-func (f funcClientOption) apply(opt *clientOptions) {
-	f(opt)
-}
-
-type clientOption int
-
-var ClientOption clientOption
-
-func (clientOption) Name(name string) funcClientOption {
-	return func(c *clientOptions) {
-		c.name = name
-	}
-}
-
-func (c *Client) WithName(name string) *Client {
-	ClientOption.Name(name).apply(&c.opts)
-	return c
 }

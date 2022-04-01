@@ -16,8 +16,8 @@ var (
 
 type Device interface {
 	String() string
-	Access(Device)
-	Extend(Device)
+	AddLower(Device)
+	SetSuper(Device)
 	Locate(name string) Device
 	Gateway() Device
 	Devices() map[string][]Device

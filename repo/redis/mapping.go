@@ -57,7 +57,7 @@ func NewMapping(opt ...ApplyMappingOption) *Mapping {
 	}
 
 	return &Mapping{
-		Client: device.NewClient(),
+		Client: device.NewClient(""),
 		opts:   opts,
 	}
 }

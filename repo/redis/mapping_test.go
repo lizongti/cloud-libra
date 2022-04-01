@@ -22,7 +22,7 @@ func TestMapping(t *testing.T) {
 		redis.MappingOption.URL(fmt.Sprintf("redis://%s/0", s.Addr())),
 		redis.MappingOption.Name("RedisMapping"),
 	)
-	device.Bus().WithDevice(m)
+	device.Bus().Integrate(m)
 
 	testData := []interface{}{
 		redis.String{

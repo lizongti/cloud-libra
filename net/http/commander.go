@@ -40,7 +40,7 @@ func NewCommander(opt ...ApplyCommanderOption) *Commander {
 	}
 
 	return &Commander{
-		Client:    device.NewClient(),
+		Client:    device.NewClient(""),
 		opts:      opts,
 		reqIndex:  0,
 		errorChan: make(chan error),

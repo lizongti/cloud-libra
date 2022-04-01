@@ -26,7 +26,8 @@ type PipelineResponse struct {
 type Service struct{}
 
 func init() {
-	device.Bus().WithDevice(device.NewRouter().WithName("Redis").WithService(&Service{}))
+	router := device.NewRouter("Redis").Integrate(&Service{})
+	device.Bus().Integrate(router)
 }
 
 func (s *Service) Command(ctx context.Context, req *CommandRequest) (resp *CommandResponse, err error) {

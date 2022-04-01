@@ -27,7 +27,7 @@ func TestComannder(t *testing.T) {
 		http.CommanderOption.ParallelTick(100*time.Millisecond),
 		http.CommanderOption.ParallelIncrease(1),
 	)
-	device.Bus().WithDevice(c)
+	device.Bus().Integrate(c)
 	if err := c.Serve(); err != nil {
 		t.Fatalf("unexpected error getting from device: %v", err)
 	}
@@ -77,7 +77,7 @@ func TestInvoke(t *testing.T) {
 		http.CommanderOption.ParallelTick(100*time.Millisecond),
 		http.CommanderOption.ParallelIncrease(1),
 	)
-	device.Bus().WithDevice(c)
+	device.Bus().Integrate(c)
 	if err := c.Serve(); err != nil {
 		t.Fatalf("unexpected error getting from device: %v", err)
 	}
