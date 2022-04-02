@@ -19,8 +19,8 @@ func TestMapping(t *testing.T) {
 	defer s.Close()
 
 	m := redis.NewMapping(
-		redis.MappingOption.URL(fmt.Sprintf("redis://%s/0", s.Addr())),
-		redis.MappingOption.Name("RedisMapping"),
+		fmt.Sprintf("redis://%s/0", s.Addr()),
+		redis.WithMappingName("RedisMapping"),
 	)
 	device.Bus().Integrate(m)
 

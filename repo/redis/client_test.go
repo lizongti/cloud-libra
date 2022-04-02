@@ -1,6 +1,7 @@
 package redis_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/aceaura/libra/boost/cast"
@@ -15,7 +16,7 @@ func TestClient(t *testing.T) {
 	}
 	defer s.Close()
 
-	c := redis.NewClient().WithAddr(s.Addr())
+	c := redis.NewClient(fmt.Sprintf("redis://%s/0", s.Addr()))
 	originValue := "value"
 	var result []string
 	result, err = c.Command("SET", "test", originValue)
@@ -52,8 +53,7 @@ func TestPool(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer s.Close()
-
-	c := redis.NewClient().WithAddr(s.Addr()).Pool()
+	c := redis.NewClient(fmt.Sprintf("redis://%s/0", s.Addr())).Pool()
 	originValue := "value"
 	var result []string
 	result, err = c.Command("SET", "test", originValue)

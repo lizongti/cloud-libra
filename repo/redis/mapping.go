@@ -48,9 +48,10 @@ type SortedSet struct {
 type Mapping struct {
 	*device.Client
 	opts mappingOptions
+	url  string
 }
 
-func NewMapping(opt ...ApplyMappingOption) *Mapping {
+func NewMapping(url string, opt ...ApplyMappingOption) *Mapping {
 	opts := defaultMappingOptions
 	for _, o := range opt {
 		o.apply(&opts)
@@ -59,6 +60,7 @@ func NewMapping(opt ...ApplyMappingOption) *Mapping {
 	return &Mapping{
 		Client: device.NewClient(""),
 		opts:   opts,
+		url:    url,
 	}
 }
 
@@ -451,15 +453,15 @@ func (m *Mapping) invoke(cmd []string) (result []string, err error) {
 }
 
 type mappingOptions struct {
-	url     string
-	name    string
-	ctx context.Context
+	url  string
+	name string
+	ctx  context.Context
 }
 
 var defaultMappingOptions = mappingOptions{
-	url:     "redis://localhost:6379/0",
-	name:    "",
-	ctx: context.Background(),
+	url:  "redis://localhost:6379/0",
+	name: "",
+	ctx:  context.Background(),
 }
 
 type ApplyMappingOption interface {
@@ -472,39 +474,20 @@ func (f funcMappingOption) apply(opt *mappingOptions) {
 	f(opt)
 }
 
-type mappingOption int
-
-var MappingOption mappingOption
-
-func (mappingOption) URL(url string) funcMappingOption {
+func WithMappingURL(url string) funcMappingOption {
 	return func(c *mappingOptions) {
 		c.url = url
 	}
 }
 
-func (c *Mapping) WithURL(url string) *Mapping {
-	MappingOption.URL(url).apply(&c.opts)
-	return c
-}
-
-func (mappingOption) Name(name string) funcMappingOption {
+func WithMappingName(name string) funcMappingOption {
 	return func(c *mappingOptions) {
 		c.name = name
 	}
 }
 
-func (c *Mapping) WithName(name string) *Mapping {
-	MappingOption.Name(name).apply(&c.opts)
-	return c
-}
-
-func (mappingOption) Context(ctx context.Context) funcMappingOption {
+func WithMappingContext(ctx context.Context) funcMappingOption {
 	return func(c *mappingOptions) {
 		c.ctx = ctx
 	}
-}
-
-func (c *Mapping) WithContext(ctx context.Context) *Mapping {
-	MappingOption.Context(ctx).apply(&c.opts)
-	return c
 }

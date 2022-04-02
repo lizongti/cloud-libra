@@ -2,7 +2,6 @@ package redis
 
 import (
 	"context"
-	"net/url"
 
 	"github.com/aceaura/libra/boost/cast"
 	"github.com/aceaura/libra/core/device"
@@ -31,17 +30,10 @@ func init() {
 }
 
 func (s *Service) Command(ctx context.Context, req *CommandRequest) (resp *CommandResponse, err error) {
-	u, err := url.Parse(req.URL)
-	if err != nil {
-		return nil, err
-	}
-
-	addr := u.Host
-	db := cast.ToInt(u.Path[1:])
-	password, _ := u.User.Password()
-
 	resp = new(CommandResponse)
-	c := NewClient().WithAddr(addr).WithDB(db).WithContext(ctx).WithPassword(password)
+	c := NewClient(req.URL,
+		WithContext(ctx),
+	)
 	result, err := c.Command(cast.ToSlice(req.Cmd)...)
 	if err != nil {
 		return nil, err

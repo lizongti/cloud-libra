@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"net/url"
 	"time"
 
 	"github.com/aceaura/libra/boost/cast"
@@ -10,9 +11,10 @@ import (
 
 type Client struct {
 	opts clientOptions
+	url  string
 }
 
-func NewClient(opt ...ApplyClientOption) *Client {
+func NewClient(url string, opt ...ApplyClientOption) *Client {
 	opts := defaultClientOptions
 
 	for _, o := range opt {
@@ -21,6 +23,7 @@ func NewClient(opt ...ApplyClientOption) *Client {
 
 	c := &Client{
 		opts: opts,
+		url:  url,
 	}
 
 	return c
@@ -57,9 +60,18 @@ func (c *Client) Command(commands ...interface{}) ([]string, error) {
 }
 
 func (c *Client) dial() (redis.Conn, error) {
-	conn, err := redis.DialContext(c.opts.ctx, "tcp", c.opts.addr,
-		redis.DialPassword(c.opts.password),
-		redis.DialDatabase(c.opts.db),
+	u, err := url.Parse(c.url)
+	if err != nil {
+		return nil, err
+	}
+
+	addr := u.Host
+	db := cast.ToInt(u.Path[1:])
+	password, _ := u.User.Password()
+
+	conn, err := redis.DialContext(c.opts.ctx, "tcp", addr,
+		redis.DialPassword(password),
+		redis.DialDatabase(db),
 		redis.DialConnectTimeout(c.opts.connectTimeout),
 		redis.DialReadTimeout(c.opts.readTimeout),
 		redis.DialWriteTimeout(c.opts.writeTimeout),
@@ -67,7 +79,7 @@ func (c *Client) dial() (redis.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err := redis.DoContext(conn, c.opts.ctx, "SELECT", c.opts.db); err != nil {
+	if _, err := redis.DoContext(conn, c.opts.ctx, "SELECT", db); err != nil {
 		return nil, err
 	}
 	return conn, nil
@@ -105,10 +117,7 @@ func (p *Pool) Command(commands ...interface{}) ([]string, error) {
 }
 
 type clientOptions struct {
-	ctx  context.Context
-	addr     string
-	password string
-	db       int
+	ctx context.Context
 
 	maxActive int
 	maxIdle   int
@@ -121,10 +130,7 @@ type clientOptions struct {
 }
 
 var defaultClientOptions = clientOptions{
-	ctx:  context.Background(),
-	addr:     "localhost:6379",
-	password: "",
-	db:       0,
+	ctx: context.Background(),
 
 	maxActive: 0,
 	maxIdle:   0,
@@ -145,116 +151,44 @@ func (f funcClientOption) apply(opt *clientOptions) {
 	f(opt)
 }
 
-type clientOption int
-
-var ClientOption clientOption
-
-func (clientOption) Context(ctx context.Context) funcClientOption {
+func WithContext(ctx context.Context) funcClientOption {
 	return func(c *clientOptions) {
 		c.ctx = ctx
 	}
 }
 
-func (c *Client) WithContext(context context.Context) *Client {
-	ClientOption.Context(context).apply(&c.opts)
-	return c
-}
-
-func (clientOption) Addr(addr string) funcClientOption {
-	return func(c *clientOptions) {
-		c.addr = addr
-	}
-}
-
-func (c *Client) WithAddr(addr string) *Client {
-	ClientOption.Addr(addr).apply(&c.opts)
-	return c
-}
-
-func (clientOption) Password(password string) funcClientOption {
-	return func(c *clientOptions) {
-		c.password = password
-	}
-}
-
-func (c *Client) WithPassword(password string) *Client {
-	ClientOption.Password(password).apply(&c.opts)
-	return c
-}
-
-func (clientOption) DB(db int) funcClientOption {
-	return func(c *clientOptions) {
-		c.db = db
-	}
-}
-
-func (c *Client) WithDB(db int) *Client {
-	ClientOption.DB(db).apply(&c.opts)
-	return c
-}
-
-func (clientOption) MaxActive(maxActive int) funcClientOption {
+func WithMaxActive(maxActive int) funcClientOption {
 	return func(c *clientOptions) {
 		c.maxActive = maxActive
 	}
 }
 
-func (c *Client) WithMaxActive(maxActive int) *Client {
-	ClientOption.MaxActive(maxActive).apply(&c.opts)
-	return c
-}
-
-func (clientOption) MaxIdle(maxIdle int) funcClientOption {
+func WithMaxIdle(maxIdle int) funcClientOption {
 	return func(c *clientOptions) {
 		c.maxIdle = maxIdle
 	}
 }
 
-func (c *Client) WithMaxIdle(maxIdle int) *Client {
-	ClientOption.MaxIdle(maxIdle).apply(&c.opts)
-	return c
-}
-
-func (clientOption) ConnectTimeout(connectTimeout time.Duration) funcClientOption {
+func WithConnectTimeout(connectTimeout time.Duration) funcClientOption {
 	return func(c *clientOptions) {
 		c.connectTimeout = connectTimeout
 	}
 }
 
-func (c *Client) WithConnectTimeout(connectTimeout time.Duration) *Client {
-	ClientOption.ConnectTimeout(connectTimeout).apply(&c.opts)
-	return c
-}
-
-func (clientOption) ReadTimeout(readTimeout time.Duration) funcClientOption {
+func WithReadTimeout(readTimeout time.Duration) funcClientOption {
 	return func(c *clientOptions) {
 		c.readTimeout = readTimeout
 	}
 }
 
-func (c *Client) WithReadTimeout(readTimeout time.Duration) *Client {
-	ClientOption.ReadTimeout(readTimeout).apply(&c.opts)
-	return c
-}
-
-func (clientOption) WriteTimeout(writeTimeout time.Duration) funcClientOption {
+func WithWriteTimeout(writeTimeout time.Duration) funcClientOption {
 	return func(c *clientOptions) {
 		c.writeTimeout = writeTimeout
 	}
 }
 
-func (c *Client) WithWriteTimeout(writeTimeout time.Duration) *Client {
-	ClientOption.WriteTimeout(writeTimeout).apply(&c.opts)
-	return c
-}
-
-func (clientOption) IdleTimeout(idleTimeout time.Duration) funcClientOption {
+func WithIdleTimeout(idleTimeout time.Duration) funcClientOption {
 	return func(c *clientOptions) {
 		c.idleTimeout = idleTimeout
 	}
-}
-
-func (c *Client) WithIdleTimeout(idleTimeout time.Duration) *Client {
-	ClientOption.IdleTimeout(idleTimeout).apply(&c.opts)
-	return c
 }

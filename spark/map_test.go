@@ -1,6 +1,7 @@
 package spark_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/aceaura/libra/repo/redis"
@@ -16,7 +17,7 @@ func TestMap(t *testing.T) {
 	defer s.Close()
 
 	spark.Map([]interface{}{nil}, func(interface{}) (interface{}, error) {
-		c := redis.NewClient().WithAddr(s.Addr())
+		c := redis.NewClient(fmt.Sprintf("redis://%s/0", s.Addr()))
 		return c.Command("SET", "test", 1)
 	})
 }
