@@ -245,66 +245,37 @@ func (f funcCommanderOption) apply(opt *commanderOptions) {
 	f(opt)
 }
 
-type commanderOption int
-
-var CommanderOption commanderOption
-
-func (commanderOption) Name(name string) funcCommanderOption {
+func WithCommanderName(name string) funcCommanderOption {
 	return func(c *commanderOptions) {
 		c.name = name
 	}
 }
 
-func (c *Commander) WithName(name string) *Commander {
-	CommanderOption.Name(name).apply(&c.opts)
-	return c
-}
-
-func (commanderOption) Context(ctx context.Context) funcCommanderOption {
+func WithCommanderContext(ctx context.Context) funcCommanderOption {
 	return func(c *commanderOptions) {
 		c.ctx = ctx
 	}
 }
 
-func (c *Commander) WithContext(ctx context.Context) *Commander {
-	CommanderOption.Context(ctx).apply(&c.opts)
-	return c
-}
-
-func (commanderOption) Safety() funcCommanderOption {
+func WithCommanderSafety() funcCommanderOption {
 	return func(c *commanderOptions) {
 		c.safety = true
 	}
 }
 
-func (c *Commander) WithSafety() *Commander {
-	CommanderOption.Safety().apply(&c.opts)
-	return c
-}
-
-func (commanderOption) Background() funcCommanderOption {
+func WithCommanderBackground() funcCommanderOption {
 	return func(c *commanderOptions) {
 		c.background = true
 	}
 }
 
-func (c *Commander) WithBackground(background bool) *Commander {
-	CommanderOption.Background().apply(&c.opts)
-	return c
-}
-
-func (commanderOption) ErrorChan(errorChan chan<- error) funcCommanderOption {
+func WithCommanderErrorChan(errorChan chan<- error) funcCommanderOption {
 	return func(c *commanderOptions) {
 		c.errorChan = errorChan
 	}
 }
 
-func (c *Commander) WithErrorChan(errorChan chan<- error) *Commander {
-	CommanderOption.ErrorChan(errorChan).apply(&c.opts)
-	return c
-}
-
-func (commanderOption) Parallel(parallel int) funcCommanderOption {
+func WithCommanderParallel(parallel int) funcCommanderOption {
 	return func(c *commanderOptions) {
 		if parallel > 0 {
 			c.parallel = parallel
@@ -312,23 +283,13 @@ func (commanderOption) Parallel(parallel int) funcCommanderOption {
 	}
 }
 
-func (c *Commander) WithParallel(parallel int) *Commander {
-	CommanderOption.Parallel(parallel).apply(&c.opts)
-	return c
-}
-
-func (commanderOption) ParallelTick(parallelTick time.Duration) funcCommanderOption {
+func WithCommanderParallelTick(parallelTick time.Duration) funcCommanderOption {
 	return func(c *commanderOptions) {
 		c.parallelTick = parallelTick
 	}
 }
 
-func (c *Commander) WithParallelTick(parallelTick time.Duration) *Commander {
-	CommanderOption.ParallelTick(parallelTick).apply(&c.opts)
-	return c
-}
-
-func (commanderOption) ParallelIncrease(parallelIncrease int) funcCommanderOption {
+func WithCommanderParallelIncrease(parallelIncrease int) funcCommanderOption {
 	return func(c *commanderOptions) {
 		if parallelIncrease >= 0 {
 			c.parallelIncrease = parallelIncrease
@@ -336,12 +297,7 @@ func (commanderOption) ParallelIncrease(parallelIncrease int) funcCommanderOptio
 	}
 }
 
-func (c *Commander) WithParallelIncrease(parallelIncrease int) *Commander {
-	CommanderOption.ParallelIncrease(parallelIncrease).apply(&c.opts)
-	return c
-}
-
-func (commanderOption) TPSLimit(tpsLimit int) funcCommanderOption {
+func WithCommanderTPSLimit(tpsLimit int) funcCommanderOption {
 	return func(c *commanderOptions) {
 		if tpsLimit > 0 {
 			c.tpsLimit = tpsLimit
@@ -349,12 +305,7 @@ func (commanderOption) TPSLimit(tpsLimit int) funcCommanderOption {
 	}
 }
 
-func (c *Commander) WithTPSLimit(tpsLimit int) *Commander {
-	CommanderOption.TPSLimit(tpsLimit).apply(&c.opts)
-	return c
-}
-
-func (commanderOption) RequestBacklog(reqChanBacklog int) funcCommanderOption {
+func WithCommanderRequestBacklog(reqChanBacklog int) funcCommanderOption {
 	return func(c *commanderOptions) {
 		if reqChanBacklog > 1 {
 			c.reqBacklog = reqChanBacklog
@@ -362,12 +313,7 @@ func (commanderOption) RequestBacklog(reqChanBacklog int) funcCommanderOption {
 	}
 }
 
-func (c *Commander) WithRequestBacklog(reqBacklog int) *Commander {
-	CommanderOption.RequestBacklog(reqBacklog).apply(&c.opts)
-	return c
-}
-
-func (commanderOption) ResponseBacklog(respBacklog int) funcCommanderOption {
+func WithCommanderResponseBacklog(respBacklog int) funcCommanderOption {
 	return func(c *commanderOptions) {
 		if respBacklog > 1 {
 			c.respBacklog = respBacklog
@@ -375,12 +321,7 @@ func (commanderOption) ResponseBacklog(respBacklog int) funcCommanderOption {
 	}
 }
 
-func (c *Commander) WithResponseBacklog(respBacklog int) *Commander {
-	CommanderOption.ResponseBacklog(respBacklog).apply(&c.opts)
-	return c
-}
-
-func (commanderOption) ReportBacklog(reportBacklog int) funcCommanderOption {
+func WithCommanderReportBacklog(reportBacklog int) funcCommanderOption {
 	return func(c *commanderOptions) {
 		if reportBacklog > 1 {
 			c.reportBacklog = reportBacklog
@@ -388,12 +329,7 @@ func (commanderOption) ReportBacklog(reportBacklog int) funcCommanderOption {
 	}
 }
 
-func (c *Commander) WithReportBacklog(reportBacklog int) *Commander {
-	CommanderOption.ReportBacklog(reportBacklog).apply(&c.opts)
-	return c
-}
-
-func (commanderOption) TaskBacklog(taskBacklog int) funcCommanderOption {
+func WithCommanderTaskBacklog(taskBacklog int) funcCommanderOption {
 	return func(c *commanderOptions) {
 		if taskBacklog > 1 {
 			c.taskBacklog = taskBacklog
@@ -401,20 +337,10 @@ func (commanderOption) TaskBacklog(taskBacklog int) funcCommanderOption {
 	}
 }
 
-func (c *Commander) WithTaskBacklog(taskBacklog int) *Commander {
-	CommanderOption.TaskBacklog(taskBacklog).apply(&c.opts)
-	return c
-}
-
-func (commanderOption) ParallelBacklog(parallelBacklog int) funcCommanderOption {
+func WithCommanderParallelBacklog(parallelBacklog int) funcCommanderOption {
 	return func(c *commanderOptions) {
 		if parallelBacklog > 1 {
 			c.parallelBacklog = parallelBacklog
 		}
 	}
-}
-
-func (c *Commander) WithParallelBacklog(parallelBacklog int) *Commander {
-	CommanderOption.ParallelBacklog(parallelBacklog).apply(&c.opts)
-	return c
 }

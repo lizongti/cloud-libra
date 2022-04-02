@@ -151,7 +151,7 @@ func (f funcClientOption) apply(opt *clientOptions) {
 	f(opt)
 }
 
-func WithContext(ctx context.Context) funcClientOption {
+func WithClientContext(ctx context.Context) funcClientOption {
 	return func(c *clientOptions) {
 		c.ctx = ctx
 	}
@@ -163,31 +163,31 @@ func WithMaxActive(maxActive int) funcClientOption {
 	}
 }
 
-func WithMaxIdle(maxIdle int) funcClientOption {
+func WithClientMaxIdle(maxIdle int) funcClientOption {
 	return func(c *clientOptions) {
 		c.maxIdle = maxIdle
 	}
 }
 
-func WithConnectTimeout(connectTimeout time.Duration) funcClientOption {
+func WithClientConnectTimeout(connectTimeout time.Duration) funcClientOption {
 	return func(c *clientOptions) {
 		c.connectTimeout = connectTimeout
 	}
 }
 
-func WithReadTimeout(readTimeout time.Duration) funcClientOption {
+func WithClientReadTimeout(readTimeout time.Duration) funcClientOption {
 	return func(c *clientOptions) {
 		c.readTimeout = readTimeout
 	}
 }
 
-func WithWriteTimeout(writeTimeout time.Duration) funcClientOption {
+func WithClientWriteTimeout(writeTimeout time.Duration) funcClientOption {
 	return func(c *clientOptions) {
 		c.writeTimeout = writeTimeout
 	}
 }
 
-func WithIdleTimeout(idleTimeout time.Duration) funcClientOption {
+func WithClientIdleTimeout(idleTimeout time.Duration) funcClientOption {
 	return func(c *clientOptions) {
 		c.idleTimeout = idleTimeout
 	}

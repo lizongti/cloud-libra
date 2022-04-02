@@ -15,17 +15,17 @@ func TestComannder(t *testing.T) {
 		interval = 10 * time.Millisecond
 	)
 	c := http.NewCommander(
-		http.CommanderOption.Background(),
-		http.CommanderOption.Safety(),
-		http.CommanderOption.Context(context.Background()),
-		http.CommanderOption.Name("HttpCollector"),
-		http.CommanderOption.RequestBacklog(1000),
-		http.CommanderOption.ResponseBacklog(1000),
-		http.CommanderOption.ReportBacklog(1),
-		http.CommanderOption.TPSLimit(20),
-		http.CommanderOption.Parallel(10),
-		http.CommanderOption.ParallelTick(100*time.Millisecond),
-		http.CommanderOption.ParallelIncrease(1),
+		http.WithCommanderBackground(),
+		http.WithCommanderSafety(),
+		http.WithCommanderContext(context.Background()),
+		http.WithCommanderName("HttpCollector"),
+		http.WithCommanderRequestBacklog(1000),
+		http.WithCommanderResponseBacklog(1000),
+		http.WithCommanderReportBacklog(1),
+		http.WithCommanderTPSLimit(20),
+		http.WithCommanderParallel(10),
+		http.WithCommanderParallelTick(100*time.Millisecond),
+		http.WithCommanderParallelIncrease(1),
 	)
 	device.Bus().Integrate(c)
 	if err := c.Serve(); err != nil {
@@ -65,17 +65,17 @@ func TestInvoke(t *testing.T) {
 		interval = 10 * time.Millisecond
 	)
 	c := http.NewCommander(
-		http.CommanderOption.Background(),
-		http.CommanderOption.Safety(),
-		http.CommanderOption.Context(context.Background()),
-		http.CommanderOption.Name("HttpCollector"),
-		http.CommanderOption.RequestBacklog(1000),
-		http.CommanderOption.ResponseBacklog(1000),
-		http.CommanderOption.ReportBacklog(1),
-		http.CommanderOption.TPSLimit(20),
-		http.CommanderOption.Parallel(10),
-		http.CommanderOption.ParallelTick(100*time.Millisecond),
-		http.CommanderOption.ParallelIncrease(1),
+		http.WithCommanderBackground(),
+		http.WithCommanderSafety(),
+		http.WithCommanderContext(context.Background()),
+		http.WithCommanderName("HttpCollector"),
+		http.WithCommanderRequestBacklog(1000),
+		http.WithCommanderResponseBacklog(1000),
+		http.WithCommanderReportBacklog(1),
+		http.WithCommanderTPSLimit(20),
+		http.WithCommanderParallel(10),
+		http.WithCommanderParallelTick(100*time.Millisecond),
+		http.WithCommanderParallelIncrease(1),
 	)
 	device.Bus().Integrate(c)
 	if err := c.Serve(); err != nil {

@@ -99,61 +99,32 @@ func (f funcServerOption) apply(opt *serverOptions) {
 	f(opt)
 }
 
-type serverOption int
-
-var ServerOption serverOption
-
-func (serverOption) Safety() funcServerOption {
+func WithServerSafety() funcServerOption {
 	return func(s *serverOptions) {
 		s.safety = true
 	}
 }
 
-func (s *Server) WithSafety() *Server {
-	ServerOption.Safety().apply(&s.opts)
-	return s
-}
-
-func (serverOption) Background() funcServerOption {
+func WithServerBackground() funcServerOption {
 	return func(s *serverOptions) {
 		s.background = true
 	}
 }
 
-func (s *Server) WithBackground() *Server {
-	ServerOption.Background().apply(&s.opts)
-	return s
-}
-
-func (serverOption) ErrorChan(errorChan chan<- error) funcServerOption {
+func WithServerErrorChan(errorChan chan<- error) funcServerOption {
 	return func(s *serverOptions) {
 		s.errorChan = errorChan
 	}
 }
 
-func (s *Server) WithErrorChan(errorChan chan<- error) *Server {
-	ServerOption.ErrorChan(errorChan).apply(&s.opts)
-	return s
-}
-
-func (serverOption) Route(routes ...Route) funcServerOption {
+func WithServerRoute(routes ...Route) funcServerOption {
 	return func(s *serverOptions) {
 		s.routes = append(s.routes, routes...)
 	}
 }
 
-func (s *Server) WithRoute(routes ...Route) *Server {
-	ServerOption.Route(routes...).apply(&s.opts)
-	return s
-}
-
-func (serverOption) Proxy() funcServerOption {
+func WithServerProxy() funcServerOption {
 	return func(s *serverOptions) {
 		s.proxy = true
 	}
-}
-
-func (s *Server) WithProxy() *Server {
-	ServerOption.Proxy().apply(&s.opts)
-	return s
 }

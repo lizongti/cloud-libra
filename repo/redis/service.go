@@ -32,7 +32,7 @@ func init() {
 func (s *Service) Command(ctx context.Context, req *CommandRequest) (resp *CommandResponse, err error) {
 	resp = new(CommandResponse)
 	c := NewClient(req.URL,
-		WithContext(ctx),
+		WithClientContext(ctx),
 	)
 	result, err := c.Command(cast.ToSlice(req.Cmd)...)
 	if err != nil {

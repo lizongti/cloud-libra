@@ -102,9 +102,9 @@ func (m *Mapping) invokeRead(path string, cmd []string) (result []Document, err 
 }
 
 type mappingOptions struct {
-	path    string
-	name    string
-	ctx context.Context
+	path string
+	name string
+	ctx  context.Context
 }
 
 var defaultMappingOptions = mappingOptions{
@@ -121,39 +121,20 @@ func (f funcMappingOption) apply(opt *mappingOptions) {
 	f(opt)
 }
 
-type mappingOption int
-
-var MappingOption mappingOption
-
-func (mappingOption) Path(path string) funcMappingOption {
+func WithMappingPath(path string) funcMappingOption {
 	return func(c *mappingOptions) {
 		c.path = path
 	}
 }
 
-func (c *Mapping) WithPath(path string) *Mapping {
-	MappingOption.Path(path).apply(&c.opts)
-	return c
-}
-
-func (mappingOption) Name(name string) funcMappingOption {
+func WithMappingName(name string) funcMappingOption {
 	return func(c *mappingOptions) {
 		c.name = name
 	}
 }
 
-func (c *Mapping) WithName(name string) *Mapping {
-	MappingOption.Name(name).apply(&c.opts)
-	return c
-}
-
-func (mappingOption) Context(ctx context.Context) funcMappingOption {
+func WithMappingContext(ctx context.Context) funcMappingOption {
 	return func(c *mappingOptions) {
 		c.ctx = ctx
 	}
-}
-
-func (c *Mapping) WithContext(ctx context.Context) *Mapping {
-	MappingOption.Context(ctx).apply(&c.opts)
-	return c
 }

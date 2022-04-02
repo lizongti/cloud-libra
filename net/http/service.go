@@ -47,27 +47,29 @@ func (s *Service) HTTPS(ctx context.Context, req *ServiceRequest) (resp *Service
 func (*Service) do(ctx context.Context, req *ServiceRequest, protocol string) (resp *ServiceResponse, err error) {
 	resp = new(ServiceResponse)
 
-	c := NewClient().WithProtocol(protocol).WithContext(ctx)
+	opt := []funcClientOption{WithClientProtocol(protocol), WithClientContext(ctx)}
+
 	if req.Timeout != 0 {
-		c.WithTimeout(req.Timeout)
+		opt = append(opt, WithClientTimeout(req.Timeout))
 	}
 	if req.Retry != 0 {
-		c.WithRetry(req.Retry)
+		opt = append(opt, WithClientRetry(req.Retry))
 	}
 	if req.Proxy != "" {
-		c.WithProxy(req.Proxy)
+		opt = append(opt, WithClientProxy(req.Proxy))
 	}
 	if req.ContentType != "" {
-		c.WithContentType(req.ContentType)
+		opt = append(opt, WithClientContentType(req.ContentType))
 	}
 	if len(req.Form) > 0 {
-		c.WithForm(req.Form)
+		opt = append(opt, WithClientForm(req.Form))
 	}
 	if req.Body != "" {
-		c.WithRequestBody(func() (io.Reader, error) {
+		opt = append(opt, WithClientRequestBody(func() (io.Reader, error) {
 			return strings.NewReader(req.Body), nil
-		})
+		}))
 	}
+	c := NewClient(opt...)
 	httpResp, body, err := c.Get(req.URL)
 	if err != nil {
 		return nil, err

@@ -175,7 +175,7 @@ type clientOptions struct {
 	safety           bool
 	timeout          time.Duration
 	proxy            string
-	ctx          context.Context
+	ctx              context.Context
 }
 
 var defaultClientOptions = clientOptions{
@@ -188,7 +188,7 @@ var defaultClientOptions = clientOptions{
 	safety:           false,
 	timeout:          0,
 	proxy:            "",
-	ctx:          nil,
+	ctx:              nil,
 }
 
 type ApplyClientOption interface {
@@ -201,116 +201,62 @@ func (f funcClientOption) apply(opt *clientOptions) {
 	f(opt)
 }
 
-type clientOption int
-
-var ClientOption clientOption
-
-func (clientOption) Protocol(protocol string) funcClientOption {
+func WithClientProtocol(protocol string) funcClientOption {
 	return func(c *clientOptions) {
 		c.protocol = protocol
 	}
 }
 
-func (c *Client) WithProtocol(protocol string) *Client {
-	ClientOption.Protocol(protocol).apply(&c.opts)
-	return c
-}
-
-func (clientOption) Timeout(timeout time.Duration) funcClientOption {
+func WithClientTimeout(timeout time.Duration) funcClientOption {
 	return func(c *clientOptions) {
 		c.timeout = timeout
 	}
 }
 
-func (c *Client) WithTimeout(timeout time.Duration) *Client {
-	ClientOption.Timeout(timeout).apply(&c.opts)
-	return c
-}
-
-func (clientOption) Retry(retry int) funcClientOption {
+func WithClientRetry(retry int) funcClientOption {
 	return func(co *clientOptions) {
 		co.retry = retry
 	}
 }
 
-func (c *Client) WithRetry(retry int) *Client {
-	ClientOption.Retry(retry).apply(&c.opts)
-	return c
-}
-
-func (clientOption) Proxy(proxy string) funcClientOption {
+func WithClientProxy(proxy string) funcClientOption {
 	return func(c *clientOptions) {
 		c.proxy = proxy
 	}
 }
 
-func (c *Client) WithProxy(proxy string) *Client {
-	ClientOption.Proxy(proxy).apply(&c.opts)
-	return c
-}
-
-func (clientOption) ContentType(contentType string) funcClientOption {
+func WithClientContentType(contentType string) funcClientOption {
 	return func(c *clientOptions) {
 		c.contentType = contentType
 	}
 }
 
-func (c *Client) WithContentType(contentType string) *Client {
-	ClientOption.ContentType(contentType).apply(&c.opts)
-	return c
-}
-
-func (clientOption) Form(form url.Values) funcClientOption {
+func WithClientForm(form url.Values) funcClientOption {
 	return func(c *clientOptions) {
 		c.form = form
 	}
 }
 
-func (c *Client) WithForm(form url.Values) *Client {
-	ClientOption.Form(form).apply(&c.opts)
-	return c
-}
-
-func (clientOption) RequestBody(requestBodyFunc func() (io.Reader, error)) funcClientOption {
+func WithClientRequestBody(requestBodyFunc func() (io.Reader, error)) funcClientOption {
 	return func(c *clientOptions) {
 		c.requestBodyFunc = requestBodyFunc
 	}
 }
 
-func (c *Client) WithRequestBody(requestBodyFunc func() (io.Reader, error)) *Client {
-	ClientOption.RequestBody(requestBodyFunc).apply(&c.opts)
-	return c
-}
-
-func (clientOption) ResponseBodyFunc(responseBodyFunc func(io.Reader) error) funcClientOption {
+func WithClientResponseBodyFunc(responseBodyFunc func(io.Reader) error) funcClientOption {
 	return func(co *clientOptions) {
 		co.responseBodyFunc = responseBodyFunc
 	}
 }
 
-func (c *Client) WithResponseBodyFunc(responseBodyFunc func(io.Reader) error) *Client {
-	ClientOption.ResponseBodyFunc(responseBodyFunc).apply(&c.opts)
-	return c
-}
-
-func (clientOption) Safety() funcClientOption {
+func WithClientSafety() funcClientOption {
 	return func(c *clientOptions) {
 		c.safety = true
 	}
 }
 
-func (c *Client) WithSafety() *Client {
-	ClientOption.Safety().apply(&c.opts)
-	return c
-}
-
-func (clientOption) Context(ctx context.Context) funcClientOption {
+func WithClientContext(ctx context.Context) funcClientOption {
 	return func(c *clientOptions) {
 		c.ctx = ctx
 	}
-}
-
-func (c *Client) WithContext(ctx context.Context) *Client {
-	ClientOption.Context(ctx).apply(&c.opts)
-	return c
 }
