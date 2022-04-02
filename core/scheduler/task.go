@@ -45,7 +45,7 @@ type Task struct {
 	taskStarted  time.Time
 	stateStarted time.Time
 	stageStarted time.Time
-	context      context.Context
+	ctx      context.Context
 	report       func(r *Report)
 	err          error
 }
@@ -93,7 +93,7 @@ func (t *Task) Name() string {
 }
 
 func (t *Task) Context() context.Context {
-	return t.context
+	return t.ctx
 }
 
 func (t *Task) ID() string {
@@ -156,13 +156,13 @@ func (t *Task) Execute() (err error) {
 		ctx, cancel := context.WithCancel(t.opts.parentContext)
 		defer cancel()
 
-		t.context = ctx
+		t.ctx = ctx
 		t.doStages()
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(t.opts.parentContext, t.opts.timeout)
-	t.context = ctx
+	t.ctx = ctx
 
 	errChan := make(chan error)
 	defer close(errChan)
@@ -294,9 +294,9 @@ func WithTaskParams(params map[interface{}]interface{}) funcTaskOption {
 	}
 }
 
-func WithTaskParentContext(context context.Context) funcTaskOption {
+func WithTaskParentContext(ctx context.Context) funcTaskOption {
 	return func(t *taskOptions) {
-		t.parentContext = context
+		t.parentContext = ctx
 	}
 }
 

@@ -99,8 +99,7 @@ func Invoke(c *Commander, req *ServiceRequest) *ServiceResponse {
 
 func (c *Commander) Invoke(req *ServiceRequest) *ServiceResponse {
 	var resp *ServiceResponse
-	if err := coroutine.Start(func(co *coroutine.Coroutine) error {
-		co.WithTimeout(c.opts.coroutineTimeout)
+	if err := coroutine.Start(c.opts.ctx, func(co *coroutine.Coroutine) error {
 		req.CoroutineID = co.ID()
 		c.RequestChan() <- req
 		output, err := co.Yield()
@@ -190,9 +189,9 @@ func (c *Commander) createTask(req *ServiceRequest) *scheduler.Task {
 		scheduler.WithTaskName(fmt.Sprintf("%s[%d]", c.String(), c.reqIndex)),
 		scheduler.WithTaskStage(func(task *scheduler.Task) error {
 			if req.CoroutineID != "" {
-				coroutine.TryResume(req.CoroutineID, c.invoke(c.opts.context, c.String(), req))
+				coroutine.TryResume(req.CoroutineID, c.invoke(c.opts.ctx, c.String(), req))
 			} else {
-				c.respChan <- c.invoke(c.opts.context, c.String(), req)
+				c.respChan <- c.invoke(c.opts.ctx, c.String(), req)
 			}
 
 			return nil
@@ -206,7 +205,7 @@ func (c *Commander) pushTask(task *scheduler.Task) {
 
 type commanderOptions struct {
 	name             string
-	context          context.Context
+	ctx              context.Context
 	safety           bool
 	background       bool
 	errorChan        chan<- error
@@ -219,23 +218,21 @@ type commanderOptions struct {
 	reportBacklog    int
 	taskBacklog      int
 	parallelBacklog  int
-	coroutineTimeout time.Duration
 }
 
 var defaultCommanderOptions = commanderOptions{
-	name:             "",
-	context:          context.Background(),
-	safety:           false,
-	background:       false,
-	errorChan:        nil,
-	parallel:         1,
-	tpsLimit:         -1,
-	reqBacklog:       0,
-	respBacklog:      0,
-	reportBacklog:    0,
-	taskBacklog:      0,
-	parallelBacklog:  0,
-	coroutineTimeout: 30 * time.Second,
+	name:            "",
+	ctx:             context.Background(),
+	safety:          false,
+	background:      false,
+	errorChan:       nil,
+	parallel:        1,
+	tpsLimit:        -1,
+	reqBacklog:      0,
+	respBacklog:     0,
+	reportBacklog:   0,
+	taskBacklog:     0,
+	parallelBacklog: 0,
 }
 
 type ApplyCommanderOption interface {
@@ -263,14 +260,14 @@ func (c *Commander) WithName(name string) *Commander {
 	return c
 }
 
-func (commanderOption) Context(context context.Context) funcCommanderOption {
+func (commanderOption) Context(ctx context.Context) funcCommanderOption {
 	return func(c *commanderOptions) {
-		c.context = context
+		c.ctx = ctx
 	}
 }
 
-func (c *Commander) WithContext(context context.Context) *Commander {
-	CommanderOption.Context(context).apply(&c.opts)
+func (c *Commander) WithContext(ctx context.Context) *Commander {
+	CommanderOption.Context(ctx).apply(&c.opts)
 	return c
 }
 
@@ -419,16 +416,5 @@ func (commanderOption) ParallelBacklog(parallelBacklog int) funcCommanderOption 
 
 func (c *Commander) WithParallelBacklog(parallelBacklog int) *Commander {
 	CommanderOption.ParallelBacklog(parallelBacklog).apply(&c.opts)
-	return c
-}
-
-func (commanderOption) CoroutineTimeout(coroutineTimeout time.Duration) funcCommanderOption {
-	return func(c *commanderOptions) {
-		c.coroutineTimeout = coroutineTimeout
-	}
-}
-
-func (c *Commander) WithCoroutineTimeout(coroutineTimeout time.Duration) *Commander {
-	CommanderOption.CoroutineTimeout(coroutineTimeout).apply(&c.opts)
 	return c
 }

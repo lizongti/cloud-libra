@@ -44,7 +44,7 @@ func (c *Client) Do(commandName string, args ...interface{}) (interface{}, error
 		return nil, err
 	}
 	defer conn.Close()
-	return redis.DoContext(conn, c.opts.context, commandName, args...)
+	return redis.DoContext(conn, c.opts.ctx, commandName, args...)
 }
 
 func (c *Client) Command(commands ...interface{}) ([]string, error) {
@@ -57,7 +57,7 @@ func (c *Client) Command(commands ...interface{}) ([]string, error) {
 }
 
 func (c *Client) dial() (redis.Conn, error) {
-	conn, err := redis.DialContext(c.opts.context, "tcp", c.opts.addr,
+	conn, err := redis.DialContext(c.opts.ctx, "tcp", c.opts.addr,
 		redis.DialPassword(c.opts.password),
 		redis.DialDatabase(c.opts.db),
 		redis.DialConnectTimeout(c.opts.connectTimeout),
@@ -67,7 +67,7 @@ func (c *Client) dial() (redis.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err := redis.DoContext(conn, c.opts.context, "SELECT", c.opts.db); err != nil {
+	if _, err := redis.DoContext(conn, c.opts.ctx, "SELECT", c.opts.db); err != nil {
 		return nil, err
 	}
 	return conn, nil
@@ -92,7 +92,7 @@ type Pool struct {
 func (p *Pool) Do(commandName string, args ...interface{}) (interface{}, error) {
 	conn := p.pool.Get()
 	defer conn.Close()
-	return redis.DoContext(conn, p.client.opts.context, commandName, args...)
+	return redis.DoContext(conn, p.client.opts.ctx, commandName, args...)
 }
 
 func (p *Pool) Command(commands ...interface{}) ([]string, error) {
@@ -105,7 +105,7 @@ func (p *Pool) Command(commands ...interface{}) ([]string, error) {
 }
 
 type clientOptions struct {
-	context  context.Context
+	ctx  context.Context
 	addr     string
 	password string
 	db       int
@@ -121,7 +121,7 @@ type clientOptions struct {
 }
 
 var defaultClientOptions = clientOptions{
-	context:  context.Background(),
+	ctx:  context.Background(),
 	addr:     "localhost:6379",
 	password: "",
 	db:       0,
@@ -149,9 +149,9 @@ type clientOption int
 
 var ClientOption clientOption
 
-func (clientOption) Context(context context.Context) funcClientOption {
+func (clientOption) Context(ctx context.Context) funcClientOption {
 	return func(c *clientOptions) {
-		c.context = context
+		c.ctx = ctx
 	}
 }
 

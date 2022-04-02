@@ -1,6 +1,7 @@
 package coroutine_test
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -8,59 +9,52 @@ import (
 )
 
 func TestCreate(t *testing.T) {
-	c, _ := coroutine.Create(func(c *coroutine.Coroutine, args ...interface{}) error {
+	ctx := context.Background()
+	c, _ := coroutine.Create(ctx, func(c *coroutine.Coroutine, args ...interface{}) error {
 		if !reflect.DeepEqual(args, []interface{}{"Resume", "1"}) {
 			t.Error("flow error, expected `Resume 1`")
 		}
 
-		inData, err := c.Yield("Yield", "2")
+		in, err := c.Yield("Yield", "2")
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if !reflect.DeepEqual(inData, []interface{}{"Resume", "3"}) {
+		if !reflect.DeepEqual(in, []interface{}{"Resume", "3"}) {
 			t.Error("flow error, expected `Resume 3`")
 		}
 
-		_, err = c.Yield("Yield", "4")
-		if err != nil {
-			t.Fatal(err)
-		}
 		return nil
 	})
 
-	_, err := c.TryResume("Resume", "0")
-	if err != coroutine.ErrCoroutineNotSuspended {
-		t.Fatal(err)
-	}
-
-	_, err = c.Resume("Resume", "1")
+	_, err := c.Resume("Resume", "1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	outData, err := c.Resume("Resume", "3")
+	out, err := c.Resume("Resume", "3")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !reflect.DeepEqual(outData, []interface{}{"Yield", "2"}) {
+	if !reflect.DeepEqual(out, []interface{}{"Yield", "2"}) {
 		t.Error("flow error, expected `Yield 2`")
 	}
 }
 
 func TestStart(t *testing.T) {
-	c := coroutine.Wrap(func(c *coroutine.Coroutine, args ...interface{}) error {
+	ctx := context.Background()
+	c := coroutine.Wrap(ctx, func(c *coroutine.Coroutine, args ...interface{}) error {
 		if !reflect.DeepEqual(args, []interface{}{"Call", "1"}) {
 			t.Error("flow error, expected `Call 1`")
 		}
 
-		inData, err := coroutine.Yield(c.ID(), "Yield", "2")
+		in, err := coroutine.Yield(c.ID(), "Yield", "2")
 		if err != nil {
 			return err
 		}
 
-		if !reflect.DeepEqual(inData, []interface{}{"Resume", "3"}) {
+		if !reflect.DeepEqual(in, []interface{}{"Resume", "3"}) {
 			t.Fatal("ID flow error, expected `Resume 3`")
 		}
 
@@ -77,21 +71,21 @@ func TestStart(t *testing.T) {
 		}
 	}()
 
-	outData, err := coroutine.Resume(c.ID(), "Resume", "3")
+	out, err := coroutine.Resume(c.ID(), "Resume", "3")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !reflect.DeepEqual(outData, []interface{}{"Yield", "2"}) {
+	if !reflect.DeepEqual(out, []interface{}{"Yield", "2"}) {
 		t.Fatal("flow error, expected `Yield 2`")
 	}
 
-	outData, err = coroutine.Resume(c.ID(), "Resume", "5")
+	out, err = coroutine.Resume(c.ID(), "Resume", "5")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !reflect.DeepEqual(outData, []interface{}{"Yield", "4"}) {
+	if !reflect.DeepEqual(out, []interface{}{"Yield", "4"}) {
 		t.Fatal("flow error, expected `Yield 4`")
 	}
 }

@@ -428,7 +428,7 @@ func (m *Mapping) selectSortedSet(sortedSet *SortedSet) (*SortedSet, error) {
 }
 
 func (m *Mapping) invoke(cmd []string) (result []string, err error) {
-	if err := m.Client.Invoke(m.opts.context, &message.Message{
+	if err := m.Client.Invoke(m.opts.ctx, &message.Message{
 		Route:    route.NewChainRoute(device.Addr(m), magic.GoogleChain("/redis/command")),
 		Encoding: encoding.NewJSON(),
 		Data: encoding.Encode(encoding.NewJSON(), &CommandRequest{
@@ -453,13 +453,13 @@ func (m *Mapping) invoke(cmd []string) (result []string, err error) {
 type mappingOptions struct {
 	url     string
 	name    string
-	context context.Context
+	ctx context.Context
 }
 
 var defaultMappingOptions = mappingOptions{
 	url:     "redis://localhost:6379/0",
 	name:    "",
-	context: context.Background(),
+	ctx: context.Background(),
 }
 
 type ApplyMappingOption interface {
@@ -498,13 +498,13 @@ func (c *Mapping) WithName(name string) *Mapping {
 	return c
 }
 
-func (mappingOption) Context(context context.Context) funcMappingOption {
+func (mappingOption) Context(ctx context.Context) funcMappingOption {
 	return func(c *mappingOptions) {
-		c.context = context
+		c.ctx = ctx
 	}
 }
 
-func (c *Mapping) WithContext(context context.Context) *Mapping {
-	MappingOption.Context(context).apply(&c.opts)
+func (c *Mapping) WithContext(ctx context.Context) *Mapping {
+	MappingOption.Context(ctx).apply(&c.opts)
 	return c
 }

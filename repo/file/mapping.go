@@ -72,7 +72,7 @@ func (m *Mapping) String() string {
 // }
 
 func (m *Mapping) invokeRead(path string, cmd []string) (result []Document, err error) {
-	if err := m.Client.Invoke(m.opts.context, &message.Message{
+	if err := m.Client.Invoke(m.opts.ctx, &message.Message{
 		Route:    route.NewChainRoute(device.Addr(m), magic.GoogleChain("/file-system/read")),
 		Encoding: encoding.NewJSON(),
 		Data: encoding.Encode(encoding.NewJSON(), &ReadRequest{
@@ -104,11 +104,11 @@ func (m *Mapping) invokeRead(path string, cmd []string) (result []Document, err 
 type mappingOptions struct {
 	path    string
 	name    string
-	context context.Context
+	ctx context.Context
 }
 
 var defaultMappingOptions = mappingOptions{
-	context: context.Background(),
+	ctx: context.Background(),
 }
 
 type ApplyMappingOption interface {
@@ -147,13 +147,13 @@ func (c *Mapping) WithName(name string) *Mapping {
 	return c
 }
 
-func (mappingOption) Context(context context.Context) funcMappingOption {
+func (mappingOption) Context(ctx context.Context) funcMappingOption {
 	return func(c *mappingOptions) {
-		c.context = context
+		c.ctx = ctx
 	}
 }
 
-func (c *Mapping) WithContext(context context.Context) *Mapping {
-	MappingOption.Context(context).apply(&c.opts)
+func (c *Mapping) WithContext(ctx context.Context) *Mapping {
+	MappingOption.Context(ctx).apply(&c.opts)
 	return c
 }

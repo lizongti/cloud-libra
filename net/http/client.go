@@ -116,8 +116,8 @@ func (c *Client) do(method string, httpURL string) (*http.Response, []byte, erro
 		if err != nil {
 			return nil, err
 		}
-		if c.opts.context != nil {
-			req = req.WithContext(c.opts.context)
+		if c.opts.ctx != nil {
+			req = req.WithContext(c.opts.ctx)
 		}
 		req.Header.Set("Content-Type", c.opts.contentType)
 
@@ -175,7 +175,7 @@ type clientOptions struct {
 	safety           bool
 	timeout          time.Duration
 	proxy            string
-	context          context.Context
+	ctx          context.Context
 }
 
 var defaultClientOptions = clientOptions{
@@ -188,7 +188,7 @@ var defaultClientOptions = clientOptions{
 	safety:           false,
 	timeout:          0,
 	proxy:            "",
-	context:          nil,
+	ctx:          nil,
 }
 
 type ApplyClientOption interface {
@@ -304,13 +304,13 @@ func (c *Client) WithSafety() *Client {
 	return c
 }
 
-func (clientOption) Context(context context.Context) funcClientOption {
+func (clientOption) Context(ctx context.Context) funcClientOption {
 	return func(c *clientOptions) {
-		c.context = context
+		c.ctx = ctx
 	}
 }
 
-func (c *Client) WithContext(context context.Context) *Client {
-	ClientOption.Context(context).apply(&c.opts)
+func (c *Client) WithContext(ctx context.Context) *Client {
+	ClientOption.Context(ctx).apply(&c.opts)
 	return c
 }
