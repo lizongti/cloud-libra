@@ -92,3 +92,48 @@ func (p *FileSystemProvider) List(name string) ([]string, error) {
 
 	return names, nil
 }
+
+type BinDataProvider struct {
+	Asset    func(string) ([]byte, error)
+	AssetDir func(string) ([]string, error)
+}
+
+func NewBinDataProviderProvider() *BinDataProvider {
+	return &BinDataProvider{}
+}
+
+func (p *BinDataProvider) Get(name string) ([]byte, error) {
+	data, err := p.Asset(name)
+	if err.Error() == fmt.Sprintf("Asset %s not found", name) {
+		return nil, fmt.Errorf("%w: %s", ErrAssetNotFound, name)
+	} else if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+func (p *BinDataProvider) List(name string) ([]string, error) {
+	names, err := p.AssetDir(name)
+	if err.Error() == fmt.Sprintf("Asset %s not found", name) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	return names, nil
+}
+
+type ETCD3Provider struct{}
+
+func NewETCD3Provider() *ETCD3Provider {
+	return &ETCD3Provider{}
+}
+
+func (p *ETCD3Provider) Get(name string) ([]byte, error) {
+	panic("implement me")
+}
+
+func (p *ETCD3Provider) List(name string) ([]string, error) {
+	panic("implement me")
+}
