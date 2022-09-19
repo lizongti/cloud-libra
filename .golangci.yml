@@ -34,8 +34,6 @@ linters:
     - goimports # Goimports does everything that gofmt does. Additionally it checks unused imports [fast: true, auto-fix: true]
     - gocognit # Computes and checks the cognitive complexity of functions [fast: true, auto-fix: false]
     - gocyclo # Computes and checks the cyclomatic complexity of functions [fast: true, auto-fix: false]
-
-  disable:
     - dupl # Tool for code clone detection [fast: true, auto-fix: false]
     - gci # Gci control golang package import order and make it always deterministic. [fast: true, auto-fix: true]
     - gochecknoglobals # Checks that no globals are present in Go code [fast: true, auto-fix: false]
@@ -48,7 +46,6 @@ linters:
     - interfacer # Linter that suggests narrower interface types [fast: true, auto-fix: false]
     - nlreturn # nlreturn checks for a new line before return and branch statements to increase code clarity [fast: true, auto-fix: false]
     - gomnd # An analyzer to detect magic numbers. [fast: true, auto-fix: false]
-    - gosec # (gas): Inspects source code for security problems [fast: true, auto-fix: false]
     - godox # Tool for detection of FIXME, TODO and other comment keywords [fast: true, auto-fix: false]
     - funlen # Tool for detection of long functions [fast: true, auto-fix: false]
     - lll # Reports long lines [fast: true, auto-fix: false]
@@ -59,6 +56,9 @@ linters:
     - noctx #  noctx finds sending http request without context.Context [fast: true, auto-fix: false]
     - gofumpt # Gofumpt checks whether code was gofumpt-ed. [fast: true, auto-fix: true]
 
+  disable:
+    - gosec # (gas): Inspects source code for security problems [fast: true, auto-fix: false]
+
 run:
   timeout: 5m
   skip-dirs:
@@ -68,16 +68,4 @@ output:
   format: colored-line-number
   print-issued-lines: true
   print-linter-name: true
-
-linters-settings:
-  gocyclo:
-    min-complexity: 100
-
-  gocognit:
-    min-complexity: 100
-
-  gocritic:
-    disabled-checks:
-      - ifElseChain
-      - singleCaseSwitch # Every time this occured in the code, there  was no other way.
 
