@@ -1,17 +1,15 @@
-package hook
+package hooks
 
 import (
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 
-	"gopkg.in/natefinch/lumberjack.v2"
-
-	"fmt"
-
 	"github.com/sirupsen/logrus"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// LumberjackConfig stores the configuration of LumberjackHook
+// LumberjackConfig stores the configuration of LumberjackHook.
 type LumberjackConfig struct {
 	File      string
 	Size      int
@@ -23,7 +21,7 @@ type LumberjackConfig struct {
 	Levels    []string
 }
 
-// LumberjackHook stores the hook of rolling file appender
+// LumberjackHook stores the hook of rolling file appender.
 type LumberjackHook struct {
 	logger    *lumberjack.Logger
 	config    *LumberjackConfig
@@ -31,10 +29,10 @@ type LumberjackHook struct {
 	LogLevels []logrus.Level
 }
 
-// NewLumberjackHook creates a new LumberjackHook
+// NewLumberjackHook creates a new LumberjackHook.
 func NewLumberjackHook(name string, processor *Processor, config []byte,
 ) (logrus.Hook, error) {
-	var c = &LumberjackConfig{}
+	c := &LumberjackConfig{}
 	if err := json.Unmarshal(config, c); err != nil {
 		return nil, err
 	}
@@ -63,43 +61,6 @@ func NewLumberjackHook(name string, processor *Processor, config []byte,
 	return &LumberjackHook{logger, c, processor, logLevels}, nil
 }
 
-// NewLumberjackHook creates a new LumberjackHook
-func NewLumberjackErrHook(name string, processor *Processor, config []byte,
-) (logrus.Hook, error) {
-	var c = &LumberjackConfig{}
-	if err := json.Unmarshal(config, c); err != nil {
-		return nil, err
-	}
-
-	var logLevels []logrus.Level
-	switch {
-	case c.Level != "":
-		logLevels = aboveLevel(c.Level)
-	case len(c.Levels) > 0:
-		logLevels = parseLevels(c.Levels)
-	default:
-		logLevels = []logrus.Level{
-			logrus.PanicLevel,
-			logrus.FatalLevel,
-			logrus.ErrorLevel,
-			logrus.WarnLevel,
-		}
-	}
-
-	logger := &lumberjack.Logger{
-		Filename:   filepath.Join(logPath, c.File),
-		MaxSize:    c.Size, // megabytes
-		MaxBackups: c.Backup,
-		MaxAge:     c.Day,      // days
-		Compress:   c.Compress, // disabled by default
-	}
-	if logger == nil {
-		return nil, fmt.Errorf("lumberjack logger is nil")
-	}
-
-	return &LumberjackHook{logger, c, processor, logLevels}, nil
-}
-
 // Fire is called when a log event is fired.
 func (hook *LumberjackHook) Fire(entry *logrus.Entry) error {
 	// Convert the line to string
@@ -108,7 +69,7 @@ func (hook *LumberjackHook) Fire(entry *logrus.Entry) error {
 		return err
 	}
 
-	if hook.processor != nil && hook.processor.Handler != nil {
+	if hook.processor != nil && hook.processor.Process != nil {
 		line = hook.processor.Process(line)
 	}
 	// Write the the logger
@@ -120,7 +81,7 @@ func (hook *LumberjackHook) Fire(entry *logrus.Entry) error {
 	return nil
 }
 
-// Levels returns the available logging levels
+// Levels returns the available logging levels.
 func (hook *LumberjackHook) Levels() []logrus.Level {
 	return hook.LogLevels
 }

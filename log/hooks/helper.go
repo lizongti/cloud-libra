@@ -1,4 +1,4 @@
-package hook
+package hooks
 
 import (
 	"fmt"
@@ -6,6 +6,11 @@ import (
 
 	"github.com/sirupsen/logrus"
 )
+
+// Processor is to fix line after the log generated.
+type Processor struct {
+	Process func([]byte) []byte
+}
 
 func parseLevel(level string) logrus.Level {
 	switch strings.ToLower(level) {
@@ -37,7 +42,7 @@ func aboveLevel(level string) []logrus.Level {
 }
 
 func parseLevels(levels []string) []logrus.Level {
-	var logrusLevels = make([]logrus.Level, 0, len(levels))
+	logrusLevels := make([]logrus.Level, 0, len(levels))
 	for _, level := range levels {
 		logrusLevels = append(logrusLevels, parseLevel(level))
 	}

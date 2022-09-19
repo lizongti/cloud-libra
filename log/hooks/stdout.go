@@ -1,20 +1,23 @@
-package hook
+package hooks
 
 import (
 	"encoding/json"
 	"io"
 
+	"github.com/mattn/go-colorable"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/writer"
 )
 
-// StdoutConfig stores the configuration of StdoutHook
+var stdout = colorable.NewColorableStdout()
+
+// StdoutConfig stores the configuration of StdoutHook.
 type StdoutConfig struct {
 	Level  string
 	Levels []string
 }
 
-// StdoutHook is for stdout
+// StdoutHook is for stdout.
 type StdoutHook struct {
 	writer.Hook
 	processor *Processor
@@ -26,16 +29,16 @@ type stdoutWriter struct {
 }
 
 func (s *stdoutWriter) Write(p []byte) (n int, err error) {
-	if s.processor != nil && s.processor.Handler != nil {
+	if s.processor != nil && s.processor.Process != nil {
 		p = s.processor.Process(p)
 	}
 	return s.writer.Write(p)
 }
 
-// NewStdoutHook creates a new stdout hook
+// NewStdoutHook creates a new stdout hook.
 func NewStdoutHook(name string, processor *Processor, config []byte,
 ) (logrus.Hook, error) {
-	var c = &StdoutConfig{}
+	c := &StdoutConfig{}
 	if err := json.Unmarshal(config, c); err != nil {
 		return nil, err
 	}
@@ -53,7 +56,7 @@ func NewStdoutHook(name string, processor *Processor, config []byte,
 	w := writer.Hook{
 		Writer: &stdoutWriter{
 			processor: processor,
-			writer:    getStdout(),
+			writer:    stdout,
 		},
 		LogLevels: logLevels,
 	}

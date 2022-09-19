@@ -1,6 +1,7 @@
+//go:build !windows && !nacl && !plan9
 // +build !windows,!nacl,!plan9
 
-package hook
+package hooks
 
 import (
 	"encoding/json"

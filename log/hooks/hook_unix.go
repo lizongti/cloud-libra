@@ -1,6 +1,7 @@
+//go:build !windows && !nacl && !plan9
 // +build !windows,!nacl,!plan9
 
-package hook
+package hooks
 
 import (
 	"fmt"
@@ -12,7 +13,6 @@ type hookCreaterFunc func(string, *Processor, []byte) (logrus.Hook, error)
 
 var hooks = map[string]hookCreaterFunc{
 	"lumberjack":     NewLumberjackHook,
-	"lumberjack_err": NewLumberjackErrHook,
 	"stdout":         NewStdoutHook,
 	"stderr":         NewStderrHook,
 	"syslog":         NewSyslogHook,

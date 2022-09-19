@@ -36,8 +36,6 @@ linters:
     - gocyclo # Computes and checks the cyclomatic complexity of functions [fast: true, auto-fix: false]
     - dupl # Tool for code clone detection [fast: true, auto-fix: false]
     - gci # Gci control golang package import order and make it always deterministic. [fast: true, auto-fix: true]
-    - gochecknoglobals # Checks that no globals are present in Go code [fast: true, auto-fix: false]
-    - gochecknoinits # Checks that no init functions are present in Go code [fast: true, auto-fix: false]
     - wsl # Whitespace Linter - Forces you to use empty lines! [fast: true, auto-fix: false]
     - unused # (megacheck): Checks Go code for unused constants, variables, functions and types [fast: false, auto-fix: false]+
     - gofmt # Gofmt checks whether code was gofmt-ed. By default this tool runs with -s option to check for code simplification [fast: true, auto-fix: true]
@@ -58,6 +56,8 @@ linters:
 
   disable:
     - gosec # (gas): Inspects source code for security problems [fast: true, auto-fix: false]
+    - gochecknoglobals # Checks that no globals are present in Go code [fast: true, auto-fix: false]
+    - gochecknoinits # Checks that no init functions are present in Go code [fast: true, auto-fix: false]
 
 run:
   timeout: 5m
