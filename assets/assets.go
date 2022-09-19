@@ -1,10 +1,16 @@
 package assets
 
 import (
+	"errors"
 	"fmt"
+	"path/filepath"
 )
 
-var ErrAssetNotFound = fmt.Errorf("asset not found")
+var ErrAssetNotFound = errors.New("asset not found")
+
+func IsAssetNotFound(err error) bool {
+	return errors.Is(err, ErrAssetNotFound)
+}
 
 type Assets struct {
 	providers []Provider
@@ -16,15 +22,28 @@ func (a *Assets) AddProvider(p Provider) {
 }
 
 // Get returns the asset with the given name.
-func (a *Assets) Get(name string) ([]byte, error) {
-	for _, p := range a.providers {
-		if b, err := p.Get(name); err == nil {
-			return b, nil
+func (a *Assets) GetAsset(name string) ([]byte, error) {
+	for _, provider := range a.providers {
+		data, err := provider.Get(name)
+
+		switch {
+		case IsAssetNotFound(err):
+			continue
+		case err != nil:
+			return nil, err
+		default:
+			return data, nil
 		}
 	}
 
-	return nil, fmt.Errorf("%w:%s", ErrAssetNotFound, name)
+	return nil, fmt.Errorf("%w: %s", ErrAssetNotFound, name)
 }
 
-// GetBundle returns the assets bundle with the given name.
-// func (a *Assets) GetBundle(name string) (*Bundle, error) {
+// GetBundle returns the bundle assets with the given name.
+func (a *Assets) GetBundle(name string) (map[string][]byte, error) {
+	return NewBundle(name, a.providers...).Get()
+}
+
+func Join(names ...string) string {
+	return filepath.ToSlash(filepath.Join(names...))
+}

@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
-
-	. "github.com/go-python/cpy3"
+	"os"
+	// . "github.com/go-python/cpy3".
 )
 
 func main() {
-	Py_Initialize()
-	gostr := "foo"
-	bytes := PyBytes_FromString(gostr)
-	str := PyBytes_AsString(bytes)
-	fmt.Println("hello [", str, "]")
+	infos, err := os.ReadDir("tmp/tmp.go")
+	fmt.Println(err)
+	fmt.Println(os.IsNotExist(err))
+	for _, info := range infos {
+		fmt.Println(info.Name())
+	}
 }
