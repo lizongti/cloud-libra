@@ -8,3 +8,5 @@
 - add support for tree that has node with leaf
 - add convertion between struct and tree.Tree
 
+- [ ] hierarchy parser should differ plain text and reference
+
