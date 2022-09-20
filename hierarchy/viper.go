@@ -265,3 +265,8 @@ func AddSecureRemoteProvider(provider, endpoint, path, secret string) error {
 func WatchRemoteConfigOnChannel() error {
 	return _default.WatchRemoteConfigOnChannel()
 }
+
+// Sub returns a new Viper instance with the specified key as prefix.
+func Sub(key string) *viper.Viper {
+	return _default.Sub(key)
+}
