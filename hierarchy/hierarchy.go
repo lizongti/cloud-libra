@@ -9,9 +9,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-var (
-	ErrHierachyShouldBeMap = errors.New("hierarchy should be map")
-)
+var ErrHierachyShouldBeMap = errors.New("hierarchy should be map")
 
 type Hierarchy struct {
 	*viper.Viper
@@ -48,6 +46,7 @@ func (h *Hierarchy) IsArray(key string) bool {
 	if err != nil {
 		return false
 	}
+
 	return gjson.Get(string(data), key).IsArray()
 }
 
@@ -60,6 +59,7 @@ func (h *Hierarchy) IsMap(key string) bool {
 	if err != nil {
 		return false
 	}
+
 	return gjson.Get(string(data), ".").IsObject()
 }
 
@@ -72,26 +72,33 @@ func (h *Hierarchy) ChildrenInArray(key string) ([]*Hierarchy, error) {
 	if err != nil {
 		return nil, err
 	}
-	var children []*Hierarchy
+
+	children := make([]*Hierarchy, 0)
 	node := gjson.Get(string(data), key)
+
 	if node.IsArray() {
 		for index, child := range node.Array() {
 			childKey := fmt.Sprintf("%s.%d", key, index)
 			if child.IsArray() {
 				return nil, fmt.Errorf("%w: %s", ErrHierachyShouldBeMap, childKey)
 			}
+
 			children = append(children, h.Child(childKey))
 		}
+
 		return children, nil
 	}
+
 	if node.IsObject() {
 		for nodeKey, child := range node.Map() {
 			childKey := fmt.Sprintf("%s.%s", key, nodeKey)
 			if child.IsArray() {
 				return nil, fmt.Errorf("%w: %s", ErrHierachyShouldBeMap, childKey)
 			}
+
 			children = append(children, h.Child(childKey))
 		}
+
 		return children, nil
 	}
 
@@ -108,7 +115,8 @@ func (h *Hierarchy) ChildrenInMap(key string) (map[string]*Hierarchy, error) {
 		return nil, err
 	}
 
-	var children = make(map[string]*Hierarchy)
+	children := make(map[string]*Hierarchy)
+
 	node := gjson.Get(string(data), key)
 	if node.IsArray() {
 		for index, child := range node.Array() {
@@ -116,17 +124,20 @@ func (h *Hierarchy) ChildrenInMap(key string) (map[string]*Hierarchy, error) {
 			if child.IsArray() {
 				return nil, fmt.Errorf("%w: %s", ErrHierachyShouldBeMap, childKey)
 			}
+
 			children[childKey] = h.Child(childKey)
 		}
 
 		return children, nil
 	}
+
 	if node.IsObject() {
 		for nodeKey, child := range node.Map() {
 			childKey := fmt.Sprintf("%s.%s", key, nodeKey)
 			if child.IsArray() {
 				return nil, fmt.Errorf("%w: %s", ErrHierachyShouldBeMap, childKey)
 			}
+
 			children[childKey] = h.Child(childKey)
 		}
 

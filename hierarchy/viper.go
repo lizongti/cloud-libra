@@ -106,12 +106,12 @@ func IsSet(key string) bool {
 	return _default.IsSet(key)
 }
 
-// AllSettings returns a map of all settings
+// AllSettings returns a map of all settings.
 func AllSettings() map[string]interface{} {
 	return _default.AllSettings()
 }
 
-// AllKeys returns all keys
+// AllKeys returns all keys.
 func AllKeys() []string {
 	return _default.AllKeys()
 }
@@ -156,12 +156,12 @@ func AutomaticEnv() {
 	viper.AutomaticEnv()
 }
 
-// BindPFlag binds a Viper flag to a pflag.Flag
+// BindPFlag binds a Viper flag to a pflag.Flag.
 func BindPFlag(key string, flag *pflag.Flag) error {
 	return _default.BindPFlag(key, flag)
 }
 
-// BindPFlags binds a Viper flag to a pflag.FlagSet
+// BindPFlags binds a Viper flag to a pflag.FlagSet.
 func BindPFlags(flags *pflag.FlagSet) error {
 	return _default.BindPFlags(flags)
 }
@@ -261,7 +261,7 @@ func AddSecureRemoteProvider(provider, endpoint, path, secret string) error {
 	return _default.AddSecureRemoteProvider(provider, endpoint, path, secret)
 }
 
-// WatchRemoteCOnfigOnChannel watches a remote config and returns a channel to which all
+// WatchRemoteCOnfigOnChannel watches a remote config and returns a channel to which all.
 func WatchRemoteConfigOnChannel() error {
 	return _default.WatchRemoteConfigOnChannel()
 }

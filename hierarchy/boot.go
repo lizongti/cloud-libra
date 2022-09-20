@@ -16,30 +16,34 @@ import (
 )
 
 // examples:
-//  - (project:aries) (runtime:default)
-//     project = aries, runtime = default
-//  - [lua]{a=1,b=2} [json]{"a":1,"b":2}
-//     a = 1, b = 2
-//  - {args}
-//     Get Hierarchy from args
-//  - {flags}
-//     Get Hierarchy from flags
-//  - {stdio:yaml}
-//     Get hierarchy from stdio.
-//  - {env:Aries}
-// 	   Get hierarchy from env with prefix Aries.
-//  - {cluster:default}
-//     Get Config from cluster. Ger hierarchy from hierarchy.
-//  - {hierarchy:recursive}
-//     Get hierarchy from hierarchy key
-//  - <http://filestone.com/file.json>
-// 	   Get hierarchy from http.
-//  - <file:///E:/Filename/file.ini> ...
-//	   Get hierarchy from local file.
-//  - <etcd://192.168.1.2:2379@usr:passwd/aries/hierarchy>
-//     Get hierarchy from etcd.
-//  - <redis://192.168.1.2:6379@usr:passwd/0/aries/hierarchy>
-//     Get hierarchy from redis.
+//  - [txt](project:aries,runtime=default)
+//     Set: project = aries, runtime = default
+//  - [lua]({a=1,b=2})
+//     Set: a = 1, b = 2
+//  - [json]({"a":1,"b":2})
+//     Set: a = 1, b = 2
+//  - [boot]{args}
+//     Boot from args
+//  - [auto]{flags}
+//     Read from flags
+//  - [yaml]{stdin}
+//     Read from stdin.
+//  - [boot]{stdin}
+//     Boot from stdin
+//  - [auto]{env:Aries}
+// 	   Read from env with prefix Aries.
+//  - [json]{cluster:default}
+//     Read from cluster with name default.
+//  - [boot]{hierarchy:boot_file}
+//     Boot from hierarchy key
+//  - [json]<http://filestone.com/file.json>
+// 	   Read from http.
+//  - [ini]<file:///E:/Filename/file.ini> ...
+//	   Read from local file.
+//  - [yaml]<etcd://192.168.1.2:2379@usr:passwd/aries/hierarchy>
+//     Read from etcd.
+//  - [yml]<redis://192.168.1.2:6379@usr:passwd/0/aries/hierarchy>
+//     Read from redis.
 
 var (
 	ErrArgNotMatch   = errors.New("arg not match")
@@ -50,8 +54,7 @@ func IsArgNotMatch(err error) bool {
 	return errors.Is(err, ErrArgNotMatch)
 }
 
-type Parser struct {
-}
+type Parser struct{}
 
 func NewParser() *Parser {
 	return &Parser{}
@@ -61,8 +64,8 @@ func (p *Parser) Parse(config string) (*viper.Viper, error) {
 	panic("implement me")
 }
 
-func ReadArgs(args []string) {
-	_default.ReadArgs(args)
+func ReadArgs(args []string) error {
+	return _default.ReadArgs(args)
 }
 
 func (h *Hierarchy) ReadArgs(args []string) error {
@@ -74,7 +77,7 @@ func (h *Hierarchy) ReadArgs(args []string) error {
 			return err
 		}
 
-		if h.MergeConfigMap(v.AllSettings()); err != nil {
+		if err := h.MergeConfigMap(v.AllSettings()); err != nil {
 			return err
 		}
 	}
@@ -96,7 +99,7 @@ func (h *Hierarchy) ReadHierarchyValue(key string) error {
 			return err
 		}
 
-		if h.MergeConfigMap(v.AllSettings()); err != nil {
+		if err := h.MergeConfigMap(v.AllSettings()); err != nil {
 			return err
 		}
 	}
@@ -107,6 +110,7 @@ func (h *Hierarchy) ReadHierarchyValue(key string) error {
 func (h *Hierarchy) ReadEnv(prefix string) error {
 	h.AutomaticEnv()
 	h.SetEnvPrefix(prefix)
+
 	return nil
 }
 
@@ -119,24 +123,30 @@ func (h *Hierarchy) ReadAssetMap(assetMap map[string][]byte) error {
 	for name := range assetMap {
 		keys = append(keys, name)
 	}
+
 	sort.Strings(keys)
+
 	for _, name := range keys {
 		ext := filepath.Ext(name)
 		data := assetMap[name]
 
 		v := viper.New()
 		v.SetConfigType(ext[1:])
+
 		if err := v.ReadConfig(bytes.NewReader(data)); err != nil {
 			return err
 		}
-		h.MergeConfigMap(v.AllSettings())
+
+		if err := h.MergeConfigMap(v.AllSettings()); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func ReadFlags(flags *pflag.FlagSet) {
-	_default.ReadFlags(flags)
+func ReadFlags(flags *pflag.FlagSet) error {
+	return _default.ReadFlags(flags)
 }
 
 func (h *Hierarchy) ReadFlags(flags *pflag.FlagSet) error {
@@ -150,11 +160,10 @@ func ReadStdin(typ string) error {
 func (h *Hierarchy) ReadStdin(typ string) error {
 	v := viper.New()
 	v.SetConfigType(typ)
-	data, err := io.ReadAll(bufio.NewReader(os.Stdin))
-	if err != nil {
+
+	if data, err := io.ReadAll(bufio.NewReader(os.Stdin)); err != nil {
 		return err
-	}
-	if err := v.ReadConfig(bytes.NewReader(data)); err != nil {
+	} else if err := v.ReadConfig(bytes.NewReader(data)); err != nil {
 		return err
 	}
 
@@ -167,6 +176,7 @@ func ReadPlainText(str string) error {
 
 func (h *Hierarchy) ReadPlainText(str string) error {
 	v := viper.New()
+
 	for _, kvStr := range strings.Split(str, ",") {
 		kvStrs := strings.SplitN(kvStr, "=", 2)
 		if len(kvStrs) != 2 {
@@ -175,6 +185,7 @@ func (h *Hierarchy) ReadPlainText(str string) error {
 				return fmt.Errorf("%w: %s", ErrInvalidString, kvStr)
 			}
 		}
+
 		v.Set(kvStrs[0], kvStrs[1])
 	}
 
@@ -188,6 +199,7 @@ func ReadEncodedText(typ string, str string) error {
 func (h *Hierarchy) ReadEncodedText(typ string, str string) error {
 	v := viper.New()
 	v.SetConfigType(typ)
+
 	if err := v.ReadConfig(bytes.NewReader([]byte(str))); err != nil {
 		return err
 	}

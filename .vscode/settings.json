@@ -39,7 +39,7 @@
     "go.lintOnSave": "package",
     "go.lintFlags": [
         "--fast",
-        // "--fix"
+        "--fix"
     ],
     "go.vetOnSave": "package",
     "go.vetFlags": [
