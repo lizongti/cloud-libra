@@ -82,11 +82,11 @@ func (h *Hierarchy) ReadArgs(args []string) error {
 	return nil
 }
 
-func ReadHierarchy(key string) error {
-	return _default.ReadHierarchy(key)
+func ReadHierarchyValue(key string) error {
+	return _default.ReadHierarchyValue(key)
 }
 
-func (h *Hierarchy) ReadHierarchy(key string) error {
+func (h *Hierarchy) ReadHierarchyValue(key string) error {
 	str := h.GetString(key)
 	for _, arg := range strings.Split(str, " ") {
 		v, err := NewParser().Parse(arg)
@@ -161,11 +161,11 @@ func (h *Hierarchy) ReadStdin(typ string) error {
 	return h.MergeConfigMap(v.AllSettings())
 }
 
-func ReadKV(str string) error {
-	return _default.ReadKVStrings(str)
+func ReadPlainText(str string) error {
+	return _default.ReadPlainText(str)
 }
 
-func (h *Hierarchy) ReadKVStrings(str string) error {
+func (h *Hierarchy) ReadPlainText(str string) error {
 	v := viper.New()
 	for _, kvStr := range strings.Split(str, ",") {
 		kvStrs := strings.SplitN(kvStr, "=", 2)
@@ -181,11 +181,11 @@ func (h *Hierarchy) ReadKVStrings(str string) error {
 	return h.MergeConfigMap(v.AllSettings())
 }
 
-func ReadEncoding(typ string, str string) error {
-	return _default.ReadEncoding(typ, str)
+func ReadEncodedText(typ string, str string) error {
+	return _default.ReadEncodedText(typ, str)
 }
 
-func (h *Hierarchy) ReadEncoding(typ string, str string) error {
+func (h *Hierarchy) ReadEncodedText(typ string, str string) error {
 	v := viper.New()
 	v.SetConfigType(typ)
 	if err := v.ReadConfig(bytes.NewReader([]byte(str))); err != nil {
@@ -195,11 +195,11 @@ func (h *Hierarchy) ReadEncoding(typ string, str string) error {
 	return h.MergeConfigMap(v.AllSettings())
 }
 
-func ReadScript(script string) error {
-	return _default.ReadScript(script)
+func ReadScriptText(typ string, script string) error {
+	return _default.ReadScript(typ, script)
 }
 
-func (h *Hierarchy) ReadScript(script string) error {
+func (h *Hierarchy) ReadScript(typ, script string) error {
 	panic("implement me")
 }
 
