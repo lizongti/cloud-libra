@@ -4,91 +4,54 @@ import (
 	"archive/zip"
 	"bytes"
 	"crypto/md5"
-	"errors"
 	"fmt"
 	"path/filepath"
 )
 
-var ErrBundleNotFound = errors.New("bundle not found")
-
-func IsBundleNotFound(err error) bool {
-	return errors.Is(err, ErrBundleNotFound)
-}
-
-// Bundle get assets from multiple providers.
-// If any bundle is in specific provider, this bundle should be complected.
-// If not, unexpected error would occur.
 type Bundle struct {
-	name      string
-	providers []Provider
-}
-
-// NewBundle returns a new bundle.
-func NewBundle(name string, provider ...Provider) *Bundle {
-	return &Bundle{
-		providers: provider,
-	}
-}
-
-func (b *Bundle) Get() (assetMap map[string][]byte, err error) {
-	for _, provider := range b.providers {
-		assetMap, err = NewProviderBundle(b.name, provider).Get()
-		if err != nil {
-			return nil, err
-		}
-
-		if len(assetMap) > 0 {
-			return assetMap, nil
-		}
-	}
-
-	return nil, fmt.Errorf("%w: %s", ErrBundleNotFound, b.name)
-}
-
-type ProviderBundle struct {
 	name     string
 	provider Provider
 	assetMap map[string][]byte
 }
 
-func NewProviderBundle(name string, provider Provider) *ProviderBundle {
-	return &ProviderBundle{
-		name:     name,
+func NewBundle(name string, provider Provider) *Bundle {
+	return &Bundle{
+		name:     slash(name),
 		provider: provider,
 		assetMap: make(map[string][]byte),
 	}
 }
 
 // Get returns the asset with the given name.
-func (pb *ProviderBundle) Get() (map[string][]byte, error) {
-	if err := pb.getRecursive(pb.name); err != nil {
+func (b *Bundle) Get() (map[string][]byte, error) {
+	if err := b.getRecursive(b.name); err != nil {
 		return nil, err
 	}
 
-	return pb.assetMap, nil
+	return b.assetMap, nil
 }
 
-func (pb *ProviderBundle) getRecursive(name string) error {
+func (b *Bundle) getRecursive(name string) error {
 	// Get names by listing name
-	names, err := pb.provider.List(name)
+	names, err := b.provider.List(name)
 	if err != nil {
 		return err
 	}
 
 	// Name has no sub assets
 	if len(names) == 0 {
-		return pb.getFile(name)
+		return b.getFile(name)
 	}
 
 	// Name has sub assets
-	for _, name := range names {
-		if err := pb.getRecursive(Join(name, name)); err != nil {
+	for _, subName := range names {
+		if err := b.getRecursive(slash(name, subName)); err != nil {
 			return err
 		}
 	}
 
 	// Add self to asset map
-	asset, err := pb.provider.Get(name)
+	asset, err := b.provider.Get(name)
 	if IsAssetNotFound(err) {
 		return nil
 	} else if err != nil {
@@ -96,35 +59,35 @@ func (pb *ProviderBundle) getRecursive(name string) error {
 	}
 
 	cryptName := fmt.Sprintf("%x", md5.Sum([]byte(name)))
-	pb.assetMap[Join(name, cryptName)] = asset
+	b.assetMap[slash(name, cryptName)] = asset
 
 	return nil
 }
 
-func (pb *ProviderBundle) getFile(name string) error {
+func (b *Bundle) getFile(name string) error {
 	switch filepath.Ext(name) {
 	case ".zip":
-		return pb.getZip(name)
+		return b.getZip(name)
 	default:
-		return pb.getRaw(name)
+		return b.getRaw(name)
 	}
 }
 
-func (pb *ProviderBundle) getRaw(name string) error {
-	data, err := pb.provider.Get(name)
+func (b *Bundle) getRaw(name string) error {
+	data, err := b.provider.Get(name)
 	if IsAssetNotFound(err) {
 		return nil
 	} else if err != nil {
 		return err
 	}
 
-	pb.assetMap[name] = data
+	b.assetMap[name] = data
 
 	return nil
 }
 
-func (pb *ProviderBundle) getZip(name string) error {
-	data, err := pb.provider.Get(name)
+func (b *Bundle) getZip(name string) error {
+	data, err := b.provider.Get(name)
 	if IsAssetNotFound(err) {
 		return nil
 	} else if err != nil {
@@ -151,7 +114,7 @@ func (pb *ProviderBundle) getZip(name string) error {
 			return err
 		}
 
-		pb.assetMap[Join(name, file.Name)] = buf.Bytes()
+		b.assetMap[slash(filepath.Dir(name), file.Name)] = buf.Bytes()
 	}
 
 	return nil

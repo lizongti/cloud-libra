@@ -64,14 +64,14 @@ func NewFileSystemProvider(root string) *FileSystemProvider {
 func (p *FileSystemProvider) Get(name string) ([]byte, error) {
 	path := filepath.Join(p.root, name)
 
-	data, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) || info != nil && info.IsDir() {
 		return nil, fmt.Errorf("%w: %s", ErrAssetNotFound, name)
 	} else if err != nil {
 		return nil, err
 	}
 
-	return data, nil
+	return os.ReadFile(path)
 }
 
 // List return the sub assets in the given name.
@@ -94,16 +94,24 @@ func (p *FileSystemProvider) List(name string) ([]string, error) {
 }
 
 type BinDataProvider struct {
-	Asset    func(string) ([]byte, error)
-	AssetDir func(string) ([]string, error)
+	root        string
+	pkgAsset    func(string) ([]byte, error)
+	pkgAssetDir func(string) ([]string, error)
 }
 
-func NewBinDataProviderProvider() *BinDataProvider {
-	return &BinDataProvider{}
+func NewBinDataProviderProvider(root string,
+	pkgAsset func(string) ([]byte, error),
+	pkgAssetDir func(string) ([]string, error),
+) *BinDataProvider {
+	return &BinDataProvider{
+		root:        root,
+		pkgAsset:    pkgAsset,
+		pkgAssetDir: pkgAssetDir,
+	}
 }
 
 func (p *BinDataProvider) Get(name string) ([]byte, error) {
-	data, err := p.Asset(name)
+	data, err := p.pkgAsset(name)
 	if err.Error() == fmt.Sprintf("Asset %s not found", name) {
 		return nil, fmt.Errorf("%w: %s", ErrAssetNotFound, name)
 	} else if err != nil {
@@ -114,7 +122,7 @@ func (p *BinDataProvider) Get(name string) ([]byte, error) {
 }
 
 func (p *BinDataProvider) List(name string) ([]string, error) {
-	names, err := p.AssetDir(name)
+	names, err := p.pkgAssetDir(name)
 	if err.Error() == fmt.Sprintf("Asset %s not found", name) {
 		return nil, nil
 	} else if err != nil {
@@ -124,9 +132,11 @@ func (p *BinDataProvider) List(name string) ([]string, error) {
 	return names, nil
 }
 
-type ETCD3Provider struct{}
+type ETCD3Provider struct {
+	root string
+}
 
-func NewETCD3Provider() *ETCD3Provider {
+func NewETCD3Provider(root string) *ETCD3Provider {
 	return &ETCD3Provider{}
 }
 
