@@ -188,3 +188,34 @@ func (h *Hierarchy) ForeachInMap(key string, fn func(key string, child *Hierarch
 
 	return nil
 }
+
+// func ReadAssetMap(assetMap map[string][]byte) error {
+// 	return _default.ReadAssetMap(assetMap)
+// }
+
+// func (h *Hierarchy) ReadAssetMap(assetMap map[string][]byte) error {
+// 	keys := make([]string, 0, len(assetMap))
+// 	for name := range assetMap {
+// 		keys = append(keys, name)
+// 	}
+
+// 	sort.Strings(keys)
+
+// 	for _, name := range keys {
+// 		ext := filepath.Ext(name)
+// 		data := assetMap[name]
+
+// 		v := viper.New()
+// 		v.SetConfigType(ext[1:])
+
+// 		if err := v.ReadConfig(bytes.NewReader(data)); err != nil {
+// 			return err
+// 		}
+
+// 		if err := h.MergeConfigMap(v.AllSettings()); err != nil {
+// 			return err
+// 		}
+// 	}
+
+// 	return nil
+// }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/cloudlibraries/libra/hierarchy"
 	"github.com/sirupsen/logrus"
@@ -20,7 +21,7 @@ func init() {
 	t := reflect.TypeOf(HookGenerator{})
 	for index := 0; index < t.NumMethod(); index++ {
 		method := t.Method(index)
-		hookGeneratorMap[method.Name] = method.Func.Interface().(HookGenerateFunc)
+		hookGeneratorMap[strings.ToLower(method.Name)] = method.Func.Interface().(HookGenerateFunc)
 	}
 }
 
