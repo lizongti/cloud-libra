@@ -61,8 +61,8 @@ linters:
 
 run:
   timeout: 5m
-  skip-dirs:
-    - config
+  # skip-dirs:
+  #   - config
 
 output:
   format: colored-line-number

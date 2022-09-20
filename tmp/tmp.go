@@ -1,20 +1,20 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-
-	"github.com/cloudlibraries/libra/assets"
-	"github.com/cloudlibraries/libra/osutil"
+	"io"
+	"os"
 )
 
 func main() {
-	// fmt.Println(assets.NewAssets(
-	// 	assets.NewFileSystemProvider(""),
-	// ).GetAsset("assets/assets.go"))
-	bundleAssets, _ := assets.NewAssets(
-		assets.NewFileSystemProvider(osutil.GetProjectPath("libra")),
-	).GetBundle("assets\\assets.go")
-	for name, asset := range bundleAssets {
-		fmt.Println(name, len(asset))
+	in := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Println("Reading.")
+		c, err := in.ReadByte()
+		if err == io.EOF {
+			break
+		}
+		fmt.Print(string(c))
 	}
 }

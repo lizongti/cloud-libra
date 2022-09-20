@@ -1,4 +1,4 @@
-package global
+package hierarchy
 
 import (
 	"io"
@@ -11,111 +11,109 @@ import (
 	"github.com/spf13/viper"
 )
 
-var v = viper.GetViper()
-
 // Get returns the value associated with the key.
 func Get(key string) interface{} {
-	return v.Get(key)
+	return _default.Get(key)
 }
 
 // GetString returns the value associated with the key as a string.
 func GetString(key string) string {
-	return v.GetString(key)
+	return _default.GetString(key)
 }
 
 // GetInt returns the value associated with the key as an integer.
 func GetInt(key string) int {
-	return v.GetInt(key)
+	return _default.GetInt(key)
 }
 
 // GetInt32 returns the value associated with the key as an integer.
 func GetInt32(key string) int32 {
-	return v.GetInt32(key)
+	return _default.GetInt32(key)
 }
 
 // GetInt64 returns the value associated with the key as an integer.
 func GetInt64(key string) int64 {
-	return v.GetInt64(key)
+	return _default.GetInt64(key)
 }
 
 // GetUint returns the value associated with the key as an unsigned integer.
 func GetUint(key string) uint {
-	return v.GetUint(key)
+	return _default.GetUint(key)
 }
 
 // GetUint32 returns the value associated with the key as an unsigned integer.
 func GetUint32(key string) uint32 {
-	return v.GetUint32(key)
+	return _default.GetUint32(key)
 }
 
 // GetUint64 returns the value associated with the key as an unsigned integer.
 func GetUint64(key string) uint64 {
-	return v.GetUint64(key)
+	return _default.GetUint64(key)
 }
 
 // GetFloat64 returns the value associated with the key as a float64.
 func GetFloat64(key string) float64 {
-	return v.GetFloat64(key)
+	return _default.GetFloat64(key)
 }
 
 // GetBool returns the value associated with the key as a boolean.
 func GetBool(key string) bool {
-	return v.GetBool(key)
+	return _default.GetBool(key)
 }
 
 // GetTime returns the value associated with the key as time.
 func GetTime(key string) time.Time {
-	return v.GetTime(key)
+	return _default.GetTime(key)
 }
 
 // GetDuration returns the value associated with the key as a duration.
 func GetDuration(key string) time.Duration {
-	return v.GetDuration(key)
+	return _default.GetDuration(key)
 }
 
 // GetIntSlice returns the value associated with the key as a slice of integers.
 func GetIntSlice(key string) []int {
-	return v.GetIntSlice(key)
+	return _default.GetIntSlice(key)
 }
 
 // GetStringMap returns the value associated with the key as a map of interfaces.
 func GetStringMap(key string) map[string]interface{} {
-	return v.GetStringMap(key)
+	return _default.GetStringMap(key)
 }
 
 // GetStringMapString returns the value associated with the key as a map of strings.
 func GetStringMapString(key string) map[string]string {
-	return v.GetStringMapString(key)
+	return _default.GetStringMapString(key)
 }
 
 // GetStringSlice returns the value associated with the key as a slice of strings.
 func GetStringSlice(key string) []string {
-	return v.GetStringSlice(key)
+	return _default.GetStringSlice(key)
 }
 
 // GetStringMapStringSlice returns the value associated with the key as a map to a slice of strings.
 func GetStringMapStringSlice(key string) map[string][]string {
-	return v.GetStringMapStringSlice(key)
+	return _default.GetStringMapStringSlice(key)
 }
 
 // GetSizeInBytes returns the size in bytes for the given key.
 func GetSizeInBytes(key string) uint {
-	return v.GetSizeInBytes(key)
+	return _default.GetSizeInBytes(key)
 }
 
 // IsSet checks to see if a key is set in the config.
 func IsSet(key string) bool {
-	return v.IsSet(key)
+	return _default.IsSet(key)
 }
 
 // AllSettings returns a map of all settings
 func AllSettings() map[string]interface{} {
-	return v.AllSettings()
+	return _default.AllSettings()
 }
 
 // AllKeys returns all keys
 func AllKeys() []string {
-	return v.AllKeys()
+	return _default.AllKeys()
 }
 
 // SetDefault sets the default value for a key.
@@ -160,32 +158,32 @@ func AutomaticEnv() {
 
 // BindPFlag binds a Viper flag to a pflag.Flag
 func BindPFlag(key string, flag *pflag.Flag) error {
-	return v.BindPFlag(key, flag)
+	return _default.BindPFlag(key, flag)
 }
 
 // BindPFlags binds a Viper flag to a pflag.FlagSet
 func BindPFlags(flags *pflag.FlagSet) error {
-	return v.BindPFlags(flags)
+	return _default.BindPFlags(flags)
 }
 
 // BindEnv binds a Viper key to an environment variable.
 func BindEnv(input ...string) error {
-	return v.BindEnv(input...)
+	return _default.BindEnv(input...)
 }
 
 // BindEnvWithPrefix binds a Viper key to an environment variable with a prefix.
 func BindEnvWithPrefix(prefix, key string) error {
-	return v.BindEnv(prefix + key)
+	return _default.BindEnv(prefix + key)
 }
 
 // Unmarshal unmarshals the config into a struct.
 func Unmarshal(rawVal interface{}, opts ...viper.DecoderConfigOption) error {
-	return v.Unmarshal(rawVal, opts...)
+	return _default.Unmarshal(rawVal, opts...)
 }
 
 // UnmarshalKey unmarshals a single key from the config into a struct.
 func UnmarshalKey(key string, rawVal interface{}, opts ...viper.DecoderConfigOption) error {
-	return v.UnmarshalKey(key, rawVal, opts...)
+	return _default.UnmarshalKey(key, rawVal, opts...)
 }
 
 // AddConfigPath adds a path for Viper to search for the config file in.
@@ -195,75 +193,75 @@ func AddConfigPath(in string) {
 
 // ReadInConfig reads in a config file.
 func ReadInConfig() error {
-	return v.ReadInConfig()
+	return _default.ReadInConfig()
 }
 
 // ReadConfig reads in a config file.
 func ReadConfig(in io.Reader) error {
-	return v.ReadConfig(in)
+	return _default.ReadConfig(in)
 }
 
 // MergeConfig merges a config file with the existing config.
 func MergeConfig(in io.Reader) error {
-	return v.MergeConfig(in)
+	return _default.MergeConfig(in)
 }
 
 // MergeInConfig merges a config file with the existing config.
 func MergeInConfig() error {
-	return v.MergeInConfig()
+	return _default.MergeInConfig()
 }
 
 // WriteConfig writes the current config to a file.
 func WriteConfig() error {
-	return v.WriteConfig()
+	return _default.WriteConfig()
 }
 
 // WriteConfigAs writes the current config to a file.
 func WriteConfigAs(filename string) error {
-	return v.WriteConfigAs(filename)
+	return _default.WriteConfigAs(filename)
 }
 
 // SafeWriteConfig writes the current config to a file, but only if it doesn't exist.
 func SafeWriteConfig() error {
-	return v.SafeWriteConfig()
+	return _default.SafeWriteConfig()
 }
 
 // SafeWriteConfigAs writes the current config to a file, but only if it doesn't exist.
 func SafeWriteConfigAs(filename string) error {
-	return v.SafeWriteConfigAs(filename)
+	return _default.SafeWriteConfigAs(filename)
 }
 
 // ReadRemoteConfig reads a config from a remote source.
 func ReadRemoteConfig() error {
-	return v.ReadRemoteConfig()
+	return _default.ReadRemoteConfig()
 }
 
 // WatchConfig watches a config file and calls the callback when the config changes.
 func WatchConfig() {
-	v.WatchConfig()
+	_default.WatchConfig()
 }
 
 // OnConfigChange registers a callback function to be called when the config is changed.
 func OnConfigChange(run func(in fsnotify.Event)) {
-	v.OnConfigChange(run)
+	_default.OnConfigChange(run)
 }
 
 // SetFs sets the filesystem to be used by viper.
 func SetFs(fs afero.Fs) {
-	v.SetFs(fs)
+	_default.SetFs(fs)
 }
 
 // AddRemoteProvider adds a remote provider to viper.
 func AddRemoteProvider(provider, endpoint, path string) error {
-	return v.AddRemoteProvider(provider, endpoint, path)
+	return _default.AddRemoteProvider(provider, endpoint, path)
 }
 
 // AddSecureRemoteProvider adds a secure remote provider to viper.
 func AddSecureRemoteProvider(provider, endpoint, path, secret string) error {
-	return v.AddSecureRemoteProvider(provider, endpoint, path, secret)
+	return _default.AddSecureRemoteProvider(provider, endpoint, path, secret)
 }
 
 // WatchRemoteCOnfigOnChannel watches a remote config and returns a channel to which all
 func WatchRemoteConfigOnChannel() error {
-	return v.WatchRemoteConfigOnChannel()
+	return _default.WatchRemoteConfigOnChannel()
 }
