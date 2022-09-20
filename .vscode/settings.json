@@ -2,11 +2,7 @@
     "terminal.integrated.env.windows": {
         "PATH": "${cwd};${env:PATH}",
     },
-    "files.saveConflictResolution": "overwriteFileOnDisk",
-    "editor.wordWrapColumn": 120,
-    "editor.wordWrap": "off",
-    "debug.console.wordWrap": false,
-    "editor.defaultFormatter": null,
+    "debug.console.wordWrap": true,
     "extensions.ignoreRecommendations": false,
     "git.autofetchPeriod": 60,
     "git.autofetch": true,
@@ -16,6 +12,8 @@
     "files.encoding": "utf8",
     "files.autoSave": "afterDelay",
     "files.autoSaveDelay": 5000,
+    "files.trimTrailingWhitespace": true,
+    "files.saveConflictResolution": "overwriteFileOnDisk",
     "editor.tabSize": 4,
     "editor.formatOnType": true,
     "editor.formatOnSaveMode": "file",
@@ -24,9 +22,15 @@
     "editor.parameterHints.enabled": true,
     "editor.tabCompletion": "on",
     "editor.insertSpaces": false,
-    "go.testTimeout": "60s",
+    "editor.defaultFormatter": null,
+    "editor.wordWrapColumn": 120,
+    "editor.wordWrap": "off",
+    "editor.fontFamily": "Cascadia Code", // "Cascadia Code", "Fira Code", "Consolas", "Courier New", "Droid Sans Mono", "Menlo",  "Source Code Pro", "Monaco", "Lucida Console", "monospace"
+    "terminal.integrated.fontFamily": "Cascadia Code",
+    "go.testTimeout": "86400s",
     "go.testFlags": [
-        "-v"
+        "-v",
+        "-count=1",
     ],
     "go.docsTool": "gogetdoc",
     "go.formatTool": "gofumpt",
@@ -72,29 +76,26 @@
     "go.toolsEnvVars": {
         "GOOS": "windows",
         "GOARCH": "amd64",
-        "CGO_ENABLED": 1,
+        "CGO_ENABLED": "1",
         "GO111MODULE": "auto",
     },
-    "python.formatting.provider": "yapf",
-    "python.linting.pylintEnabled": false,
-    "python.linting.flake8Enabled": true,
-    "python.linting.flake8Args": [
-        "--max-line-length=248"
-    ],
     "clang-format.style": "google",
     "clang-format.language.proto.enable": true,
     "clang-format.language.proto.style": "",
     "clang-format.language.proto.fallbackStyle": "",
     "search.exclude": {
-        ".metals": true,
-        "vendor/*": true,
-        "**/__pycache__": true,
+        "vendor/**": true,
         "**/.git": true,
+        ".data": true,
+        ".metals": true,
+        "**/__debug_bin.exe": true,
     },
     "files.exclude": {
-        ".metals": true,
+        "vendor/**": true,
         "**/.git": true,
-        "**/__pycache__": true,
+        ".data": true,
+        ".metals": true,
+        "**/__debug_bin.exe": true,
     },
     "files.watcherExclude": {
         "**/target": true
