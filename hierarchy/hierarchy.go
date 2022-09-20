@@ -39,6 +39,10 @@ func (h *Hierarchy) JSON() ([]byte, error) {
 	return json.Marshal(h.AllSettings())
 }
 
+func IsArray(key string) bool {
+	return _default.IsArray(key)
+}
+
 func (h *Hierarchy) IsArray(key string) bool {
 	data, err := h.JSON()
 	if err != nil {
@@ -47,12 +51,20 @@ func (h *Hierarchy) IsArray(key string) bool {
 	return gjson.Get(string(data), key).IsArray()
 }
 
+func IsMap(key string) bool {
+	return _default.IsMap(key)
+}
+
 func (h *Hierarchy) IsMap(key string) bool {
 	data, err := h.JSON()
 	if err != nil {
 		return false
 	}
 	return gjson.Get(string(data), ".").IsObject()
+}
+
+func ChildrenInArray(key string) ([]*Hierarchy, error) {
+	return _default.ChildrenInArray(key)
 }
 
 func (h *Hierarchy) ChildrenInArray(key string) ([]*Hierarchy, error) {
@@ -84,6 +96,10 @@ func (h *Hierarchy) ChildrenInArray(key string) ([]*Hierarchy, error) {
 	}
 
 	return nil, fmt.Errorf("%w: %s", ErrHierachyShouldBeMap, key)
+}
+
+func ChildrenInMap(key string) (map[string]*Hierarchy, error) {
+	return _default.ChildrenInMap(key)
 }
 
 func (h *Hierarchy) ChildrenInMap(key string) (map[string]*Hierarchy, error) {
@@ -118,4 +134,46 @@ func (h *Hierarchy) ChildrenInMap(key string) (map[string]*Hierarchy, error) {
 	}
 
 	return nil, fmt.Errorf("%w: %s", ErrHierachyShouldBeMap, key)
+}
+
+func ForeachInArray(key string, fn func(index int, child *Hierarchy) (bool, error)) error {
+	return _default.ForeachInArray(key, fn)
+}
+
+func (h *Hierarchy) ForeachInArray(key string, fn func(index int, child *Hierarchy) (bool, error)) error {
+	children, err := h.ChildrenInArray(key)
+	if err != nil {
+		return err
+	}
+
+	for index, child := range children {
+		if ok, err := fn(index, child); err != nil {
+			return err
+		} else if !ok {
+			break
+		}
+	}
+
+	return nil
+}
+
+func ForeachInMap(key string, fn func(key string, child *Hierarchy) (bool, error)) error {
+	return _default.ForeachInMap(key, fn)
+}
+
+func (h *Hierarchy) ForeachInMap(key string, fn func(key string, child *Hierarchy) (bool, error)) error {
+	children, err := h.ChildrenInMap(key)
+	if err != nil {
+		return err
+	}
+
+	for key, child := range children {
+		if ok, err := fn(key, child); err != nil {
+			return err
+		} else if !ok {
+			break
+		}
+	}
+
+	return nil
 }

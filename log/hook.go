@@ -32,14 +32,17 @@ func NewHook(typ string, c *hierarchy.Hierarchy) (logrus.Hook, error) {
 }
 
 func NewHooks(c *hierarchy.Hierarchy) ([]logrus.Hook, error) {
-	c.GetStringMapStringSlice()
 	hooks := make([]logrus.Hook, 0)
-	for _, typ := range  {
-		hook, err := NewHook(typ, c)
+
+	c.ForeachInArray("hooks", func(index int, hierarchy *hierarchy.Hierarchy) (bool, error) {
+		typ := hierarchy.GetString("type")
+		hook, err := NewHook(typ, hierarchy)
 		if err != nil {
-			return nil, err
+			return false, err
 		}
 		hooks = append(hooks, hook)
-	}
+		return true, nil
+	})
+
 	return hooks, nil
 }
