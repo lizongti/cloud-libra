@@ -6,6 +6,7 @@ logger:
     type: text
   hooks:
     - type: file
+      header: true
       level: info
       file: ${ProjectDir}/examples/logger/log/run.log
       size: 1024
@@ -13,17 +14,20 @@ logger:
       days: 7
       compress: false
     - type: stdout
+      header: true
       level:
         - info
         - warn
         - debug
         - trace
     - type: stderr
+      header: true
       level:
         - error
         - panic
         - fatal
     - type: telegram
+      header: false
       level: info
       token: 5515503471:AAHilqY6UuixG22Jayl94re01ly4CIL0dTM
       chat_id: -1001535194188

@@ -31,6 +31,5 @@ func main() {
 
 	log.SetLogger(run)
 
-	log.Println("test")
-	log.Println(hierarchy.New())
+	log.Println(h.AllKeys())
 }

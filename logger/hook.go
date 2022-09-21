@@ -58,18 +58,27 @@ var _ logrus.Hook = &FileHook{}
 type FileHook struct {
 	logger    *lumberjack.Logger
 	logLevels *LogLevels
+	header    bool
 }
 
 // Fire is called when a log event is fired.
-func (lh *FileHook) Fire(entry *logrus.Entry) error {
-	// Convert the line to string
-	line, err := entry.Bytes()
-	if err != nil {
-		return err
+func (fh *FileHook) Fire(entry *logrus.Entry) error {
+	var (
+		line []byte
+		err  error
+	)
+
+	if fh.header {
+		line, err = entry.Bytes()
+		if err != nil {
+			return err
+		}
+	} else {
+		line = []byte(entry.Message)
 	}
 
 	// Write the the logger
-	_, err = lh.logger.Write(line)
+	_, err = fh.logger.Write(line)
 	if err != nil {
 		return err
 	}
@@ -83,6 +92,14 @@ func (lh *FileHook) Levels() []logrus.Level {
 }
 
 func (*HookGenerator) File(c *hierarchy.Hierarchy) (logrus.Hook, error) {
+	logger := &lumberjack.Logger{
+		Filename:   c.GetString("file"),   // {var} is replaced
+		MaxSize:    c.GetInt("size"),      // megabytes
+		MaxBackups: c.GetInt("backup"),    // backup count
+		MaxAge:     c.GetInt("days"),      // days
+		Compress:   c.GetBool("compress"), // disabled by default
+	}
+
 	var a any
 	if c.IsArray("level") {
 		a = c.GetStringSlice("level")
@@ -95,15 +112,9 @@ func (*HookGenerator) File(c *hierarchy.Hierarchy) (logrus.Hook, error) {
 		return nil, err
 	}
 
-	logger := &lumberjack.Logger{
-		Filename:   c.GetString("file"),   // {var} is replaced
-		MaxSize:    c.GetInt("size"),      // megabytes
-		MaxBackups: c.GetInt("backup"),    // backup count
-		MaxAge:     c.GetInt("days"),      // days
-		Compress:   c.GetBool("compress"), // disabled by default
-	}
+	header := c.GetBool("header")
 
-	return &FileHook{logger, logLevels}, nil
+	return &FileHook{logger, logLevels, header}, nil
 }
 
 var stderr = colorable.NewColorableStderr()
@@ -114,6 +125,26 @@ var _ logrus.Hook = &StderrHook{}
 type StderrHook struct {
 	writer.Hook
 	logLevels *LogLevels
+	header    bool
+}
+
+func (sh *StderrHook) Fire(entry *logrus.Entry) error {
+	var (
+		line []byte
+		err  error
+	)
+
+	if sh.header {
+		line, err = entry.Bytes()
+		if err != nil {
+			return err
+		}
+	} else {
+		line = []byte(entry.Message)
+	}
+
+	_, err = sh.Writer.Write(line)
+	return err
 }
 
 // Levels returns the available logging
@@ -122,6 +153,11 @@ func (sh *StderrHook) Levels() []logrus.Level {
 }
 
 func (*HookGenerator) Stderr(c *hierarchy.Hierarchy) (logrus.Hook, error) {
+	hook := writer.Hook{
+		Writer:    stderr,
+		LogLevels: logrus.AllLevels,
+	}
+
 	var a any
 	if c.IsArray("level") {
 		a = c.GetStringSlice("level")
@@ -134,12 +170,9 @@ func (*HookGenerator) Stderr(c *hierarchy.Hierarchy) (logrus.Hook, error) {
 		return nil, err
 	}
 
-	hook := writer.Hook{
-		Writer:    stderr,
-		LogLevels: logrus.AllLevels,
-	}
+	header := c.GetBool("header")
 
-	return &StderrHook{hook, logLevels}, nil
+	return &StderrHook{hook, logLevels, header}, nil
 }
 
 var stdout = colorable.NewColorableStdout()
@@ -150,6 +183,7 @@ var _ logrus.Hook = &StdoutHook{}
 type StdoutHook struct {
 	writer.Hook
 	logLevels *LogLevels
+	header    bool
 }
 
 // Levels returns the available logging
@@ -157,7 +191,31 @@ func (sh *StdoutHook) Levels() []logrus.Level {
 	return sh.logLevels.ToLogrus()
 }
 
+func (sh *StdoutHook) Fire(entry *logrus.Entry) error {
+	var (
+		line []byte
+		err  error
+	)
+
+	if sh.header {
+		line, err = entry.Bytes()
+		if err != nil {
+			return err
+		}
+	} else {
+		line = []byte(entry.Message)
+	}
+
+	_, err = sh.Writer.Write(line)
+	return err
+}
+
 func (*HookGenerator) Stdout(c *hierarchy.Hierarchy) (logrus.Hook, error) {
+	hook := writer.Hook{
+		Writer:    stdout,
+		LogLevels: logrus.AllLevels,
+	}
+
 	var a any
 	if c.IsArray("level") {
 		a = c.GetStringSlice("level")
@@ -170,12 +228,9 @@ func (*HookGenerator) Stdout(c *hierarchy.Hierarchy) (logrus.Hook, error) {
 		return nil, err
 	}
 
-	hook := writer.Hook{
-		Writer:    stdout,
-		LogLevels: logrus.AllLevels,
-	}
+	header := c.GetBool("header")
 
-	return &StdoutHook{hook, logLevels}, nil
+	return &StdoutHook{hook, logLevels, header}, nil
 }
 
 var _ logrus.Hook = &TelegramHook{}
@@ -183,14 +238,24 @@ var _ logrus.Hook = &TelegramHook{}
 type TelegramHook struct {
 	router    *router.ServiceRouter
 	logLevels *LogLevels
+	header    bool
 }
 
 const telegramURL = "telegram://%s@telegram?chats=%s"
 
 func (th *TelegramHook) Fire(entry *logrus.Entry) error {
-	line, err := entry.Bytes()
-	if err != nil {
-		return err
+	var (
+		line []byte
+		err  error
+	)
+
+	if th.header {
+		line, err = entry.Bytes()
+		if err != nil {
+			return err
+		}
+	} else {
+		line = []byte(entry.Message)
 	}
 
 	errs := th.router.Send(string(line), nil)
@@ -206,6 +271,11 @@ func (th *TelegramHook) Levels() []logrus.Level {
 }
 
 func (*HookGenerator) Telegram(c *hierarchy.Hierarchy) (logrus.Hook, error) {
+	router, err := shoutrrr.CreateSender(fmt.Sprintf(telegramURL, c.GetString("token"), c.GetString("chat_id")))
+	if err != nil {
+		return nil, err
+	}
+
 	var a any
 	if c.IsArray("level") {
 		a = c.GetStringSlice("level")
@@ -218,10 +288,7 @@ func (*HookGenerator) Telegram(c *hierarchy.Hierarchy) (logrus.Hook, error) {
 		return nil, err
 	}
 
-	router, err := shoutrrr.CreateSender(fmt.Sprintf(telegramURL, c.GetString("token"), c.GetString("chat_id")))
-	if err != nil {
-		return nil, err
-	}
+	header := c.GetBool("header")
 
-	return &TelegramHook{router, logLevels}, nil
+	return &TelegramHook{router, logLevels, header}, nil
 }
