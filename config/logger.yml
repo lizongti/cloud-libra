@@ -1,0 +1,25 @@
+logger:
+  name: run
+  level: info
+  caller: true
+  formatter:
+    type: text
+  hooks:
+    - type: file
+      level: info
+      file: ${ProjectDir}/log/run.log
+      size: 1024
+      backup: 3
+      days: 7
+      compress: false
+    - type: stdout
+      level:
+        - info
+        - warn
+        - debug
+        - trace
+    - type: stderr
+      level:
+        - error
+        - panic
+        - fatal

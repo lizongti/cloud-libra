@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
@@ -15,11 +16,11 @@ type Hierarchy struct {
 	*viper.Viper
 }
 
-func NewHierarcky() *Hierarchy {
+func New() *Hierarchy {
 	return &Hierarchy{viper.New()}
 }
 
-var _default = NewHierarcky()
+var _default = New()
 
 func Child(key string) *Hierarchy {
 	return _default.Child(key)
@@ -187,4 +188,17 @@ func (h *Hierarchy) ForeachInMap(key string, fn func(key string, child *Hierarch
 	}
 
 	return nil
+}
+
+var (
+	// varExp gets var from ${var}
+	varExp = regexp.MustCompile(`\$\{([a-zA-Z0-9_]+)\}`)
+)
+
+func (h *Hierarchy) ReplaceAllVars(data []byte) []byte {
+	// replace all vars
+	return varExp.ReplaceAllFunc(data, func(match []byte) []byte {
+		key := string(match[2 : len(match)-1])
+		return []byte(h.GetString(key))
+	})
 }

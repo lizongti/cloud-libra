@@ -9,32 +9,32 @@ import (
 	"github.com/spf13/viper"
 )
 
-func ReadEnv(prefix string) error {
-	return _default.ReadEnv(prefix)
+func LoadEnv(prefix string) error {
+	return _default.LoadEnv(prefix)
 }
 
-func (h *Hierarchy) ReadEnv(prefix string) error {
+func (h *Hierarchy) LoadEnv(prefix string) error {
 	h.AutomaticEnv()
 	h.SetEnvPrefix(prefix)
 
 	return nil
 }
 
-func ReadFlags(flags *pflag.FlagSet) error {
-	return _default.ReadFlags(flags)
+func LoadFlags(flags *pflag.FlagSet) error {
+	return _default.LoadFlags(flags)
 }
 
-func (h *Hierarchy) ReadFlags(flags *pflag.FlagSet) error {
+func (h *Hierarchy) LoadFlags(flags *pflag.FlagSet) error {
 	return BindPFlags(flags)
 }
 
-func ReadConfigMap(m map[string][]byte) error {
-	return _default.ReadAssetMap(m)
+func LoadConfigMap(m map[string][]byte) error {
+	return _default.LoadAssetMap(m)
 }
 
-func (h *Hierarchy) ReadAssetMap(configMap map[string][]byte) error {
-	keys := make([]string, 0, len(configMap))
-	for name := range configMap {
+func (h *Hierarchy) LoadAssetMap(assetMap map[string][]byte) error {
+	keys := make([]string, 0, len(assetMap))
+	for name := range assetMap {
 		keys = append(keys, name)
 	}
 
@@ -42,7 +42,7 @@ func (h *Hierarchy) ReadAssetMap(configMap map[string][]byte) error {
 
 	for _, name := range keys {
 		ext := filepath.Ext(name)
-		data := configMap[name]
+		data := h.ReplaceAllVars(assetMap[name])
 
 		v := viper.New()
 		v.SetConfigType(ext[1:])

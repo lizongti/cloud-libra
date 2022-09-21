@@ -1,40 +1,36 @@
 package main
 
 import (
-	"fmt"
-	"reflect"
+	"path/filepath"
+
+	"github.com/cloudlibraries/libra/assets"
+	"github.com/cloudlibraries/libra/hierarchy"
+	"github.com/cloudlibraries/libra/log"
+	"github.com/cloudlibraries/libra/logger"
 )
 
-type M struct {
-}
-
-func (M) Func1() error {
-	return nil
-}
-
-func (*M) Func2() error {
-	return nil
-}
-
-func (M) func3() error {
-	return nil
-}
-
-func (*M) func4() error {
-	return nil
-}
-
 func main() {
-	t := reflect.TypeOf(M{})
-	for i := 0; i < t.NumMethod(); i++ {
-		method := t.Method(i)
-		fmt.Println(method.Name)
+	projectDir := "D:\\github.com\\cloudlibraries\\libra"
+
+	a := assets.New(assets.NewFileSystemProvider(""))
+	assetMap, err := a.GetBundle(filepath.Join(projectDir, "config"))
+	if err != nil {
+		panic(err)
 	}
 
-	t = reflect.TypeOf(&M{})
-	for i := 0; i < t.NumMethod(); i++ {
-		method := t.Method(i)
-		fmt.Println(method.Name)
-		method.Func.Call()
+	h := hierarchy.New()
+	h.Set("ProjectDir", filepath.ToSlash(projectDir))
+	if err := h.LoadAssetMap(assetMap); err != nil {
+		panic(err)
 	}
+
+	run, err := logger.New(h.Child("logger"))
+	if err != nil {
+		panic(err)
+	}
+
+	log.SetLogger(run)
+
+	log.Println("test")
+	log.Println(hierarchy.New())
 }

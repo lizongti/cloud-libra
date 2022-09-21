@@ -24,8 +24,8 @@ type Assets struct {
 	providers []Provider
 }
 
-// NewAssets returns a new Assets.
-func NewAssets(providers ...Provider) *Assets {
+// New returns a new Assets.
+func New(providers ...Provider) *Assets {
 	return &Assets{
 		providers: providers,
 	}

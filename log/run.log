@@ -1,0 +1,97 @@
+[36mINFO[0m[2022/09/21 16:42:04.3703923] log/logger.go:156: [Println] test                                         
+[36mINFO[0m[2022/09/21 16:43:42.2321720] test                                         
+[36mINFO[0m[2022/09/21 16:44:48.3668538] test                                         
+[36mINFO[0m[2022/09/21 16:47:35.2187200] log/logger.go:156: [Println] test                                         
+[36mINFO[0m[2022/09/21 16:47:51.7202426] log/logger.go:156: [Println] test                                         
+[36mINFO[0m[2022/09/21 16:49:14.2929338] log/logger.go:156: [Println] test                                         
+[36mINFO[0m[2022/09/21 16:51:19.7536057] log/logger.go:156: [Println] test                                         
+[36mINFO[0m[2022/09/21 16:51:52.2560679] log/logger.go:156: [Println] test                                         
+[36mINFO[0m[2022/09/21 16:56:35.5733516] log/logger.go:156: [Println] test                                         
+[36mINFO[0m[2022/09/21 17:00:39.7567266] log/logger.go:156: [Println] test                                         
+time="2022/09/21 17:07:07.7972627" level=info msg=test func="[Println]" file=" log/logger.go:156:"
+[36mINFO[0m[2022/09/21 17:07:28.9641071] log/logger.go:156: [Println] test                                         
+[36mINFO[0m[2022/09/21 17:14:01.9927039] log/logger.go:156: [Println] test                                         
+[36mINFO[0m[2022/09/21 17:24:33.8438335] tmp/tmp.go:33: [main] test                                         
+[36mINFO[0m[2022/09/21 17:25:35.5409217] tmp/tmp.go:33: [main.main] test                                         
+[36mINFO[0m[2022/09/21 17:28:06.2606642] tmp/tmp.go:33: [main.main] test                                         
+[36mINFO[0m[2022/09/21 17:28:22.8743306] tmp/tmp.go:33: [main.main] test                                         
+[36mINFO[0m[2022/09/21 17:29:46.5410269] tmp/tmp.go:33: [main.main] test                                         
+[36mINFO[0m[2022/09/21 17:29:46.5415801] tmp/tmp.go:34: [main.main] &{0xc000085040}                              
+[36mINFO[0m[2022/09/21 17:33:48.7442048] tmp/tmp.go:34: [main.main] test                                         
+[36mINFO[0m[2022/09/21 17:33:48.7447338] hierarchy/hierarchy.go:21: [github.com/cloudlibraries/libra/hierarchy.New] test1                                        
+[36mINFO[0m[2022/09/21 17:33:48.7452619] tmp/tmp.go:35: [main.main] &{0xc00016aea0}                              
+[36mINFO[0m[2022/09/21 17:43:42.6336913] tmp/tmp.go:35: [main.main] test                                         
+[36mINFO[0m[2022/09/21 17:43:42.6363699] tmp/tmp.go:36: [main.main] &{0xc000172ea0}                              
+[36mINFO[0m[2022/09/21 17:44:28.3732940] tmp/tmp.go:35: [main.main] test                                         
+[36mINFO[0m[2022/09/21 17:44:28.3742939] tmp/tmp.go:36: [main.main] &{0xc000084340}                              
+[36mINFO[0m[2022/09/21 17:44:28.3752938] logger/levels.go:46: [github.com/cloudlibraries/libra/logger.(*LogLevel).ToLogrus] 1                                            
+[36mINFO[0m[2022/09/21 17:48:40.2645837] tmp/tmp.go:35: main test                                         
+[36mINFO[0m[2022/09/21 17:48:40.2675853] tmp/tmp.go:36: main &{0xc0001ae1a0}                              
+[36mINFO[0m[2022/09/21 17:48:40.2685853] logger/levels.go:46: (*LogLevel).ToLogrus 1                                            
+[36mINFO[0m[2022/09/21 17:49:26.0695721] tmp/tmp.go:35: [main] test                                         
+[36mINFO[0m[2022/09/21 17:49:26.0701276] tmp/tmp.go:36: [main] &{0xc000084340}                              
+[36mINFO[0m[2022/09/21 17:49:26.0706552] logger/levels.go:46: [(*LogLevel).ToLogrus] 1                                            
+[36mINFO[0m[2022/09/21 18:01:00.9424328] tmp/tmp.go:35: main test                                         
+[36mINFO[0m[2022/09/21 18:01:00.9434321] tmp/tmp.go:36: main &{0xc000084340}                              
+[36mINFO[0m[2022/09/21 18:01:00.9454321] logger/levels.go:46: (*LogLevel).ToLogrus 1                                            
+[36mINFO[0m[2022/09/21 18:02:42.0975970] tmp/tmp.go:35 main: test                                         
+[36mINFO[0m[2022/09/21 18:02:42.1004867] tmp/tmp.go:36 main: &{0xc000084340}                              
+[36mINFO[0m[2022/09/21 18:02:42.1004867] logger/levels.go:46 (*LogLevel).ToLogrus: 1                                            
+[36mINFO[0m[2022/09/21 18:04:02.7233090] tmp/tmp.go:35 main: test                                         
+[36mINFO[0m[2022/09/21 18:04:02.7244091] tmp/tmp.go:36 main: &{0xc0000e1040}                              
+[36mINFO[0m[2022/09/21 18:04:02.7244091] logger/levels.go:46 (*LogLevel).ToLogrus: 1                                            
+[36mINFO[0m[2022/09/21 18:04:43.9482368] tmp/tmp.go:35 /main: test                                         
+[36mINFO[0m[2022/09/21 18:04:43.9507501] tmp/tmp.go:36 /main: &{0xc0000c9d40}                              
+[36mINFO[0m[2022/09/21 18:04:43.9534651] logger/levels.go:46 /(*LogLevel).ToLogrus: 1                                            
+[36mINFO[0m[2022/09/21 18:05:01.6663406] tmp/tmp.go:35 |main|: test                                         
+[36mINFO[0m[2022/09/21 18:05:01.6670636] tmp/tmp.go:36 |main|: &{0xc00004d040}                              
+[36mINFO[0m[2022/09/21 18:05:01.6678012] logger/levels.go:46 |(*LogLevel).ToLogrus|: 1                                            
+[36mINFO[0m[2022/09/21 18:05:36.2621751] tmp/tmp.go:35 |main|: test                                         
+[36mINFO[0m[2022/09/21 18:05:36.2632719] tmp/tmp.go:36 |main|: &{0xc00017cd00}                              
+[36mINFO[0m[2022/09/21 18:05:36.2632719] logger/levels.go:46 |(*LogLevel).ToLogrus|: 1                                            
+[36mINFO[0m[2022/09/21 18:05:55.1916965] tmp/tmp.go:35 @main|: test                                         
+[36mINFO[0m[2022/09/21 18:05:55.1922252] tmp/tmp.go:36 @main|: &{0xc0000f2ea0}                              
+[36mINFO[0m[2022/09/21 18:05:55.1927776] logger/levels.go:46 @(*LogLevel).ToLogrus|: 1                                            
+[36mINFO[0m[2022/09/21 18:06:05.3417480]@main|:  tmp/tmp.go:35 test                                         
+[36mINFO[0m[2022/09/21 18:06:05.3429512]@main|:  tmp/tmp.go:36 &{0xc000218000}                              
+[36mINFO[0m[2022/09/21 18:06:05.3440757]@(*LogLevel).ToLogrus|:  logger/levels.go:46 1                                            
+[36mINFO[0m[2022/09/21 18:06:32.2562580]main @tmp/tmp.go:35 test                                         
+[36mINFO[0m[2022/09/21 18:06:32.2572595]main @tmp/tmp.go:36 &{0xc00017cd00}                              
+[36mINFO[0m[2022/09/21 18:06:32.2572595](*LogLevel).ToLogrus @logger/levels.go:46 1                                            
+[36mINFO[0m[2022/09/21 18:06:55.8251248]main  tmp/tmp.go:35 test                                         
+[36mINFO[0m[2022/09/21 18:06:55.8263470]main  tmp/tmp.go:36 &{0xc000084340}                              
+[36mINFO[0m[2022/09/21 18:06:55.8268866](*LogLevel).ToLogrus  logger/levels.go:46 1                                            
+[36mINFO[0m[2022/09/21 18:07:16.3587221] tmp/tmp.go:35 main test                                         
+[36mINFO[0m[2022/09/21 18:07:16.3601562] tmp/tmp.go:36 main &{0xc000210000}                              
+[36mINFO[0m[2022/09/21 18:07:16.3606650] logger/levels.go:46 (*LogLevel).ToLogrus 1                                            
+[36mINFO[0m[2022/09/21 18:07:31.1874676] tmp/tmp.go:35 @main test                                         
+[36mINFO[0m[2022/09/21 18:07:31.1887594] tmp/tmp.go:36 @main &{0xc000172ea0}                              
+[36mINFO[0m[2022/09/21 18:07:31.1900771] logger/levels.go:46 @(*LogLevel).ToLogrus 1                                            
+[36mINFO[0m[2022/09/21 18:07:41.3436450] tmp/tmp.go:35 @main: test                                         
+[36mINFO[0m[2022/09/21 18:07:41.3446452] tmp/tmp.go:36 @main: &{0xc0000841a0}                              
+[36mINFO[0m[2022/09/21 18:07:41.3456446] logger/levels.go:46 @(*LogLevel).ToLogrus: 1                                            
+[36mINFO[0m[2022/09/21 18:07:53.5872762] tmp/tmp.go:35 main: test                                         
+[36mINFO[0m[2022/09/21 18:07:53.5877814] tmp/tmp.go:36 main: &{0xc0001ae1a0}                              
+[36mINFO[0m[2022/09/21 18:07:53.5877814] logger/levels.go:46 (*LogLevel).ToLogrus: 1                                            
+[36mINFO[0m[2022/09/21 18:09:25.1198148] tmp/tmp.go:35 -  main: test                                         
+[36mINFO[0m[2022/09/21 18:09:25.1203471] tmp/tmp.go:36 -  main: &{0xc000084340}                              
+[36mINFO[0m[2022/09/21 18:09:25.1209063] logger/levels.go:46 -  (*LogLevel).ToLogrus: 1                                            
+[36mINFO[0m[2022/09/21 18:09:37.8268841] tmp/tmp.go:35 - main: test                                         
+[36mINFO[0m[2022/09/21 18:09:37.8280555] tmp/tmp.go:36 - main: &{0xc00004d040}                              
+[36mINFO[0m[2022/09/21 18:09:37.8285870] logger/levels.go:46 - (*LogLevel).ToLogrus: 1                                            
+[36mINFO[0m[2022/09/21 18:16:43.5841122] tmp/tmp.go:35 - main: test                                         
+[36mINFO[0m[2022/09/21 18:16:43.5846899] tmp/tmp.go:36 - main: &{0xc0001ac1a0}                              
+[36mINFO[0m[2022/09/21 18:16:43.5851948] logger/levels.go:46 - (*LogLevel).ToLogrus: 1                                            
+[36mINFO[0m[2022/09/21 18:16:50.1725831] [tmp/tmp.go:35 - main]: test                                         
+[36mINFO[0m[2022/09/21 18:16:50.1773007] [tmp/tmp.go:36 - main]: &{0xc000084340}                              
+[36mINFO[0m[2022/09/21 18:16:50.1778074] [logger/levels.go:46 - (*LogLevel).ToLogrus]: 1                                            
+[36mINFO[0m[2022/09/21 18:18:28.8855283] tmp/tmp.go:35 - main: test                                         
+[36mINFO[0m[2022/09/21 18:18:28.8865994] tmp/tmp.go:36 - main: &{0xc000172ea0}                              
+[36mINFO[0m[2022/09/21 18:18:28.8865994] logger/levels.go:46 - (*LogLevel).ToLogrus: 1                                            
+[36mINFO[0m[2022/09/21 18:18:44.4537167] tmp/tmp.go:35 main: test                                         
+[36mINFO[0m[2022/09/21 18:18:44.4547700] tmp/tmp.go:36 main: &{0xc00017cb60}                              
+[36mINFO[0m[2022/09/21 18:18:44.4552905] logger/levels.go:46 (*LogLevel).ToLogrus: 1                                            
+[36mINFO[0m[2022/09/21 18:19:51.1785382] tmp/tmp.go:35 main: test                                         
+[36mINFO[0m[2022/09/21 18:19:51.1975965] tmp/tmp.go:36 main: &{0xc00017cd00}                              
+[36mINFO[0m[2022/09/21 18:22:08.1969529] tmp/tmp.go:34 main: test                                         
+[36mINFO[0m[2022/09/21 18:22:08.2247112] tmp/tmp.go:35 main: &{0xc000084340}                              

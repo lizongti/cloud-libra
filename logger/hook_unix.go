@@ -1,7 +1,7 @@
 //go:build !windows && !nacl && !plan9
 // +build !windows,!nacl,!plan9
 
-package hook
+package logger
 
 import (
 	"encoding/json"
@@ -12,15 +12,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// SyslogConfig stores the configuration of SyslogHook
-type SyslogConfig struct {
-	Network string
-	Addr    string
-	Tag     string
-	Level   string
-	Levels  []string
-}
-
 // SyslogHook to send logs via syslog.
 type SyslogHook struct {
 	*syslog.SyslogHook
@@ -29,12 +20,19 @@ type SyslogHook struct {
 
 // Levels returns the available logging levels
 func (sh *SyslogHook) Levels() []logrus.Level {
-	return sh.LogLevels
+	return sh.logLevels.ToLogrus()
 }
 
 func (*HookFactory) Syslog(c *hierarchy.Hierarchy) (logrus.Hook, error) {
-	logLevels := levels.NewLogLevels()
-	if err := logLevels.ReadConfig(c); err != nil {
+	var a any
+	if c.IsArray("level") {
+		a = c.GetStringSlice("level")
+	} else {
+		a = c.GetString("level")
+	}
+
+	logLevels, err := levels.NewLogLevels(a)
+	if err != nil {
 		return nil, err
 	}
 
