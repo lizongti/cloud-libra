@@ -7,7 +7,7 @@ logger:
   hooks:
     - type: file
       level: info
-      file: ${ProjectDir}/examples/log/run.log
+      file: ${ProjectDir}/examples/logger/log/run.log
       size: 1024
       backup: 3
       days: 7
