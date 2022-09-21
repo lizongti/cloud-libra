@@ -19,7 +19,7 @@ func New(h *hierarchy.Hierarchy) (*logrus.Logger, error) {
 	}
 
 	// Set formatter.
-	formatter, err := NewFormatter(h.Child("formatter"))
+	formatter, err := NewFormatter(h.Sub("formatter"))
 	if err != nil {
 		return nil, err
 	}

@@ -16,9 +16,9 @@
     "files.saveConflictResolution": "overwriteFileOnDisk",
     "editor.tabSize": 4,
     "editor.formatOnType": true,
-    // "editor.formatOnSaveMode": "file",
+    "editor.formatOnSaveMode": "file",
     "editor.formatOnPaste": true,
-    // "editor.formatOnSave": true,
+    "editor.formatOnSave": true,
     "editor.parameterHints.enabled": true,
     "editor.tabCompletion": "on",
     "editor.insertSpaces": false,
@@ -36,7 +36,7 @@
     "go.formatTool": "gofumpt",
     "go.formatFlags": [],
     "go.lintTool": "golangci-lint",
-    "go.lintOnSave": "package",
+    "go.lintOnSave": "file",
     "go.lintFlags": [
         "--fast",
         "--fix"

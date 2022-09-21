@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 
 	"github.com/spf13/viper"
@@ -22,11 +23,20 @@ func New() *Hierarchy {
 
 var _default = New()
 
-func Child(key string) *Hierarchy {
-	return _default.Child(key)
+func (h *Hierarchy) String() string {
+	data, err := h.JSONIndent()
+	if err != nil {
+		log.Panic(fmt.Errorf("failed to marshal hierarchy: %w", err))
+	}
+
+	return string(data)
 }
 
-func (h *Hierarchy) Child(key string) *Hierarchy {
+func Sub(key string) *Hierarchy {
+	return _default.Sub(key)
+}
+
+func (h *Hierarchy) Sub(key string) *Hierarchy {
 	return &Hierarchy{h.Viper.Sub(key)}
 }
 
@@ -36,6 +46,14 @@ func JSON() ([]byte, error) {
 
 func (h *Hierarchy) JSON() ([]byte, error) {
 	return json.Marshal(h.AllSettings())
+}
+
+func JSONIndent() ([]byte, error) {
+	return _default.JSONIndent()
+}
+
+func (h *Hierarchy) JSONIndent() ([]byte, error) {
+	return json.MarshalIndent(h.AllSettings(), "", "  ")
 }
 
 func IsArray(key string) bool {
@@ -61,7 +79,7 @@ func (h *Hierarchy) IsMap(key string) bool {
 		return false
 	}
 
-	return gjson.Get(string(data), ".").IsObject()
+	return gjson.Get(string(data), key).IsObject()
 }
 
 func ChildrenInArray(key string) ([]*Hierarchy, error) {
@@ -84,7 +102,7 @@ func (h *Hierarchy) ChildrenInArray(key string) ([]*Hierarchy, error) {
 				return nil, fmt.Errorf("%w: %s", ErrHierachyShouldBeMap, childKey)
 			}
 
-			children = append(children, h.Child(childKey))
+			children = append(children, h.Sub(childKey))
 		}
 
 		return children, nil
@@ -97,7 +115,7 @@ func (h *Hierarchy) ChildrenInArray(key string) ([]*Hierarchy, error) {
 				return nil, fmt.Errorf("%w: %s", ErrHierachyShouldBeMap, childKey)
 			}
 
-			children = append(children, h.Child(childKey))
+			children = append(children, h.Sub(childKey))
 		}
 
 		return children, nil
@@ -126,7 +144,7 @@ func (h *Hierarchy) ChildrenInMap(key string) (map[string]*Hierarchy, error) {
 				return nil, fmt.Errorf("%w: %s", ErrHierachyShouldBeMap, childKey)
 			}
 
-			children[childKey] = h.Child(childKey)
+			children[childKey] = h.Sub(childKey)
 		}
 
 		return children, nil
@@ -139,7 +157,7 @@ func (h *Hierarchy) ChildrenInMap(key string) (map[string]*Hierarchy, error) {
 				return nil, fmt.Errorf("%w: %s", ErrHierachyShouldBeMap, childKey)
 			}
 
-			children[childKey] = h.Child(childKey)
+			children[childKey] = h.Sub(childKey)
 		}
 
 		return children, nil
@@ -190,10 +208,8 @@ func (h *Hierarchy) ForeachInMap(key string, fn func(key string, child *Hierarch
 	return nil
 }
 
-var (
-	// varExp gets var from ${var}
-	varExp = regexp.MustCompile(`\$\{([a-zA-Z0-9_]+)\}`)
-)
+// varExp gets var from ${var}.
+var varExp = regexp.MustCompile(`\$\{([a-zA-Z0-9_]+)\}`)
 
 func (h *Hierarchy) ReplaceAllVars(data []byte) []byte {
 	// replace all vars

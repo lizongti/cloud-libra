@@ -26,8 +26,8 @@ logger:
         - error
         - panic
         - fatal
-    - type: telegram
-      header: false
-      level: info
-      token: 5515503471:AAHilqY6UuixG22Jayl94re01ly4CIL0dTM
-      chat_id: -1001535194188
+    # - type: telegram
+    #   header: false
+    #   level: info
+    #   token: 5515503471:AAHilqY6UuixG22Jayl94re01ly4CIL0dTM
+    #   chat_id: -1001535194188
