@@ -13,7 +13,7 @@ func main() {
 	projectDir := "D:\\github.com\\cloudlibraries\\libra"
 
 	a := assets.New(assets.NewFileSystemProvider(""))
-	assetMap, err := a.GetBundle(filepath.Join(projectDir, "config"))
+	assetMap, err := a.GetBundle(filepath.Join(projectDir, "examples", "logger", "config"))
 	if err != nil {
 		panic(err)
 	}

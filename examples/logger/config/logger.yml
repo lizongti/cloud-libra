@@ -7,7 +7,7 @@ logger:
   hooks:
     - type: file
       level: info
-      file: ${ProjectDir}/log/run.log
+      file: ${ProjectDir}/examples/log/run.log
       size: 1024
       backup: 3
       days: 7
@@ -23,3 +23,7 @@ logger:
         - error
         - panic
         - fatal
+    - type: telegram
+      level: info
+      token: 5515503471:AAHilqY6UuixG22Jayl94re01ly4CIL0dTM
+      chat_id: -1001535194188

@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/cloudlibraries/libra/hierarchy"
+	"github.com/containrrr/shoutrrr"
+	"github.com/containrrr/shoutrrr/pkg/router"
 	"github.com/mattn/go-colorable"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/writer"
@@ -49,6 +51,8 @@ func NewHook(typ string, c *hierarchy.Hierarchy) (logrus.Hook, error) {
 
 	return nil, fmt.Errorf("%w: %s", ErrHookNotFound, typ)
 }
+
+var _ logrus.Hook = &FileHook{}
 
 // FileHook stores the hook of rolling file appender.
 type FileHook struct {
@@ -104,6 +108,8 @@ func (*HookGenerator) File(c *hierarchy.Hierarchy) (logrus.Hook, error) {
 
 var stderr = colorable.NewColorableStderr()
 
+var _ logrus.Hook = &StderrHook{}
+
 // StderrHook is for stdout.
 type StderrHook struct {
 	writer.Hook
@@ -138,6 +144,8 @@ func (*HookGenerator) Stderr(c *hierarchy.Hierarchy) (logrus.Hook, error) {
 
 var stdout = colorable.NewColorableStdout()
 
+var _ logrus.Hook = &StdoutHook{}
+
 // StdoutHook is for stdout.
 type StdoutHook struct {
 	writer.Hook
@@ -168,4 +176,52 @@ func (*HookGenerator) Stdout(c *hierarchy.Hierarchy) (logrus.Hook, error) {
 	}
 
 	return &StdoutHook{hook, logLevels}, nil
+}
+
+var _ logrus.Hook = &TelegramHook{}
+
+type TelegramHook struct {
+	router    *router.ServiceRouter
+	logLevels *LogLevels
+}
+
+const telegramURL = "telegram://%s@telegram?chats=%s"
+
+func (th *TelegramHook) Fire(entry *logrus.Entry) error {
+	line, err := entry.Bytes()
+	if err != nil {
+		return err
+	}
+
+	errs := th.router.Send(string(line), nil)
+	if len(errs) > 0 && errs[0] != nil {
+		return errs[0]
+	}
+
+	return nil
+}
+
+func (th *TelegramHook) Levels() []logrus.Level {
+	return th.logLevels.ToLogrus()
+}
+
+func (*HookGenerator) Telegram(c *hierarchy.Hierarchy) (logrus.Hook, error) {
+	var a any
+	if c.IsArray("level") {
+		a = c.GetStringSlice("level")
+	} else {
+		a = c.GetString("level")
+	}
+
+	logLevels, err := NewLogLevels(a)
+	if err != nil {
+		return nil, err
+	}
+
+	router, err := shoutrrr.CreateSender(fmt.Sprintf(telegramURL, c.GetString("token"), c.GetString("chat_id")))
+	if err != nil {
+		return nil, err
+	}
+
+	return &TelegramHook{router, logLevels}, nil
 }
