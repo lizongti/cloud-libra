@@ -1,7 +1,7 @@
 //go:build !windows && !nacl && !plan9
 // +build !windows,!nacl,!plan9
 
-package log
+package hook
 
 import (
 	"encoding/json"
@@ -24,7 +24,7 @@ type SyslogConfig struct {
 // SyslogHook to send logs via syslog.
 type SyslogHook struct {
 	*syslog.SyslogHook
-	logLevels *LogLevels
+	logLevels *levels.LogLevels
 }
 
 // Levels returns the available logging levels
@@ -33,7 +33,7 @@ func (sh *SyslogHook) Levels() []logrus.Level {
 }
 
 func (*HookFactory) Syslog(c *hierarchy.Hierarchy) (logrus.Hook, error) {
-	logLevels := NewLogLevels()
+	logLevels := levels.NewLogLevels()
 	if err := logLevels.ReadConfig(c); err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-package log
+package levels
 
 import (
 	"errors"

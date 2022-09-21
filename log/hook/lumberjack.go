@@ -1,7 +1,8 @@
-package log
+package hook
 
 import (
 	"github.com/cloudlibraries/libra/hierarchy"
+	"github.com/cloudlibraries/libra/log/levels"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
@@ -9,7 +10,7 @@ import (
 // LumberjackHook stores the hook of rolling file appender.
 type LumberjackHook struct {
 	logger    *lumberjack.Logger
-	logLevels *LogLevels
+	logLevels *levels.LogLevels
 }
 
 // Fire is called when a log event is fired.
@@ -34,8 +35,8 @@ func (lh *LumberjackHook) Levels() []logrus.Level {
 	return lh.logLevels.Levels()
 }
 
-func (*HookGenerator) Lumberjack(c *hierarchy.Hierarchy) (logrus.Hook, error) {
-	logLevels := NewLogLevels()
+func (*Generator) Lumberjack(c *hierarchy.Hierarchy) (logrus.Hook, error) {
+	logLevels := levels.NewLogLevels()
 	if err := logLevels.ReadConfig(c); err != nil {
 		return nil, err
 	}
