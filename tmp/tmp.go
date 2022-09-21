@@ -1,41 +1,40 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-
-	"github.com/spf13/viper"
-	"github.com/tidwall/gjson"
+	"reflect"
 )
 
+type M struct {
+}
+
+func (M) Func1() error {
+	return nil
+}
+
+func (*M) Func2() error {
+	return nil
+}
+
+func (M) func3() error {
+	return nil
+}
+
+func (*M) func4() error {
+	return nil
+}
+
 func main() {
-	v := viper.New()
-
-	data1 := map[string]interface{}{
-		"a": []interface{}{
-			map[string]interface{}{
-				"a": "a",
-			},
-			map[string]interface{}{
-				"a": "a",
-			},
-		},
+	t := reflect.TypeOf(M{})
+	for i := 0; i < t.NumMethod(); i++ {
+		method := t.Method(i)
+		fmt.Println(method.Name)
 	}
 
-	v.MergeConfigMap(data1)
-
-	fmt.Println(v.GetString("a.3.a"))
-	// v.Set("a.0.a", "b")
-	// v.Set("a.1.a", "b")
-	data, err := json.Marshal(v.AllSettings())
-	if err != nil {
-		panic(err)
+	t = reflect.TypeOf(&M{})
+	for i := 0; i < t.NumMethod(); i++ {
+		method := t.Method(i)
+		fmt.Println(method.Name)
+		method.Func.Call()
 	}
-
-	gjson.Get(string(data), "a").IsArray()
-
-	ForEach(func(key, value gjson.Result) bool {
-		fmt.Println(key, value)
-		return true
-	})
 }

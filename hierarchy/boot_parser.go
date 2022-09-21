@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -243,7 +244,43 @@ func (*Parser) Py3(data []byte) (*viper.Viper, error) {
 	panic("not implemented")
 }
 
+var (
+	// plainExp get parser & source from \[parser\]\(source\)
+	plainExp = regexp.MustCompile(`^\[([a-zA-Z0-9_]+)\]\((.*)\)$`)
+
+	// autoPlainExp get source from \(source\)
+	autoPlainExp = regexp.MustCompile(`\((.+)\)`)
+
+	// modeExp get parser & source from \[parser\]\{source\}
+	modeExp = regexp.MustCompile(`^\[([a-zA-Z0-9_]+)\]\{(.*)\}$`)
+
+	// autoModeExp get source from \{source\}
+	autoModeExp = regexp.MustCompile(`\{(.+)\}`)
+
+	// urlExp get parser & source from \[parser\]\<url\>
+	urlExp = regexp.MustCompile(`^\[([a-zA-Z0-9_]+)\]\<(.*)\>$`)
+
+	// autoUrlExp get source from \<url\>
+	autoUrlExp = regexp.MustCompile(`\<(.+)\>`)
+)
+
 func (*Parser) Boot(data []byte) (*viper.Viper, error) {
+	s := string(data)
+	strs := []string{}
+
+	for _, s := range strings.Split(s, "\n") {
+		for _, s := range strings.Split(s, " ") {
+			strs = append(strs, strings.TrimSpace(s))
+		}
+	}
+
+	for _, str := range strs {
+		if str == "" {
+			continue
+		}
+
+	}
+
 	panic("not implemented")
 }
 
@@ -253,7 +290,7 @@ func (p *Parser) Auto(data []byte) (*viper.Viper, error) {
 	case "args":
 	case "env":
 		if len(strs) < 2 {
-			return nil, fmt.Errorf("%w: %s", ErrModeAssetsArgsNotEnough, string(data))
+			return nil, fmt.Errorf("%w: %s", ErrArgsNotEnough, string(data))
 		}
 		p.hierarchy.AutomaticEnv()
 		p.hierarchy.SetEnvPrefix(strs[1])
