@@ -13,10 +13,8 @@ func New(h *hierarchy.Hierarchy) (*logrus.Logger, error) {
 	// Disable output.
 	logger.SetOutput(io.Discard)
 
-	// Enable or disable caller.
-	if h.GetBool("caller") {
-		logger.SetReportCaller(true)
-	}
+	// Enable caller.
+	logger.SetReportCaller(true)
 
 	// Set formatter.
 	formatter, err := NewFormatter(h.Sub("formatter"))

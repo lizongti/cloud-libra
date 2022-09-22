@@ -1,9 +1,9 @@
 logger:
   name: run
   level: info
-  caller: true
   formatter:
     type: text
+    time_format: 2006/01/02 15:04:05.0000000
   hooks:
     - type: file
       header: true
@@ -26,8 +26,8 @@ logger:
         - error
         - panic
         - fatal
-    # - type: telegram
-    #   header: false
-    #   level: info
-    #   token: 5515503471:AAHilqY6UuixG22Jayl94re01ly4CIL0dTM
-    #   chat_id: -1001535194188
+    - type: telegram
+      header: false
+      level: panic
+      token: 5515503471:AAHilqY6UuixG22Jayl94re01ly4CIL0dTM
+      chat_id: -1001535194188
