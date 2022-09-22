@@ -38,7 +38,11 @@ func Sub(key string) *Hierarchy {
 }
 
 func (h *Hierarchy) Sub(key string) *Hierarchy {
-	return &Hierarchy{h.Viper.Sub(key)}
+	v := h.Viper.Sub(key)
+	if v == nil {
+		return &Hierarchy{viper.New()}
+	}
+	return &Hierarchy{v}
 }
 
 func JSON() ([]byte, error) {
@@ -224,8 +228,8 @@ func GetIntVal(key string, defaultValue int) int {
 	return _default.GetIntVal(key, defaultValue)
 }
 
-func (*Hierarchy) GetIntVal(key string, defaultValue int) int {
-	v := _default.GetInt(key)
+func (h *Hierarchy) GetIntVal(key string, defaultValue int) int {
+	v := h.GetInt(key)
 	if v == 0 {
 		return defaultValue
 	}
@@ -236,8 +240,8 @@ func GetInt32Val(key string, defaultValue int32) int32 {
 	return _default.GetInt32Val(key, defaultValue)
 }
 
-func (*Hierarchy) GetInt32Val(key string, defaultValue int32) int32 {
-	v := _default.GetInt32(key)
+func (h *Hierarchy) GetInt32Val(key string, defaultValue int32) int32 {
+	v := h.GetInt32(key)
 	if v == 0 {
 		return defaultValue
 	}
@@ -248,8 +252,8 @@ func GetInt64Val(key string, defaultValue int64) int64 {
 	return _default.GetInt64Val(key, defaultValue)
 }
 
-func (*Hierarchy) GetInt64Val(key string, defaultValue int64) int64 {
-	v := _default.GetInt64(key)
+func (h *Hierarchy) GetInt64Val(key string, defaultValue int64) int64 {
+	v := h.GetInt64(key)
 	if v == 0 {
 		return defaultValue
 	}
@@ -260,8 +264,8 @@ func GetUintVal(key string, defaultValue uint) uint {
 	return _default.GetUintVal(key, defaultValue)
 }
 
-func (*Hierarchy) GetUintVal(key string, defaultValue uint) uint {
-	v := _default.GetUint(key)
+func (h *Hierarchy) GetUintVal(key string, defaultValue uint) uint {
+	v := h.GetUint(key)
 	if v == 0 {
 		return defaultValue
 	}
@@ -272,8 +276,8 @@ func GetUint32Val(key string, defaultValue uint32) uint32 {
 	return _default.GetUint32Val(key, defaultValue)
 }
 
-func (*Hierarchy) GetUint32Val(key string, defaultValue uint32) uint32 {
-	v := _default.GetUint32(key)
+func (h *Hierarchy) GetUint32Val(key string, defaultValue uint32) uint32 {
+	v := h.GetUint32(key)
 	if v == 0 {
 		return defaultValue
 	}
@@ -284,8 +288,8 @@ func GetUint64Val(key string, defaultValue uint64) uint64 {
 	return _default.GetUint64Val(key, defaultValue)
 }
 
-func (*Hierarchy) GetUint64Val(key string, defaultValue uint64) uint64 {
-	v := _default.GetUint64(key)
+func (h *Hierarchy) GetUint64Val(key string, defaultValue uint64) uint64 {
+	v := h.GetUint64(key)
 	if v == 0 {
 		return defaultValue
 	}
@@ -296,8 +300,8 @@ func GetFloat64Val(key string, defaultValue float64) float64 {
 	return _default.GetFloat64Val(key, defaultValue)
 }
 
-func (*Hierarchy) GetFloat64Val(key string, defaultValue float64) float64 {
-	v := _default.GetFloat64(key)
+func (h *Hierarchy) GetFloat64Val(key string, defaultValue float64) float64 {
+	v := h.GetFloat64(key)
 	if v == 0 {
 		return defaultValue
 	}
@@ -308,8 +312,8 @@ func GetBoolVal(key string, defaultValue bool) bool {
 	return _default.GetBoolVal(key, defaultValue)
 }
 
-func (*Hierarchy) GetBoolVal(key string, defaultValue bool) bool {
-	v := _default.GetBool(key)
+func (h *Hierarchy) GetBoolVal(key string, defaultValue bool) bool {
+	v := h.GetBool(key)
 	if !v {
 		return defaultValue
 	}
@@ -320,8 +324,8 @@ func GetStringVal(key string, defaultValue string) string {
 	return _default.GetStringVal(key, defaultValue)
 }
 
-func (*Hierarchy) GetStringVal(key string, defaultValue string) string {
-	v := _default.GetString(key)
+func (h *Hierarchy) GetStringVal(key string, defaultValue string) string {
+	v := h.GetString(key)
 	if v == "" {
 		return defaultValue
 	}
@@ -332,8 +336,8 @@ func GetDurationVal(key string, defaultValue time.Duration) time.Duration {
 	return _default.GetDurationVal(key, defaultValue)
 }
 
-func (*Hierarchy) GetDurationVal(key string, defaultValue time.Duration) time.Duration {
-	v := _default.GetDuration(key)
+func (h *Hierarchy) GetDurationVal(key string, defaultValue time.Duration) time.Duration {
+	v := h.GetDuration(key)
 	if v == 0 {
 		return defaultValue
 	}
@@ -344,8 +348,8 @@ func GetTimeVal(key string, defaultValue time.Time) time.Time {
 	return _default.GetTimeVal(key, defaultValue)
 }
 
-func (*Hierarchy) GetTimeVal(key string, defaultValue time.Time) time.Time {
-	v := _default.GetTime(key)
+func (h *Hierarchy) GetTimeVal(key string, defaultValue time.Time) time.Time {
+	v := h.GetTime(key)
 	if v.IsZero() {
 		return defaultValue
 	}
@@ -356,8 +360,8 @@ func GetIntSliceVal(key string, defaultValue []int) []int {
 	return _default.GetIntSliceVal(key, defaultValue)
 }
 
-func (*Hierarchy) GetIntSliceVal(key string, defaultValue []int) []int {
-	v := _default.GetIntSlice(key)
+func (h *Hierarchy) GetIntSliceVal(key string, defaultValue []int) []int {
+	v := h.GetIntSlice(key)
 	if len(v) == 0 {
 		return defaultValue
 	}
@@ -368,8 +372,8 @@ func GetStringMapVal(key string, defaultValue map[string]interface{}) map[string
 	return _default.GetStringMapVal(key, defaultValue)
 }
 
-func (*Hierarchy) GetStringMapVal(key string, defaultValue map[string]interface{}) map[string]interface{} {
-	v := _default.GetStringMap(key)
+func (h *Hierarchy) GetStringMapVal(key string, defaultValue map[string]interface{}) map[string]interface{} {
+	v := h.GetStringMap(key)
 	if len(v) == 0 {
 		return defaultValue
 	}
@@ -380,8 +384,8 @@ func GetStringMapStringVal(key string, defaultValue map[string]string) map[strin
 	return _default.GetStringMapStringVal(key, defaultValue)
 }
 
-func (*Hierarchy) GetStringMapStringVal(key string, defaultValue map[string]string) map[string]string {
-	v := _default.GetStringMapString(key)
+func (h *Hierarchy) GetStringMapStringVal(key string, defaultValue map[string]string) map[string]string {
+	v := h.GetStringMapString(key)
 	if len(v) == 0 {
 		return defaultValue
 	}
@@ -392,8 +396,8 @@ func GetStringMapStringSliceVal(key string, defaultValue map[string][]string) ma
 	return _default.GetStringMapStringSliceVal(key, defaultValue)
 }
 
-func (*Hierarchy) GetStringMapStringSliceVal(key string, defaultValue map[string][]string) map[string][]string {
-	v := _default.GetStringMapStringSlice(key)
+func (h *Hierarchy) GetStringMapStringSliceVal(key string, defaultValue map[string][]string) map[string][]string {
+	v := h.GetStringMapStringSlice(key)
 	if len(v) == 0 {
 		return defaultValue
 	}
@@ -404,8 +408,8 @@ func GetSizeInBytesVal(key string, defaultValue uint) uint {
 	return _default.GetSizeInBytesVal(key, defaultValue)
 }
 
-func (*Hierarchy) GetSizeInBytesVal(key string, defaultValue uint) uint {
-	v := _default.GetSizeInBytes(key)
+func (h *Hierarchy) GetSizeInBytesVal(key string, defaultValue uint) uint {
+	v := h.GetSizeInBytes(key)
 	if v == 0 {
 		return defaultValue
 	}

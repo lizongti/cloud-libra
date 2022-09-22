@@ -118,42 +118,42 @@ func AllKeys() []string {
 
 // SetDefault sets the default value for a key.
 func SetDefault(key string, value interface{}) {
-	viper.SetDefault(key, value)
+	_default.SetDefault(key, value)
 }
 
 // Set sets the value for a key.
 func Set(key string, value interface{}) {
-	viper.Set(key, value)
+	_default.Set(key, value)
 }
 
 // SetConfigFile explicitly sets the config file to use.
 func SetConfigFile(in string) {
-	viper.SetConfigFile(in)
+	_default.SetConfigFile(in)
 }
 
 // SetConfigName sets the name of the config file without the extension.
 func SetConfigName(in string) {
-	viper.SetConfigName(in)
+	_default.SetConfigName(in)
 }
 
 // SetConfigType sets the type of the configuration file.
 func SetConfigType(in string) {
-	viper.SetConfigType(in)
+	_default.SetConfigType(in)
 }
 
 // SetEnvPrefix sets the environment variable prefix.
 func SetEnvPrefix(in string) {
-	viper.SetEnvPrefix(in)
+	_default.SetEnvPrefix(in)
 }
 
 // SetEnvKeyReplacer sets the environment variable key replacer.
 func SetEnvKeyReplacer(r *strings.Replacer) {
-	viper.SetEnvKeyReplacer(r)
+	_default.SetEnvKeyReplacer(r)
 }
 
 // AutomaticEnv automatically binds all environment variables with the given prefix.
 func AutomaticEnv() {
-	viper.AutomaticEnv()
+	_default.AutomaticEnv()
 }
 
 // BindPFlag binds a Viper flag to a pflag.Flag.
@@ -188,7 +188,7 @@ func UnmarshalKey(key string, rawVal interface{}, opts ...viper.DecoderConfigOpt
 
 // AddConfigPath adds a path for Viper to search for the config file in.
 func AddConfigPath(in string) {
-	viper.AddConfigPath(in)
+	_default.AddConfigPath(in)
 }
 
 // ReadInConfig reads in a config file.

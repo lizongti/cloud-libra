@@ -28,7 +28,6 @@ func main() {
 	if err := h.LoadAssetMap(assetMap); err != nil {
 		panic(err)
 	}
-
 	run, err := logger.New(h.Sub("logger"))
 	if err != nil {
 		panic(err)

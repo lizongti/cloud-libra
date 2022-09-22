@@ -97,11 +97,11 @@ func (h *FileHook) Levels() []logrus.Level {
 
 func (*HookGenerator) File(h *hierarchy.Hierarchy) (logrus.Hook, error) {
 	logger := &lumberjack.Logger{
-		Filename:   h.GetStringVal("file", "logrus.log"), // {var} is replaced
-		MaxSize:    h.GetIntVal("size", 1024),            // megabytes
-		MaxBackups: h.GetIntVal("backup", 0),             // backup count
-		MaxAge:     h.GetIntVal("days", 0),               // days
-		Compress:   h.GetBoolVal("compress", false),      // disabled by default
+		Filename:   h.GetStringVal("file", "libra.log"), // {var} is replaced
+		MaxSize:    h.GetIntVal("size", 1024),           // megabytes
+		MaxBackups: h.GetIntVal("backup", 0),            // backup count
+		MaxAge:     h.GetIntVal("days", 0),              // days
+		Compress:   h.GetBoolVal("compress", false),     // disabled by default
 	}
 
 	return &FileHook{logger, NewLogLevels(h), NewFormatOptions(h)}, nil

@@ -13,8 +13,9 @@ import (
 )
 
 var (
-	ErrFormatterNotFound = errors.New("formatter not found")
-	ErrMethodNotValid    = errors.New("method not valid")
+	ErrFormatterNotFound     = errors.New("formatter not found")
+	ErrMethodNotValid        = errors.New("method not valid")
+	ErrFormatOptionsNotFound = errors.New("format options not found")
 )
 
 type (
@@ -44,10 +45,10 @@ func init() {
 	}
 }
 
-func NewFormatter(c *hierarchy.Hierarchy) (logrus.Formatter, error) {
-	typ := c.GetString("type")
+func NewFormatter(h *hierarchy.Hierarchy) (logrus.Formatter, error) {
+	typ := h.GetStringVal("type", "text")
 	if fn, ok := formatterGeneratorMap[typ]; ok {
-		return fn(c)
+		return fn(h)
 	}
 
 	return nil, fmt.Errorf("%w: %s", ErrFormatterNotFound, typ)
@@ -60,17 +61,23 @@ type TextFormatter struct {
 }
 
 func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
-	c, ok := entry.Context.Value("formatOptions").(*FormatOptions)
-	if ok {
-		if !c.date && !c.time && !c.nanosecond && !c.timezone {
-			f.TextFormatter.DisableTimestamp = true
-		} else {
-			f.TextFormatter.DisableTimestamp = false
-			f.TextFormatter.TimestampFormat = f.generateTimeFormat(c.date, c.time, c.nanosecond, c.timezone)
-		}
-
-		f.TextFormatter.CallerPrettyfier = f.generateCallerPrettierfier(c.file, c.function)
+	if entry.Context == nil || entry.Context.Value("formatOptions") == nil {
+		return f.TextFormatter.Format(entry)
 	}
+
+	c, ok := entry.Context.Value("formatOptions").(*FormatOptions)
+	if !ok {
+		return nil, fmt.Errorf("%w: %T", ErrFormatOptionsNotFound, entry.Context.Value("formatOptions"))
+	}
+
+	if !c.date && !c.time && !c.nanosecond && !c.timezone {
+		f.TextFormatter.DisableTimestamp = true
+	} else {
+		f.TextFormatter.DisableTimestamp = false
+		f.TextFormatter.TimestampFormat = f.generateTimeFormat(c.date, c.time, c.nanosecond, c.timezone)
+	}
+
+	f.TextFormatter.CallerPrettyfier = f.generateCallerPrettierfier(c.file, c.function)
 
 	data, err := f.TextFormatter.Format(entry)
 	if err != nil {

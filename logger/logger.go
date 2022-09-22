@@ -25,7 +25,7 @@ func New(h *hierarchy.Hierarchy) (*logrus.Logger, error) {
 
 	// Set hooks.
 	h.ForeachInArray("hooks", func(index int, h *hierarchy.Hierarchy) (bool, error) {
-		typ := h.GetStringVal("type", "text")
+		typ := h.GetString("type")
 		hook, err := NewHook(typ, h)
 		if err != nil {
 			return false, err
