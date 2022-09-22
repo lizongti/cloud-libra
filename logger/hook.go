@@ -53,20 +53,14 @@ func NewHook(typ string, c *hierarchy.Hierarchy) (logrus.Hook, error) {
 	return nil, fmt.Errorf("%w: %s", ErrHookNotFound, typ)
 }
 
-type Options struct {
-	time     bool
-	level    bool
-	file     bool
-	function bool
-}
-
 var _ logrus.Hook = &FileHook{}
 
 // FileHook stores the hook of rolling file appender.
 type FileHook struct {
-	logger    *lumberjack.Logger
-	logLevels *LogLevels
-	options   *Options
+	// formatter logrus.Formatter
+	logger        *lumberjack.Logger
+	logLevels     *LogLevels
+	formatOptions *FormatOptions
 }
 
 // Fire is called when a log event is fired.
@@ -77,9 +71,9 @@ func (h *FileHook) Fire(entry *logrus.Entry) error {
 	)
 
 	if entry.Context == nil {
-		entry.Context = context.WithValue(context.Background(), "options", h.options)
+		entry.Context = context.WithValue(context.Background(), "formatOptions", h.formatOptions)
 	} else {
-		entry.Context = context.WithValue(entry.Context, "options", h.options)
+		entry.Context = context.WithValue(entry.Context, "formatOptions", h.formatOptions)
 	}
 
 	line, err = entry.Bytes()
@@ -101,41 +95,16 @@ func (h *FileHook) Levels() []logrus.Level {
 	return h.logLevels.ToLogrus()
 }
 
-func (*HookGenerator) File(c *hierarchy.Hierarchy) (logrus.Hook, error) {
+func (*HookGenerator) File(h *hierarchy.Hierarchy) (logrus.Hook, error) {
 	logger := &lumberjack.Logger{
-		Filename:   c.GetString("file"),   // {var} is replaced
-		MaxSize:    c.GetInt("size"),      // megabytes
-		MaxBackups: c.GetInt("backup"),    // backup count
-		MaxAge:     c.GetInt("days"),      // days
-		Compress:   c.GetBool("compress"), // disabled by default
+		Filename:   h.GetString("file"),   // {var} is replaced
+		MaxSize:    h.GetInt("size"),      // megabytes
+		MaxBackups: h.GetInt("backup"),    // backup count
+		MaxAge:     h.GetInt("days"),      // days
+		Compress:   h.GetBool("compress"), // disabled by default
 	}
 
-	var a any
-	if c.IsArray("level") {
-		a = c.GetStringSlice("level")
-	} else {
-		a = c.GetString("level")
-	}
-
-	logLevels, err := NewLogLevels(a)
-	if err != nil {
-		return nil, err
-	}
-
-	var options = &Options{}
-	if c.IsArray("header") {
-		options.time = c.GetBool("header.time")
-		options.level = c.GetBool("header.level")
-		options.file = c.GetBool("header.file")
-		options.function = c.GetBool("header.function")
-	} else {
-		options.time = c.GetBool("header")
-		options.level = c.GetBool("header")
-		options.file = c.GetBool("header")
-		options.function = c.GetBool("header")
-	}
-
-	return &FileHook{logger, logLevels, options}, nil
+	return &FileHook{logger, NewLogLevels(h), NewFormatOptions(h)}, nil
 }
 
 var stderr = colorable.NewColorableStderr()
@@ -145,8 +114,8 @@ var _ logrus.Hook = &StderrHook{}
 // StderrHook is for stdout.
 type StderrHook struct {
 	writer.Hook
-	logLevels *LogLevels
-	options   *Options
+	logLevels     *LogLevels
+	formatOptions *FormatOptions
 }
 
 func (h *StderrHook) Fire(entry *logrus.Entry) error {
@@ -156,9 +125,9 @@ func (h *StderrHook) Fire(entry *logrus.Entry) error {
 	)
 
 	if entry.Context == nil {
-		entry.Context = context.WithValue(context.Background(), "options", h.options)
+		entry.Context = context.WithValue(context.Background(), "formatOptions", h.formatOptions)
 	} else {
-		entry.Context = context.WithValue(entry.Context, "options", h.options)
+		entry.Context = context.WithValue(entry.Context, "formatOptions", h.formatOptions)
 	}
 
 	line, err = entry.Bytes()
@@ -175,38 +144,16 @@ func (h *StderrHook) Levels() []logrus.Level {
 	return h.logLevels.ToLogrus()
 }
 
-func (*HookGenerator) Stderr(c *hierarchy.Hierarchy) (logrus.Hook, error) {
+func (*HookGenerator) Stderr(h *hierarchy.Hierarchy) (logrus.Hook, error) {
 	hook := writer.Hook{
 		Writer:    stderr,
 		LogLevels: logrus.AllLevels,
 	}
 
-	var a any
-	if c.IsArray("level") {
-		a = c.GetStringSlice("level")
-	} else {
-		a = c.GetString("level")
-	}
+	logLevels := NewLogLevels(h)
+	formatOptions := NewFormatOptions(h)
 
-	logLevels, err := NewLogLevels(a)
-	if err != nil {
-		return nil, err
-	}
-
-	var options = &Options{}
-	if c.IsArray("header") {
-		options.time = c.GetBool("header.time")
-		options.level = c.GetBool("header.level")
-		options.file = c.GetBool("header.file")
-		options.function = c.GetBool("header.function")
-	} else {
-		options.time = c.GetBool("header")
-		options.level = c.GetBool("header")
-		options.file = c.GetBool("header")
-		options.function = c.GetBool("header")
-	}
-
-	return &StderrHook{hook, logLevels, options}, nil
+	return &StderrHook{hook, logLevels, formatOptions}, nil
 }
 
 var stdout = colorable.NewColorableStdout()
@@ -216,8 +163,8 @@ var _ logrus.Hook = &StdoutHook{}
 // StdoutHook is for stdout.
 type StdoutHook struct {
 	writer.Hook
-	logLevels *LogLevels
-	options   *Options
+	logLevels     *LogLevels
+	formatOptions *FormatOptions
 }
 
 // Levels returns the available logging
@@ -232,9 +179,9 @@ func (h *StdoutHook) Fire(entry *logrus.Entry) error {
 	)
 
 	if entry.Context == nil {
-		entry.Context = context.WithValue(context.Background(), "options", h.options)
+		entry.Context = context.WithValue(context.Background(), "formatOptions", h.formatOptions)
 	} else {
-		entry.Context = context.WithValue(entry.Context, "options", h.options)
+		entry.Context = context.WithValue(entry.Context, "formatOptions", h.formatOptions)
 	}
 
 	line, err = entry.Bytes()
@@ -246,46 +193,21 @@ func (h *StdoutHook) Fire(entry *logrus.Entry) error {
 	return err
 }
 
-func (*HookGenerator) Stdout(c *hierarchy.Hierarchy) (logrus.Hook, error) {
+func (*HookGenerator) Stdout(h *hierarchy.Hierarchy) (logrus.Hook, error) {
 	hook := writer.Hook{
 		Writer:    stdout,
 		LogLevels: logrus.AllLevels,
 	}
 
-	var a any
-	if c.IsArray("level") {
-		a = c.GetStringSlice("level")
-	} else {
-		a = c.GetString("level")
-	}
-
-	logLevels, err := NewLogLevels(a)
-	if err != nil {
-		return nil, err
-	}
-
-	var options = &Options{}
-	if c.IsArray("header") {
-		options.time = c.GetBool("header.time")
-		options.level = c.GetBool("header.level")
-		options.file = c.GetBool("header.file")
-		options.function = c.GetBool("header.function")
-	} else {
-		options.time = c.GetBool("header")
-		options.level = c.GetBool("header")
-		options.file = c.GetBool("header")
-		options.function = c.GetBool("header")
-	}
-
-	return &StdoutHook{hook, logLevels, options}, nil
+	return &StdoutHook{hook, NewLogLevels(h), NewFormatOptions(h)}, nil
 }
 
 var _ logrus.Hook = &TelegramHook{}
 
 type TelegramHook struct {
-	router    *router.ServiceRouter
-	logLevels *LogLevels
-	options   *Options
+	router        *router.ServiceRouter
+	logLevels     *LogLevels
+	formatOptions *FormatOptions
 }
 
 const telegramURL = "telegram://%s@telegram?chats=%s"
@@ -297,9 +219,9 @@ func (h *TelegramHook) Fire(entry *logrus.Entry) error {
 	)
 
 	if entry.Context == nil {
-		entry.Context = context.WithValue(context.Background(), "options", h.options)
+		entry.Context = context.WithValue(context.Background(), "formatOptions", h.formatOptions)
 	} else {
-		entry.Context = context.WithValue(entry.Context, "options", h.options)
+		entry.Context = context.WithValue(entry.Context, "formatOptions", h.formatOptions)
 	}
 
 	line, err = entry.Bytes()
@@ -319,36 +241,11 @@ func (h *TelegramHook) Levels() []logrus.Level {
 	return h.logLevels.ToLogrus()
 }
 
-func (*HookGenerator) Telegram(c *hierarchy.Hierarchy) (logrus.Hook, error) {
-	router, err := shoutrrr.CreateSender(fmt.Sprintf(telegramURL, c.GetString("token"), c.GetString("chat_id")))
+func (*HookGenerator) Telegram(h *hierarchy.Hierarchy) (logrus.Hook, error) {
+	router, err := shoutrrr.CreateSender(fmt.Sprintf(telegramURL, h.GetString("token"), h.GetString("chat_id")))
 	if err != nil {
 		return nil, err
 	}
 
-	var a any
-	if c.IsArray("level") {
-		a = c.GetStringSlice("level")
-	} else {
-		a = c.GetString("level")
-	}
-
-	logLevels, err := NewLogLevels(a)
-	if err != nil {
-		return nil, err
-	}
-
-	var options = &Options{}
-	if c.IsArray("header") {
-		options.time = c.GetBool("header.time")
-		options.level = c.GetBool("header.level")
-		options.file = c.GetBool("header.file")
-		options.function = c.GetBool("header.function")
-	} else {
-		options.time = c.GetBool("header")
-		options.level = c.GetBool("header")
-		options.file = c.GetBool("header")
-		options.function = c.GetBool("header")
-	}
-
-	return &TelegramHook{router, logLevels, options}, nil
+	return &TelegramHook{router, NewLogLevels(h), NewFormatOptions(h)}, nil
 }

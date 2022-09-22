@@ -3,10 +3,9 @@ logger:
   level: info
   formatter:
     type: text
-    time_format: 2006/01/02 15:04:05.0000000
   hooks:
     - type: file
-      header: true
+      format: all
       level: info
       file: ${ProjectDir}/examples/logger/log/run.log
       size: 1024
@@ -14,20 +13,20 @@ logger:
       days: 7
       compress: false
     - type: stdout
-      header: true
+      format: normal
       level:
         - info
         - warn
         - debug
         - trace
     - type: stderr
-      header: true
+      format: normal
       level:
         - error
         - panic
         - fatal
     - type: telegram
-      header: false
+      format: message
       level: panic
       token: 5515503471:AAHilqY6UuixG22Jayl94re01ly4CIL0dTM
       chat_id: -1001535194188

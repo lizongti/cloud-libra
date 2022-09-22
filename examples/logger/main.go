@@ -36,4 +36,7 @@ func main() {
 
 	log.SetLogger(run)
 	log.Println("Hello, World!")
+	// log.Println(h)
+	log.Warnln("Hello, World!")
+	log.Errorln("Hello, World!")
 }

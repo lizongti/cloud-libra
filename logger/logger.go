@@ -35,11 +35,7 @@ func New(h *hierarchy.Hierarchy) (*logrus.Logger, error) {
 	})
 
 	// Set Level
-	logLevel, err := NewLogLevel(h.GetString("level"))
-	if err != nil {
-		return nil, err
-	}
-	logger.SetLevel(logLevel.ToLogrus())
+	logger.SetLevel(NewLogLevel(h.GetString("level")).ToLogrus())
 
 	return logger, nil
 }

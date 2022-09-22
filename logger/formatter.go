@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"reflect"
@@ -59,12 +60,16 @@ type TextFormatter struct {
 }
 
 func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
-	if options, ok := entry.Context.Value("options").(*Options); ok {
-		if !options.time {
+	c, ok := entry.Context.Value("formatOptions").(*FormatOptions)
+	if ok {
+		if !c.date && !c.time && !c.nanosecond && !c.timezone {
 			f.TextFormatter.DisableTimestamp = true
+		} else {
+			f.TextFormatter.DisableTimestamp = false
+			f.TextFormatter.TimestampFormat = f.generateTimeFormat(c.date, c.time, c.nanosecond, c.timezone)
 		}
 
-		f.TextFormatter.CallerPrettyfier = f.generateCallerPrettierfier(options.file, options.function)
+		f.TextFormatter.CallerPrettyfier = f.generateCallerPrettierfier(c.file, c.function)
 	}
 
 	data, err := f.TextFormatter.Format(entry)
@@ -72,22 +77,60 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		return nil, err
 	}
 
+	if !c.level {
+		index := bytes.Index(data, []byte("[0m"))
+		data = data[index+4:]
+	}
+
 	return data, nil
+}
+
+func (f *TextFormatter) generateTimeFormat(date bool, time bool, nanosecond bool, timezone bool) string {
+	var buf bytes.Buffer
+	if date {
+		if buf.Len() > 0 {
+			buf.WriteByte(' ')
+		}
+		buf.WriteString("2006/01/02")
+	}
+
+	if time {
+		if buf.Len() > 0 {
+			buf.WriteByte(' ')
+		}
+		buf.WriteString("15:04:05")
+	}
+
+	if nanosecond {
+		if buf.Len() > 0 {
+			buf.WriteByte(' ')
+		}
+		buf.WriteString(".000000000")
+	}
+
+	if timezone {
+		if buf.Len() > 0 {
+			buf.WriteByte(' ')
+		}
+		buf.WriteString("-0700")
+	}
+
+	return buf.String()
 }
 
 func (f *TextFormatter) generateCallerPrettierfier(file bool, function bool) func(*runtime.Frame) (string, string) {
 	switch {
 	case file && function:
 		return func(frame *runtime.Frame) (string, string) {
-			return f.generateFunction(frame), f.generateFile(frame)
+			return f.generateFile(frame) + f.generateFunction(frame) + ":", ""
 		}
 	case file:
 		return func(frame *runtime.Frame) (string, string) {
-			return "", f.generateFile(frame)
+			return f.generateFile(frame) + ":", ""
 		}
 	case function:
 		return func(frame *runtime.Frame) (string, string) {
-			return f.generateFunction(frame), ""
+			return f.generateFunction(frame) + ":", ""
 		}
 	default:
 		return func(frame *runtime.Frame) (string, string) {
@@ -109,16 +152,15 @@ func (f *TextFormatter) generateFile(frame *runtime.Frame) string {
 
 func (f *TextFormatter) generateFunction(frame *runtime.Frame) string {
 	s := frame.Function
-	return fmt.Sprintf("(%s):", s[strings.LastIndex(s, "/")+1:])
+	return fmt.Sprintf(" (%s)", s[strings.LastIndex(s, "/")+1:])
 }
 
 func (*FormatterGenerator) Text(h *hierarchy.Hierarchy) (logrus.Formatter, error) {
 	formatter := &TextFormatter{
 		TextFormatter: logrus.TextFormatter{
-			ForceColors:            true,
-			TimestampFormat:        h.GetString("time_format"), // the "time" field configuratiom
-			FullTimestamp:          true,
-			DisableLevelTruncation: true, // log upgrade field configuration
+			ForceColors:     true,
+			TimestampFormat: h.GetString("time_format"),
+			FullTimestamp:   true,
 			CallerPrettyfier: func(f *runtime.Frame) (string, string) {
 				s := f.File
 				fileIndex := strings.LastIndex(s, "/")
@@ -204,4 +246,69 @@ func (*FormatterGenerator) JSON(h *hierarchy.Hierarchy) (logrus.Formatter, error
 	}
 
 	return formatter, nil
+}
+
+type FormatOptions struct {
+	level      bool
+	date       bool
+	time       bool
+	nanosecond bool
+	timezone   bool
+	file       bool
+	function   bool
+	message    bool
+}
+
+func NewFormatOptions(h *hierarchy.Hierarchy) *FormatOptions {
+	c := &FormatOptions{}
+
+	if h.IsArray("format") {
+		for _, option := range h.GetStringSlice("format") {
+			switch option {
+			case "level", "lvl", "lv":
+				c.level = true
+			case "date":
+				c.date = true
+			case "time", "tm":
+				c.time = true
+			case "nano-second", "nanosecond", "nano", "ns":
+				c.nanosecond = true
+			case "timezone", "tz":
+				c.timezone = true
+			case "file", "f":
+				c.file = true
+			case "function", "func", "fn":
+				c.function = true
+			case "message", "msg", "m":
+				c.message = true
+			}
+		}
+	} else {
+		switch format := h.GetString("format"); format {
+		case "all", "large", "whole", "full", "complete", "max", "maximum", "long", "longest", "verbose", "l":
+			c.level = true
+			c.date = true
+			c.time = true
+			c.nanosecond = true
+			c.timezone = true
+			c.file = true
+			c.function = true
+			c.message = true
+		case "default", "std", "standard", "common", "normal", "medium", "m":
+			c.level = true
+			c.date = true
+			c.time = true
+			c.file = true
+			c.message = true
+		case "simple", "short", "small", "s":
+			c.level = true
+			c.date = true
+			c.time = true
+			c.message = true
+		case "minimal", "message", "msg", "tiny", "t", "":
+			c.message = true
+		}
+	}
+
+	return c
 }
