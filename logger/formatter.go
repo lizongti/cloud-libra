@@ -300,7 +300,7 @@ func NewFormatOptions(h *hierarchy.Hierarchy) *FormatOptions {
 		}
 	} else {
 		switch format := h.GetString("format"); format {
-		case "all", "large", "whole", "full", "complete", "max", "maximum", "long", "longest", "verbose", "l":
+		case "all":
 			c.level = true
 			c.date = true
 			c.time = true
@@ -309,18 +309,18 @@ func NewFormatOptions(h *hierarchy.Hierarchy) *FormatOptions {
 			c.file = true
 			c.function = true
 			c.message = true
-		case "default", "std", "standard", "common", "normal", "medium", "m":
+		case "default":
 			c.level = true
 			c.date = true
 			c.time = true
 			c.file = true
 			c.message = true
-		case "simple", "short", "small", "s":
+		case "simple":
 			c.level = true
 			c.date = true
 			c.time = true
 			c.message = true
-		case "minimal", "message", "msg", "tiny", "t", "":
+		case "message", "":
 			c.message = true
 		default:
 			panic(fmt.Errorf("%w: %s", ErrUnexpectedFormat, format))

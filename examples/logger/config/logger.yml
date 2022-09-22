@@ -13,7 +13,7 @@ logger:
       days: 7
       compress: false
     - type: stdout
-      format: std
+      format: normal
       level:
         - info
         - warn
