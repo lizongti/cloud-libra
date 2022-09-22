@@ -19,8 +19,6 @@ type DefaultLogger interface {
 	Panicln(v ...interface{})
 }
 
-var defaultLogger DefaultLogger = log.Default()
-
 // Logger represents the standard log interface.
 type Logger interface {
 	DefaultLogger
