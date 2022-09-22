@@ -5,7 +5,7 @@ logger:
     type: text
   hooks:
     - type: file
-      format: all
+      format: verbose
       level: info
       file: ${ProjectDir}/examples/logger/log/run.log
       size: 1024
