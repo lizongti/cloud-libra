@@ -91,6 +91,7 @@ func (f *TextFormatter) generateTimeFormat(date bool, time bool, nanosecond bool
 		if buf.Len() > 0 {
 			buf.WriteByte(' ')
 		}
+
 		buf.WriteString("2006/01/02")
 	}
 
@@ -98,6 +99,7 @@ func (f *TextFormatter) generateTimeFormat(date bool, time bool, nanosecond bool
 		if buf.Len() > 0 {
 			buf.WriteByte(' ')
 		}
+
 		buf.WriteString("15:04:05")
 	}
 
@@ -105,6 +107,7 @@ func (f *TextFormatter) generateTimeFormat(date bool, time bool, nanosecond bool
 		if buf.Len() > 0 {
 			buf.WriteByte(' ')
 		}
+
 		buf.WriteString(".000000000")
 	}
 
@@ -112,6 +115,7 @@ func (f *TextFormatter) generateTimeFormat(date bool, time bool, nanosecond bool
 		if buf.Len() > 0 {
 			buf.WriteByte(' ')
 		}
+
 		buf.WriteString("-0700")
 	}
 
@@ -144,23 +148,25 @@ func (f *TextFormatter) generateFile(frame *runtime.Frame) string {
 	fileIndex := strings.LastIndex(s, "/")
 	packageIndex := strings.LastIndex(s[:fileIndex], "/")
 	atIndex := strings.LastIndex(s[packageIndex+1:fileIndex], "@")
+
 	if atIndex >= 0 {
 		return fmt.Sprintf(" %s:%d", s[packageIndex+1:], frame.Line)
 	}
+
 	return fmt.Sprintf(" %s%s:%d", s[packageIndex+1 : fileIndex][atIndex+1:], s[fileIndex:], frame.Line)
 }
 
 func (f *TextFormatter) generateFunction(frame *runtime.Frame) string {
 	s := frame.Function
+
 	return fmt.Sprintf(" (%s)", s[strings.LastIndex(s, "/")+1:])
 }
 
 func (*FormatterGenerator) Text(h *hierarchy.Hierarchy) (logrus.Formatter, error) {
 	formatter := &TextFormatter{
 		TextFormatter: logrus.TextFormatter{
-			ForceColors:     true,
-			TimestampFormat: h.GetString("time_format"),
-			FullTimestamp:   true,
+			ForceColors:   true,
+			FullTimestamp: true,
 			CallerPrettyfier: func(f *runtime.Frame) (string, string) {
 				s := f.File
 				fileIndex := strings.LastIndex(s, "/")
@@ -248,6 +254,8 @@ func (*FormatterGenerator) JSON(h *hierarchy.Hierarchy) (logrus.Formatter, error
 	return formatter, nil
 }
 
+var ErrUnexpectedFormat = errors.New("unexpected format")
+
 type FormatOptions struct {
 	level      bool
 	date       bool
@@ -307,6 +315,8 @@ func NewFormatOptions(h *hierarchy.Hierarchy) *FormatOptions {
 			c.message = true
 		case "minimal", "message", "msg", "tiny", "t", "":
 			c.message = true
+		default:
+			panic(fmt.Errorf("%w: %s", ErrUnexpectedFormat, format))
 		}
 	}
 

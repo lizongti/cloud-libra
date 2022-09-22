@@ -48,7 +48,7 @@ func NewLogLevel(i interface{}) *LogLevel {
 	case *hierarchy.Hierarchy:
 		h := i
 
-		return NewLogLevel(h.GetString("level"))
+		return NewLogLevel(h.GetStringVal("level", "info"))
 
 	default:
 		panic(fmt.Errorf("%w: %T", ErrUnknownLogLevel, i))
@@ -98,7 +98,7 @@ func NewLogLevels(i interface{}) *LogLevels {
 			return NewLogLevels(a)
 		}
 
-		a = h.GetString("level")
+		a = h.GetStringVal("level", "info")
 
 		return NewLogLevels(a)
 
