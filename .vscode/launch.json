@@ -5,11 +5,19 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "tmp",
+			"name": "examples/logger",
 			"type": "go",
 			"request": "launch",
 			"mode": "debug",
 			"program": "${workspaceRoot}/examples/logger/main.go",
+			"args": [],
+		},
+		{
+			"name": "tmp",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceRoot}/tmp/main.go",
 			"args": [],
 		}
 	]
